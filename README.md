@@ -1,4 +1,4 @@
-## 说明
+## 前言
 
 ![电脑](README.assets/computer.png)
 
