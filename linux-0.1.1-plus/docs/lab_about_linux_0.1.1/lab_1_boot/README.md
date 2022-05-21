@@ -539,7 +539,7 @@ _start:
     mov bp,#msg_sectors
     mov ax,#0x1301
     int 0x10
-    mov dx,[12]
+    mov dx,[0x12]
     call    print_hex
 
 inf_loop:
