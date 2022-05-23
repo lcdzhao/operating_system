@@ -6,7 +6,7 @@ _start:
     xor bh,bh
     int 0x10
 
-    ! Whow msg
+    ! Show msg1
     ! Cx is the length of msg1
     mov cx,#42
     ! Es:bp is the address of msg1
