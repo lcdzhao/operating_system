@@ -44,7 +44,7 @@ _start:
     ! Move ax to address(ds+2)
     mov [2],ax
 
-    ! Read table address of disk from address store in 0x41
+    ! Read table of disk from address which store in 0x41
     ! Set ds and si
     mov ax,#0x0000
     mov ds,ax
