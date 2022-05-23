@@ -1,27 +1,27 @@
 INITSEG  = 0x9000
 entry _start
 _start:
-    ! read cursor pos , pos will be in dx 
+    ! Read cursor pos , pos will be in dx 
     mov ah,#0x03 
     xor bh,bh
     int 0x10
 
-    ! show msg
-    ! cx is the length of msg1
+    ! Whow msg
+    ! Cx is the length of msg1
     mov cx,#42
-    ! es:bp is the address of msg1
+    ! Es:bp is the address of msg1
     mov bp,#msg2
     mov ax,#0x07e0
     mov es,ax
-    ! page 0, attribute7 (normal)
+    ! Page 0, attribute7 (normal)
     mov bx,#0x0007
-    ! write string, move cursor
+    ! Write string, move cursor
     mov ax,#0x1301
     int 0x10
 
     mov ax,cs
     mov es,ax
-    ! init ss:sp
+    ! Init ss:sp
     mov ax,#INITSEG
     mov ss,ax
     mov sp,#0xFF00
@@ -35,7 +35,7 @@ _start:
     mov ah,#0x03
     xor bh,bh
     int 0x10
-    !Move dx to address(ds+0)
+    ! Move dx to address(ds+0)
     mov [0],dx
 
     ! Read memory size
@@ -164,7 +164,7 @@ print_digit:
     and    al,dl
     ! Add 0x30 to al,it,s the code of ascii
     add    al,#0x30
-    ! if num < 10, then print directly,else add 0x07 to make it be equals the ascii of a,b,c,d... 
+    ! If num < 10, then print directly,else add 0x07 to make it be equals the ascii of a,b,c,d... 
     cmp    al,#0x3a
     jl     outp
     add    al,#0x07
