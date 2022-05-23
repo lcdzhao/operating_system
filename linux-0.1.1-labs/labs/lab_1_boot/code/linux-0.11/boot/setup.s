@@ -44,11 +44,11 @@ _start:
     ! Move ax to address(ds+2)
     mov [2],ax
 
-    ! Read table of disk from address store in 0x41
+    ! Read table address of disk from address store in 0x41
     ! Set ds and si
     mov ax,#0x0000
     mov ds,ax
-    ! Load 4 bits data to si and ds from address(di : 0x41)
+    ! Load 4 bits data which is the table address of disk to si and ds from address(di : 0x41)
     lds si, [4*0x41]
     ! Set es and di
     mov ax,#INITSEG
