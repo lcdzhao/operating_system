@@ -1,7 +1,7 @@
 INITSEG  = 0x9000
 entry _start
 _start:
-    ! Read cursor pos , pos will be in dx 
+    ! Read cursor pos , pos will be store in dx 
     mov ah,#0x03 
     xor bh,bh
     int 0x10
