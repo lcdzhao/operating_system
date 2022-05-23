@@ -48,7 +48,7 @@ _start:
     ! Set ds and si
     mov ax,#0x0000
     mov ds,ax
-    ! Load 4 bits data which is the table address of disk to si and ds from address(di : 0x41)
+    ! Load 4 bits data which is the table address of disk to ds and si from address(ds : 4 * 0x41 = 0x104)
     lds si, [4*0x41]
     ! Set es and di
     mov ax,#INITSEG
