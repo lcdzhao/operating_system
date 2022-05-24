@@ -141,3 +141,212 @@ _syscall2(int, whoami,char*,name,unsigned int,size);
 
 该目录下的 unistd.h 是标准头文件（它和 0.11 源码树中的 unistd.h 并不是同一个文件，虽然内容可能相同），没有 \__NR_whoami 和 \__NR_iam 两个宏，需要手工加上它们，也可以直接从修改过的 0.11 源码树中拷贝新的 unistd.h 过来。
 
+## 实现 sys_iam() 和 sys_whoami()
+添加系统调用的最后一步，是在内核中实现函数 `sys_iam()` 和 `sys_whoami()`。
+
+每个系统调用都有一个 `sys_xxxxxx()` 与之对应，它们都是我们学习和模仿的好对象。
+
+比如在 `fs/open.c` 中的 `sys_close(int fd)`：
+```
+int sys_close(unsigned int fd)
+{
+//    ……
+    return (0);
+}
+```
+它没有什么特别的，都是实实在在地做 `close()` 该做的事情。
+
+所以只要自己创建一个文件：kernel/who.c，然后实现两个函数就万事大吉了。
+
+如果完全没有实现的思路，不必担心，本实验的 “6.7 在用户态和核心态之间传递数据” 还会有提示。
+
+### 修改 Makefile
+要想让我们添加的 `kernel/who.c` 可以和其它 `Linux` 代码编译链接到一起，必须要修改 `Makefile` 文件。
+
+`Makefile` 里记录的是所有源程序文件的编译、链接规则，《注释》3.6 节有简略介绍。我们之所以简单地运行 `make` 就可以编译整个代码树，是因为 `make` 完全按照 `Makefile` 里的指示工作。
+
+如果想要深入学习 `Makefile`，可以选择实验楼的课程： 《Makefile 基础教程》、《跟我一起来玩转 Makefile》。
+
+Makefile 在代码树中有很多，分别负责不同模块的编译工作。我们要修改的是 `kernel/Makefile`。需要修改两处。
+
+（1）第一处
+```
+OBJS  = sched.o system_call.o traps.o asm.o fork.o \
+        panic.o printk.o vsprintf.o sys.o exit.o \
+        signal.o mktime.o
+```
+改为：
+```
+OBJS  = sched.o system_call.o traps.o asm.o fork.o \
+        panic.o printk.o vsprintf.o sys.o exit.o \
+        signal.o mktime.o who.o
+```
+添加了 who.o。
+
+（2）第二处
+```
+### Dependencies:
+exit.s exit.o: exit.c ../include/errno.h ../include/signal.h \
+  ../include/sys/types.h ../include/sys/wait.h ../include/linux/sched.h \
+  ../include/linux/head.h ../include/linux/fs.h ../include/linux/mm.h \
+  ../include/linux/kernel.h ../include/linux/tty.h ../include/termios.h \
+  ../include/asm/segment.h
+```
+改为：
+```
+### Dependencies:
+who.s who.o: who.c ../include/linux/kernel.h ../include/unistd.h
+exit.s exit.o: exit.c ../include/errno.h ../include/signal.h \
+  ../include/sys/types.h ../include/sys/wait.h ../include/linux/sched.h \
+  ../include/linux/head.h ../include/linux/fs.h ../include/linux/mm.h \
+  ../include/linux/kernel.h ../include/linux/tty.h ../include/termios.h \
+  ../include/asm/segment.h
+```
+添加了 `who.s who.o: who.c ../include/linux/kernel.h ../include/unistd.h`。
+
+Makefile 修改后，和往常一样 `make all` 就能自动把 `who.c` 加入到内核中了。
+
+如果编译时提示 `who.c` 有错误，就说明修改生效了。所以，有意或无意地制造一两个错误也不完全是坏事，至少能证明 Makefile 是对的。
+
+### 用 printk() 调试内核
+oslab 实验环境提供了基于 C 语言和汇编语言的两种调试手段。除此之外，适当地向屏幕输出一些程序运行状态的信息，也是一种很高效、便捷的调试方法，有时甚至是唯一的方法，被称为“printf 法”。
+
+要知道到，`printf()` 是一个只能在用户模式下执行的函数，而系统调用是在内核模式中运行，所以 `printf()` 不可用，要用 `printk()`。
+
+`printk()` 和 `printf()` 的接口和功能基本相同，只是代码上有一点点不同。printk() 需要特别处理一下 fs 寄存器，它是专用于用户模式的段寄存器。
+
+看一看 printk 的代码（在 kernel/printk.c 中）就知道了：
+```
+int printk(const char *fmt, ...)
+{
+//    ……
+    __asm__("push %%fs\n\t"
+            "push %%ds\n\t"
+            "pop %%fs\n\t"
+            "pushl %0\n\t"
+            "pushl $buf\n\t"
+            "pushl $0\n\t"
+            "call tty_write\n\t"
+            "addl $8,%%esp\n\t"
+            "popl %0\n\t"
+            "pop %%fs"
+            ::"r" (i):"ax","cx","dx");
+//    ……
+}
+```
+显然，`printk()` 首先 `push %fs` 保存这个指向用户段的寄存器，在最后 `pop %fs` 将其恢复，`printk()` 的核心仍然是调用 `tty_write()`。查看 `printf()` 可以看到，它最终也要落实到这个函数上。
+
+### 在用户态和核心态之间传递数据
+指针参数传递的是应用程序所在地址空间的逻辑地址，在内核中如果直接访问这个地址，访问到的是内核空间中的数据，不会是用户空间的。所以这里还需要一点儿特殊工作，才能在内核中从用户空间得到数据。
+
+要实现的两个系统调用参数中都有字符串指针，非常像 `open(char *filename, ……)`，所以我们看一下 `open()` 系统调用是如何处理的。
+```
+int open(const char * filename, int flag, ...)
+{
+//    ……
+    __asm__("int $0x80"
+            :"=a" (res)
+            :"0" (__NR_open),"b" (filename),"c" (flag),
+            "d" (va_arg(arg,int)));
+//    ……
+}
+```
+可以看出，系统调用是用 eax、ebx、ecx、edx 寄存器来传递参数的。
+
+其中 eax 传递了系统调用号，而 ebx、ecx、edx 是用来传递函数的参数的
+ebx 对应第一个参数，ecx 对应第二个参数，依此类推。
+如 open 所传递的文件名指针是由 ebx 传递的，也即进入内核后，通过 ebx 取出文件名字符串。open 的 ebx 指向的数据在用户空间，而当前执行的是内核空间的代码，如何在用户态和核心态之间传递数据？
+
+接下来我们继续看看 open 的处理：
+```
+system_call: //所有的系统调用都从system_call开始
+!    ……
+    # push %ebx,%ecx,%edx，这是传递给系统调用的参数
+    pushl %edx
+    pushl %ecx
+    pushl %ebx                
+    # 让ds,es指向GDT，指向核心地址空间
+    movl $0x10,%edx            
+    mov %dx,%ds
+    mov %dx,%es
+    # 让fs指向的是LDT，指向用户地址空间
+    movl $0x17,%edx      
+    # 问：0x17是怎么来的？
+	# 答：0x17是任务0的数据段选择符，由下面设置的ldt0可知，数据段Index=2，TI=1(表示在LDT中)，RPL=3(处理器的保护机制可识别4个特权级，0级到3级，详见4.5.1 段级保护)，故得0x17
+    mov %dx,%fs
+    call sys_call_table(,%eax,4)    # 即call sys_open
+```
+由上面的代码可以看出，获取用户地址空间（用户数据段）中的数据依靠的就是段寄存器 fs，下面该转到 sys_open 执行了，在 fs/open.c 文件中：
+```
+int sys_open(const char * filename,int flag,int mode)  //filename这些参数从哪里来？
+/*是否记得上面的pushl %edx,    pushl %ecx,    pushl %ebx？
+  实际上一个C语言函数调用另一个C语言函数时，编译时就是将要
+  传递的参数压入栈中（第一个参数最后压，…），然后call …，
+  所以汇编程序调用C函数时，需要自己编写这些参数压栈的代码…*/
+{
+    ……
+    if ((i=open_namei(filename,flag,mode,&inode))<0) {
+        ……
+    }
+    ……
+}
+```
+它将参数传给了 open_namei()。
+
+再沿着 open_namei() 继续查找，文件名先后又被传给dir_namei()、get_dir()。
+
+在 get_dir() 中可以看到：
+```
+static struct m_inode * get_dir(const char * pathname)
+{
+    ……
+    if ((c=get_fs_byte(pathname))=='/') {
+        ……
+    }
+    ……
+}
+```
+处理方法就很显然了：用 `get_fs_byte()` 获得一个字节的用户空间中的数据。
+
+所以，在实现 `iam()` 时，调用 `get_fs_byte()` 即可。
+
+但如何实现 `whoami()` 呢？即如何实现从核心态拷贝数据到用户态内存空间中呢？
+
+猜一猜，是否有 `put_fs_byte()`？有！看一看 `include/asm/segment.h` ：
+```
+extern inline unsigned char get_fs_byte(const char * addr)
+{
+    unsigned register char _v;
+    __asm__ ("movb %%fs:%1,%0":"=r" (_v):"m" (*addr));
+    return _v;
+}
+```
+```
+extern inline void put_fs_byte(char val,char *addr)
+{
+    __asm__ ("movb %0,%%fs:%1"::"r" (val),"m" (*addr));
+}
+```
+他俩以及所有 `put_fs_xxx()` 和 `get_fs_xxx()` 都是用户空间和内核空间之间的桥梁，在后面的实验中还要经常用到。
+
+### 运行脚本程序
+Linux 的一大特色是可以编写功能强大的 shell 脚本，提高工作效率。本实验的部分评分工作由脚本 testlab2.sh 完成。它的功能是测试 iam.c 和 whoami.c。
+
+首先将 iam.c 和 whoami.c 分别编译成 iam 和 whoami，然后将 testlab2.sh（在 /home/teacher 目录下） 拷贝到同一目录下。
+
+用下面命令为此脚本增加执行权限：
+```
+$ chmod +x testlab2.sh
+```
+然后运行之：
+```
+$ ./testlab2.sh
+```
+根据输出，可知 iam.c 和 whoami.c 的得分。
+
+##### errno
+errno 是一种传统的错误代码返回机制。
+
+当一个函数调用出错时，通常会返回 -1 给调用者。但 -1 只能说明出错，不能说明错是什么。为解决此问题，全局变量 errno 登场了。错误值被存放到 errno 中，于是调用者就可以通过判断 errno 来决定如何应对错误了。
+
+各种系统对 errno 的值的含义都有标准定义。Linux 下用“man errno”可以看到这些定义。
