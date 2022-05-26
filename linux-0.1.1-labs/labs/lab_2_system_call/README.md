@@ -141,7 +141,111 @@ _syscall2(int, whoami,char*,name,unsigned int,size);
 
 该目录下的 unistd.h 是标准头文件（它和 0.11 源码树中的 unistd.h 并不是同一个文件，虽然内容可能相同），没有 \__NR_whoami 和 \__NR_iam 两个宏，需要手工加上它们，也可以直接从修改过的 0.11 源码树中拷贝新的 unistd.h 过来。
 
-## 实现 sys_iam() 和 sys_whoami()
+### 从“int 0x80”进入内核函数
+`int 0x80` 触发后，接下来就是内核的中断处理了。先了解一下 0.11 处理 `0x80` 号中断的过程。
+
+在内核初始化时，主函数（在 `init/main.c` 中，Linux 实验环境下是 `main()`，Windows 下因编译器兼容性问题被换名为 `start()`）调用了 `sched_init()` 初始化函数：
+```
+void main(void)
+{
+//    ……
+    time_init();
+    sched_init();
+    buffer_init(buffer_memory_end);
+//    ……
+}
+```
+sched_init() 在 kernel/sched.c 中定义为：
+```
+void sched_init(void)
+{
+//    ……
+    set_system_gate(0x80,&system_call);
+}
+```
+set_system_gate 是个宏，在 include/asm/system.h 中定义为：
+```
+#define set_system_gate(n,addr) \
+    _set_gate(&idt[n],15,3,addr)
+```
+_set_gate 的定义是：
+```
+#define _set_gate(gate_addr,type,dpl,addr) \
+__asm__ ("movw %%dx,%%ax\n\t" \
+    "movw %0,%%dx\n\t" \
+    "movl %%eax,%1\n\t" \
+    "movl %%edx,%2" \
+    : \
+    : "i" ((short) (0x8000+(dpl<<13)+(type<<8))), \
+    "o" (*((char *) (gate_addr))), \
+    "o" (*(4+(char *) (gate_addr))), \
+    "d" ((char *) (addr)),"a" (0x00080000))
+```
+
+虽然看起来挺麻烦，但实际上很简单，就是填写 IDT（中断描述符表），将 `system_call` 函数地址写到 `0x80` 对应的中断描述符中，也就是在中断 `0x80`发生后，自动调用函数 `system_call`。具体细节请参考《注释》的第 4 章。
+
+接下来看 system_call。该函数纯汇编打造，定义在 kernel/system_call.s 中：
+```
+
+!……
+! # 这是系统调用总数。如果增删了系统调用，必须做相应修改
+nr_system_calls = 72
+!……
+
+.globl system_call
+.align 2
+system_call:
+
+! # 检查系统调用编号是否在合法范围内
+    cmpl \$nr_system_calls-1,%eax
+    ja bad_sys_call
+    push %ds
+    push %es
+    push %fs
+    pushl %edx
+    pushl %ecx
+
+! # push %ebx,%ecx,%edx，是传递给系统调用的参数
+    pushl %ebx
+
+! # 让ds, es指向GDT，内核地址空间
+    movl $0x10,%edx
+    mov %dx,%ds
+    mov %dx,%es
+    movl $0x17,%edx
+! # 让fs指向LDT，用户地址空间
+    mov %dx,%fs
+    call sys_call_table(,%eax,4)
+    pushl %eax
+    movl current,%eax
+    cmpl $0,state(%eax)
+    jne reschedule
+    cmpl $0,counter(%eax)
+    je reschedule
+```
+system_call 用 .globl 修饰为其他函数可见。
+
+Windows 实验环境下会看到它有一个下划线前缀，这是不同版本编译器的特质决定的，没有实质区别。
+
+call sys_call_table(,%eax,4) 之前是一些压栈保护，修改段选择子为内核段，call sys_call_table(,%eax,4) 之后是看看是否需要重新调度，这些都与本实验没有直接关系，此处只关心 call sys_call_table(,%eax,4) 这一句。
+
+根据汇编寻址方法它实际上是：call sys_call_table + 4 * %eax，其中 eax 中放的是系统调用号，即 __NR_xxxxxx。
+
+显然，sys_call_table 一定是一个函数指针数组的起始地址，它定义在 include/linux/sys.h 中：
+
+fn_ptr sys_call_table[] = { sys_setup, sys_exit, sys_fork, sys_read,...
+
+增加实验要求的系统调用，需要在这个函数表中增加两个函数引用 ——sys_iam 和 sys_whoami。当然该函数在 sys_call_table 数组中的位置必须和 __NR_xxxxxx 的值对应上。
+
+同时还要仿照此文件中前面各个系统调用的写法，加上：
+```
+extern int sys_whoami();
+extern int sys_iam();
+```
+不然，编译会出错的。
+
+
+### 实现 sys_iam() 和 sys_whoami()
 添加系统调用的最后一步，是在内核中实现函数 `sys_iam()` 和 `sys_whoami()`。
 
 每个系统调用都有一个 `sys_xxxxxx()` 与之对应，它们都是我们学习和模仿的好对象。
