@@ -360,6 +360,18 @@ extern inline void put_fs_byte(char val,char *addr)
 ```
 他俩以及所有 `put_fs_xxx()` 和 `get_fs_xxx()` 都是用户空间和内核空间之间的桥梁，在后面的实验中还要经常用到。
 
+另外也可以考虑使用`/include/asm/memory.h`里的`memcpy()`方法:
+
+```
+#define memcpy(dest,src,n) ({ \
+void * _res = dest; \
+__asm__ ("cld;rep;movsb" \
+	::"D" ((long)(_res)),"S" ((long)(src)),"c" ((long) (n)) \
+	); \
+_res; \
+})
+```
+
 ### 运行脚本程序
 Linux 的一大特色是可以编写功能强大的 shell 脚本，提高工作效率。本实验的部分评分工作由脚本 testlab2.sh 完成。它的功能是测试 iam.c 和 whoami.c。
 
