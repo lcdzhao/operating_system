@@ -148,7 +148,9 @@ _syscall2(int, whoami,char*,name,unsigned int,size);
 1. 在X86体系结构的保护模式下，通过中断描述符表IDT组织中断描述符
 
 2. 中断描述符描述的是中断处理程序的入口地址及其属性，根据不同类型，中断描述符可以分为和陷阱门，具体格式如下：
+
 ![中断门](README.assets/399e685380674b90b3c78adab8640105.png)
+
 ![陷阱门](README.assets/cebb7c64d196475a8027bcf73657f96b.png)
 在Linux中，将DPL=3的陷阱门称作系统门
 
