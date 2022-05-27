@@ -147,12 +147,9 @@ _syscall2(int, whoami,char*,name,unsigned int,size);
 ##### 中断描述符
 1. 在X86体系结构的保护模式下，通过中断描述符表IDT组织中断描述符
 
-2. 中断描述符描述的是中断处理程序的入口地址及其属性，根据不同类型，中断描述符可以分为和陷阱门，具体格式如下：
+2. 中断描述符描述的是中断处理程序的入口地址及其属性，根据不同类型，中断描述符可以分为中断门和陷阱门，具体格式如下：
 
-![中断门](README.assets/399e685380674b90b3c78adab8640105.png)
-
-![陷阱门](README.assets/cebb7c64d196475a8027bcf73657f96b.png)
-在Linux中，将DPL=3的陷阱门称作系统门
+![中断门与陷阱门](README.assets/Image_20220527170429.png)
 
 3. 系统门有如下2个特点
 
@@ -188,21 +185,11 @@ set_system_gate 是个宏，在 include/asm/system.h 中定义为：
 #define set_system_gate(n,addr) \
     _set_gate(&idt[n],15,3,addr)
 ```
-_set_gate 的定义是：
-```
-#define _set_gate(gate_addr,type,dpl,addr) \
-__asm__ ("movw %%dx,%%ax\n\t" \
-    "movw %0,%%dx\n\t" \
-    "movl %%eax,%1\n\t" \
-    "movl %%edx,%2" \
-    : \
-    : "i" ((short) (0x8000+(dpl<<13)+(type<<8))), \
-    "o" (*((char *) (gate_addr))), \
-    "o" (*(4+(char *) (gate_addr))), \
-    "d" ((char *) (addr)),"a" (0x00080000))
-```
 
-虽然看起来挺麻烦，但实际上很简单，就是填写 IDT（中断描述符表），将 `system_call` 函数地址写到 `0x80` 对应的中断描述符中，也就是在中断 `0x80`发生后，自动调用函数 `system_call`。具体细节请参考《注释》的第 4 章。
+_set_gate 的定义是：
+![_set_gate](README.assets/Image_20220527170538.png)
+
+虽然看起来挺麻烦，但实际上很简单，就是填写 IDT（中断描述符表），将 `system_call` 函数地址写到 `0x80` 对应的中断描述符中，也就是在中断 `0x80`发生后，自动调用函数 `system_call`。具体细节请参考《注释》的第 14 章。
 
 #### GDT 与 LDT(阅读system_call前必了解)
 在CPU中有两个特殊的寄存器，一个为 GDTR ，另一个为 LDTR。在保护模式下，每当用户程序运行时，这两个寄存器的值都被操作系统所赋予，其表示的意义分别为：
