@@ -144,12 +144,12 @@ _syscall2(int, whoami,char*,name,unsigned int,size);
 ### 从“int 0x80”进入内核函数
 `int 0x80` 触发后，接下来就是内核的中断处理了。
 
-##### 中断描述符
+#### 中断描述符
 1. 在X86体系结构的保护模式下，通过中断描述符表IDT组织中断描述符
 
 2. 中断描述符描述的是中断处理程序的入口地址及其属性，根据不同类型，中断描述符可以分为中断门和陷阱门，具体格式如下：
 
-![中断门与陷阱门](README.assets/Image_20220527170429.png)
+![中断门与陷阱门](README.assets/gate_format.png)
 
 3. 在Linux中，将DPL=3的陷阱门称作系统门, 系统门有如下2个特点
 
@@ -160,7 +160,7 @@ _syscall2(int, whoami,char*,name,unsigned int,size);
 4. 中断描述符安装在IDT中，他们没有选择子（index + TI + RPL），索引他们的序号（index）就是中断向量
 
 
-##### linux 0.1.1 中的实现
+#### linux 0.1.1 中的实现
 在内核初始化时，主函数（在 `init/main.c` 中，Linux 实验环境下是 `main()`，Windows 下因编译器兼容性问题被换名为 `start()`）调用了 `sched_init()` 初始化函数：
 ```
 void main(void)
