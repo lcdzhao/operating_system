@@ -105,7 +105,7 @@ GDT中的每一项都是一个段描述符，因此GDT实际上是一个段描�
 
 - S：描述符类型(0:系统，1:代码或数据)
 
-- Type : 
+- Type :  段类型
 
 
 ![Type](README.assets/type.png)
