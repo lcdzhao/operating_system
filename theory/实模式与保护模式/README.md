@@ -120,7 +120,7 @@ GDT中的每一项都是一个段描述符，因此GDT实际上是一个段描�
 
 ##### Linux 0.1.1 中的 GDT 与 LDT
 
-![Type](README.assets/GDT_LDT.png)
+![GDT_LDT](README.assets/GDT_LDT.png)
 
 ##### Linux 0.1.1 初始化GDT部分源码
 
