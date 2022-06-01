@@ -124,8 +124,82 @@ GDT中的每一项都是一个段描述符，因此GDT实际上是一个段描�
 
 ##### Linux 0.1.1 初始化GDT部分源码
 
-##### Linux 0.1.1 初始化LDT部分源码
+##### Linux 0.1.1 初始化0号进程的LDT源码
+内核经过划分物理内存格局、设置缓冲区、虚拟盘、主内存、IDT等初始化后，接下来就要初始化进程0。
+内核已经初始化好一个进程（init_task）数据结构，接下来往GDT中添加任务0的TSS与LDT数据，并设置好TR寄存器与LDTR寄存器，设置时钟中断与系统调用中断。下一步等待调度。
 
+```
+void sched_init(void)
+{
+  ...
+  
+	set_tss_desc(gdt+FIRST_TSS_ENTRY,&(init_task.task.tss)); //初始阿化TSS
+	set_ldt_desc(gdt+FIRST_LDT_ENTRY,&(init_task.task.ldt)); // 初始化LDT
+  
+  ...
+  
+	ltr(0);    //把任务0的TSS段描述符地址存入TR寄存器
+	lldt(0);   //把任务0的LDT段描述符地址存入LDTR寄存器
+  
+  ...
+}
+```
+
+include/linux/sched.h：
+```
+#define ltr(n) __asm__("ltr %%ax"::"a" (_TSS(n)))
+#define lldt(n) __asm__("lldt %%ax"::"a" (_LDT(n)))
+
+
+// GDT中第1 个任务状态段(TSS)描述符的选择符索引号。
+#define FIRST_TSS_ENTRY 4
+// GDT中第1 个局部描述符表(LDT)描述符的选择符索引号。
+#define FIRST_LDT_ENTRY (FIRST_TSS_ENTRY+1)
+
+// 计算在 GDT中第n 个任务的TSS 描述符的地址。
+//每个任务都有TSS和LDT，占据16字节，左移4就是乘以16，这是从第0个任务偏移的地址
+// 内核初始化后已经有4个描述符了，内核使用了前面32字节的内存了，FIRST_TSS_ENTRY<<3就是32
+//2个合起来就是第n个任务的TSS 描述符的地址
+#define _TSS(n) ((((unsigned long) n)<<4)+(FIRST_TSS_ENTRY<<3))
+
+// 计算在GDT中第n 个任务的LDT 描述符的地址。
+//与TSS一样，只不过LDT在TSS的后面
+#define _LDT(n) ((((unsigned long) n)<<4)+(FIRST_LDT_ENTRY<<3))
+```
+
+
+task_struct：
+```
+struct task_struct {
+
+	long state;	/* 任务的运行状态（-1 不可运行，0 可运行(就绪)，>0 已停止） */
+	long counter;   /* 运行时间片,每经过一次时钟中断， counter就会减去1*/
+	long priority;  /* 运行优先数。任务开始运行时counter = priority，越大运行越长 */
+	long signal;    /* 信号。是位图，每个比特位代表一种信号，信号值=位偏移值+1 */
+	struct sigaction sigaction[32];  /* 信号执行属性结构，对应信号将要执行的操作和标志信息 */
+	long blocked;	/* 进程信号屏蔽码（对应信号位图）。 */
+	int exit_code;  /* 任务执行停止的退出码，其父进程会取  */
+	unsigned long start_code,end_code,end_data,brk,start_stack; /* 代码段地址、代码长度（字节数）、代码长度 + 数据长度（字节数）、总长度（字节数）、堆栈段地址 */
+	long pid,father,pgrp,session,leader;/* 进程pid、父进程pid、父进程组pid、会话号、会话首领 */
+	unsigned short uid,euid,suid; /* uid、有效用户id、保存的用户id*/
+	unsigned short gid,egid,sgid; /* gid、有效组id、保存的组id*/
+	long alarm; /* 滴答数 */
+	long utime,stime,cutime,cstime,start_time; /* 用户态运行时间（滴答数）、系统态运行时间（滴答数）、子进程用户态运行时间、子进程系统态运行时间、进程开始运行时刻 */
+	unsigned short used_math;  /* 是否使用了协处理器 */
+
+
+	int tty;		/* 进程使用tty 的子设备号。-1 表示没有使用。*/
+	unsigned short umask;  /* 文件创建属性屏蔽 */
+	struct m_inode * pwd;   /*  当前工作目录i 节点结构 */
+	struct m_inode * root;   /* 根目录i 节点结构 */
+	struct m_inode * executable;   /* 执行文件i 节点结构  */
+	unsigned long close_on_exec; /* 执行时关闭文件句柄位图标志 */
+	struct file * filp[NR_OPEN];  /* 进程使用的文件表结构  */
+	struct desc_struct ldt[3]; /* 0-空，1-代码段cs，2-数据和堆栈段ds&ss*/
+
+	struct tss_struct tss; /* 本进程的任务状态段信息结构 */
+};
+```
 
 ### 分页寻址(虚拟内存转化为物理内存)
 ![分页](README.assets/page.png)
