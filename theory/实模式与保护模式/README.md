@@ -127,6 +127,54 @@ LDTR记录局部描述符表的起始位置，与GDTR不同，**LDTR的内容是
 ![GDT_LDT](README.assets/GDT_LDT.png)
 
 ##### Linux 0.1.1 初始化GDT部分源码
+Linux 0.11与0.12版本中，在setup.s文件里实现了从实模式到保护模式的切换，我们来研究一下具体的步骤。Linux 0.11 107行之前只是在初始化一些硬件参数。
+
+
+Linux 0.11 107 之后，首先使用cli指令屏蔽了所有的中断，防止切换过程被诸如键盘中断之类的打断导致错误，接着从111行到127行将system模块移动到0x00000处，由于之前在bootsect.s中已经将system模块读到了0x10000的位置，并且假设system模块的长度不会超过512KB（0x80000），于是这个移动过程本质上是将0x10000到0x8ffff的内存块移动到0x00000到0x7ffff的位置。
+
+
+133和134行加载了GDTR和IDTR（中断描述符表寄存器）：
+```
+lidt    idt_48      ! load idt with 0,0
+lgdt    gdt_48      ! load gdt with whatever appropriate
+```
+我们看一下GDTR的结构，在文件末尾处的gdt_48，就是要被加载入GDTR的内容：
+```
+gdt_48:     ! GDTR
+    .word   0x800       ! gdt limit=2048, 256 GDT entries
+    .word   512+gdt,0x9 ! gdt base = 0X9xxxx
+```
+记得上面的GDTR的结构吗，低16位为表长度，高32位为GDT表基地址。由于INTEL使用的小端存储（little endian），那么最先出现的字0x800应当被存储在低16位，0x800即2048，说明该GDT最大存储2048字节的数据，由于单条描述符项（不是描述符）为8字节，那么该GDT一共可存储256个描述符项。后面的两个字512+gdt、0x9就落在GDTR的高32位上，0x9在前，512+gdt（注意这里的512是十进制数，即0x200）在后，于是基地址就是拼接的结果，即0x9 << 16 + 0x200 + gdt，即0x90200+gdt，在bootsect中，setup模块就被移动到了0x90200处，而gdt就是GDT在本程序段中的偏移地址，最终获得的就是GDT表的物理地址。
+
+回到136行，136行到145行，开启了A20地址线，A20地址线是INTEL的一个历史遗留问题，这个东西是为了保证向下兼容产生的。在保护模式下，如果不打开A20地址线，会导致无法访问到完整的内存。具体原因可以看这篇文章的讲解，不赘述。
+
+146到180行重新定义了中断，不表。
+
+最终，从191行开始，是关键性的三行代码：
+```
+mov ax,#0x0001  ! protected mode (PE) bit
+lmsw    ax      ! This is it!
+jmpi    0,8     ! jmp offset 0 of segment 8 (cs)
+```
+上面讲解过前两行，其实就是打开了PE位，第三行跳到了一个奇怪的地方，直观上看，它跳转到了段8的0偏移位置，但是注意，现在PE位已经被置为1，CPU已经进入保护模式，CPU讲按照段模式去寻找这个内存地址。
+
+那么此时在CS中存储的，并不是段的地址，而是段选择符，那么0x8将段选择符的RPL和TI字段都置为0，而描述符索引就是0x1（这块就是GDT表的第一个索引，也就是代码段）。
+
+lgdt指令设置的GDTR指向的GDT内容如下：
+```
+gdt:
+    .word   0,0,0,0     ! dummy
+
+    .word   0x07FF      ! 8Mb - limit=2047 (2048*4096=8Mb)
+    .word   0x0000      ! base address=0
+    .word   0x9A00      ! code read/exec
+    .word   0x00C0      ! granularity=4096, 386
+
+    .word   0x07FF      ! 8Mb - limit=2047 (2048*4096=8Mb)
+    .word   0x0000      ! base address=0
+    .word   0x9200      ! data read/write
+    .word   0x00C0      ! granularity=4096, 386
+```
 
 ##### Linux 0.1.1 初始化0号进程的LDT源码
 内核经过划分物理内存格局、设置缓冲区、虚拟盘、主内存、IDT等初始化后，接下来就要初始化进程0。
