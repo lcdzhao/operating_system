@@ -99,7 +99,7 @@ GDT中的每一项都是一个段描述符，因此GDT实际上是一个段描�
 - DPL：
 > 特权级，0为最高特权级，3为最低，表示访问该段时CPU所需处于的最低特权级(如果CS的CPL特权级低于DPL，则当前应用不可以访问该段)。
 
-- type : 
+- Type : 
 
 
 ![Type](README.assets/type.png)
