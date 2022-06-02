@@ -133,7 +133,7 @@ LDTR记录局部描述符表的起始位置，与GDTR不同，**LDTR的内容是
 **`TI = 0`**
 <p>
     <div style="width:100%; height:350px;border:none;text-align:center">
-		<iframe allowtransparency="yes" frameborder="0" width="300" height="300" src="README.assets/TI0.html"/>
+		<iframe allowtransparency="yes" frameborder="0" width="300" height="300" src="./README.assets/TI0.html"/>
 	</div>
 </p>
 如果段选择子的 `TI = 0`，则寻址过程对应橙色那条线：
