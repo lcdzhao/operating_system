@@ -407,5 +407,5 @@ _res; \
     # 赋值memcpy() 中 n(c) 拷贝内存的长度
     mov #20,%cx    
     
-    call memcpy(,%eax,4)    # 即call sys_open
+    call memcpy
 ```
