@@ -93,7 +93,7 @@ GDT中的每一项都是一个段描述符，因此GDT实际上是一个段描�
 
 ![Type](README.assets/type.png)
 
-### LDT
+### LDT（Local Descriptor Table）
 
 局部描述符表LDT（Local Descriptor Table）局部描述符表可以有若干张，每个任务可以有一张。我们可以这样理解GDT和LDT：GDT为一级描述符表，LDT为二级描述符表。
 
