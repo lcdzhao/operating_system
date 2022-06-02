@@ -131,9 +131,14 @@ LDTR记录局部描述符表的起始位置，与GDTR不同，**LDTR的内容是
 #### STEP 1 : 定位段描述符
 
 **`TI = 0`**
-
+<p>
+    <div style="width:100%; height:350px;border:none;text-align:center">
+		<iframe allowtransparency="yes" frameborder="0" width="300" height="300" src="README.assets/TI0.html"/>
+	</div>
+</p>
 如果段选择子的 `TI = 0`，则寻址过程对应橙色那条线：
 > `段描述符物理地址 = GDTR(全局段描述符起始位置) + (Index * 段描述符大小))` —— **对应上图中的橙色的步骤1**
+
 
 **`TI = 1`**
 
