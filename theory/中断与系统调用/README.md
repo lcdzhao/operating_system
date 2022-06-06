@@ -42,7 +42,7 @@ CPU遇到的“事件”：
 ![保护模式的中断向量表](README.assets/interrupt_table_of_protect_mode.png)
 
 ### 内部中断类型说明
-[内部中断类型说明](README.assets/805-内部中断分类说明.pdf)
+[内部中断类型说明（点击查看）](README.assets/805-内部中断分类说明.pdf)
 
 ### 软中断 —— 中断线程化
 // 未来要做这块功能时，再来写这一部分
