@@ -3,4 +3,4 @@
 > CPU 博物馆：[CPU world](https://www.cpu-world.com/CPUs/CPU.html)
 
 
-[history_of_cpu](README.assets/history_of_cpu.png)
+![history_of_cpu](README.assets/history_of_cpu.png)
