@@ -2,4 +2,5 @@
 > 
 > CPU 博物馆：[CPU world](https://www.cpu-world.com/CPUs/CPU.html)
 
-# Intel CPU 发展史(1971 - 1989)
+
+[history_of_cpu](README.assets/history_of_cpu.png)
