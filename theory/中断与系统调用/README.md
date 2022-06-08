@@ -119,8 +119,6 @@ CPU遇到的“事件”：
 
 ![中断向量和中断服务程序](README.assets/interrupt_service.png)
 
-![8086的中断向量表](README.assets/interrupt_table.png)
-
 ### 初始化`IDT`
 
 
