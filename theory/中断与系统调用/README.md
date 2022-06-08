@@ -160,7 +160,10 @@ idt:
 #### main.c 中初始化各个设备及陷阱门初始化
 
 ![main.c](README.assets/init_idt_in_main.png)
-#### trapinit()
+#### sched_init()中设置时钟中断
+
+![sched_init.c](README.assets/sched_init.png)
+#### trap_init()
 
 ![trapinit](README.assets/trapinit.png)
 #### _set_gate
