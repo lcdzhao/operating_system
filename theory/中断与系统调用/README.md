@@ -115,8 +115,6 @@ CPU遇到的“事件”：
 ### 启动时`IDT`
 在系统刚启动时，CPU为实模式，这个时候IDT的初始化代码在BIOS中，它将IDT表初始化后放在内存 0 地址的位置，其包含磁盘访存等中断，便于操作系统在初始化时调用中断。具体如本文章前面分析的`Intel  8086`中断小节。
 
-![中断向量](README.assets/interrupt_vector.png)
-
 ![中断向量和中断服务程序](README.assets/interrupt_service.png)
 
 ### 初始化`IDT`
