@@ -224,7 +224,7 @@ __asm__ ("movw %%dx,%%ax\n\t" \
 _idt就是256个中断描述符存储区域的线性地址
 
 ② IDT在C代码中的声明（head.h）
-![idt](README.assets/table.png)
+![idt](README.assets/idt_table.png)
 idt是一个数组名，也就是数组的首地址，该数组共有256个元素，每个元素8B，这点和中断描述符表的定义是匹配的。
 
 具体细节请参考《注释》的第 14 章。
