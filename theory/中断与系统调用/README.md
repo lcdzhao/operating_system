@@ -276,6 +276,66 @@ set_system_gate 是个宏，在 include/asm/system.h 中定义为：
 #define set_system_gate(n,addr) \
     _set_gate(&idt[n],15,3,addr)
 ```
+
+#### system_call
+接下来看 system_call。该函数纯汇编打造，定义在 kernel/system_call.s 中：
+```
+
+!……
+! # 这是系统调用总数。如果增删了系统调用，必须做相应修改
+nr_system_calls = 72
+!……
+
+.globl system_call
+.align 2
+system_call:
+
+! # 检查系统调用编号是否在合法范围内
+    cmpl \$nr_system_calls-1,%eax
+    ja bad_sys_call
+    push %ds
+    push %es
+    push %fs
+    pushl %edx
+    pushl %ecx
+
+! # push %ebx,%ecx,%edx，是传递给系统调用的参数
+    pushl %ebx
+
+    # 让ds,es指向GDT，指向核心地址空间
+    movl $0x10,%edx      
+    # 问：0x10 从何而来?
+    # 答：0x10是内核数据段 段选择符，因为中断程序属于内核。
+    # 由段选择符的结构可知，数据段Index=2，TI=0(表示在GDT中)，RPL=0(处理器的保护机制可识别4个特权级，0级到3级，详见4.5.1 段级保护)，
+    # 即得段选择符为： 0000000000010(Index) 0(TI) 00(RPL)，故得16进制为: 0x10
+    mov %dx,%ds
+    mov %dx,%es
+    # 让fs指向的是LDT，指向用户地址空间
+    movl $0x17,%edx      
+    # 问：0x17是怎么来的？
+    # 答：0x17是任务0的数据段选择符。
+    # 由段选择符的结构可知，数据段Index=2，TI=1(表示在LDT中)，RPL=3(处理器的保护机制可识别4个特权级，0级到3级，详见4.5.1 段级保护)，
+    # 即得段选择符为： 0000000000010(Index) 1(TI) 11(RPL)，故得16进制为: 0x17
+    call sys_call_table(,%eax,4)
+    pushl %eax
+    movl current,%eax
+    cmpl $0,state(%eax)
+    jne reschedule
+    cmpl $0,counter(%eax)
+    je reschedule
+```
+system_call 用 .globl 修饰为其他函数可见。
+
+Windows 实验环境下会看到它有一个下划线前缀，这是不同版本编译器的特质决定的，没有实质区别。
+
+call sys_call_table(,%eax,4) 之前是一些压栈保护，修改段选择子为内核段，call sys_call_table(,%eax,4) 之后是看看是否需要重新调度，这些都与本实验没有直接关系，此处只关心 call sys_call_table(,%eax,4) 这一句。
+
+根据汇编寻址方法它实际上是：call sys_call_table + 4 * %eax，其中 eax 中放的是系统调用号，即 __NR_xxxxxx。
+
+显然，sys_call_table 一定是一个函数指针数组的起始地址，它定义在 `include/linux/sys.h` 中：
+```
+fn_ptr sys_call_table[] = { sys_setup, sys_exit, sys_fork, sys_read,...
+```
 ### 进行系统调用
 在通常情况下，调用系统调用和调用一个普通的自定义函数在代码上并没有什么区别，但调用后发生的事情有很大不同。
 
