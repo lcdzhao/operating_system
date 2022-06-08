@@ -113,40 +113,18 @@ CPU遇到的“事件”：
 # 代码实现
 ## linux 0.11 中`IDT`相关实现
 ### 启动时`IDT`
-在系统刚启动时，CPU为实模式，这个时候IDT的初始化代码在BIOS中，它将IDT表初始化后放在内存 0 地址的位置，其包含磁盘访存等终端，便于操作系统在初始化时调用中断。具体如本文章前面分析的`Intel  8086`中断小节。
+在系统刚启动时，CPU为实模式，这个时候IDT的初始化代码在BIOS中，它将IDT表初始化后放在内存 0 地址的位置，其包含磁盘访存等中断，便于操作系统在初始化时调用中断。具体如本文章前面分析的`Intel  8086`中断小节。
+
 ![中断向量](README.assets/interrupt_vector.png)
+
 ![中断向量和中断服务程序](README.assets/interrupt_service.png)
+
 ![8086的中断向量表](README.assets/interrupt_table.png)
 
 ### 初始化`IDT`
 
-## `系统调用`相关实现
-### 系统调用初始化
-在内核初始化时，主函数（在 `init/main.c` 中，Linux 实验环境下是 `main()`，Windows 下因编译器兼容性问题被换名为 `start()`）调用了 `sched_init()` 初始化函数：
-```
-void main(void)
-{
-//    ……
-    time_init();
-    sched_init();
-    buffer_init(buffer_memory_end);
-//    ……
-}
-```
-sched_init() 在 kernel/sched.c 中定义为：
-```
-void sched_init(void)
-{
-//    ……
-    set_system_gate(0x80,&system_call);
-}
-```
-set_system_gate 是个宏，在 include/asm/system.h 中定义为：
-```
-#define set_system_gate(n,addr) \
-    _set_gate(&idt[n],15,3,addr)
-```
 
+#### _set_gate
 _set_gate 的定义是：
 ```
 // gate_addr：要设置的中断描述符地址
@@ -232,6 +210,33 @@ _idt就是256个中断描述符存储区域的线性地址
 idt是一个数组名，也就是数组的首地址，该数组共有256个元素，每个元素8B，这点和中断描述符表的定义是匹配的。
 
 具体细节请参考《注释》的第 14 章。
+
+## `系统调用`相关实现
+### 系统调用初始化
+在内核初始化时，主函数（在 `init/main.c` 中，Linux 实验环境下是 `main()`，Windows 下因编译器兼容性问题被换名为 `start()`）调用了 `sched_init()` 初始化函数：
+```
+void main(void)
+{
+//    ……
+    time_init();
+    sched_init();
+    buffer_init(buffer_memory_end);
+//    ……
+}
+```
+sched_init() 在 kernel/sched.c 中定义为：
+```
+void sched_init(void)
+{
+//    ……
+    set_system_gate(0x80,&system_call);
+}
+```
+set_system_gate 是个宏，在 include/asm/system.h 中定义为：
+```
+#define set_system_gate(n,addr) \
+    _set_gate(&idt[n],15,3,addr)
+```
 ### 进行系统调用
 在通常情况下，调用系统调用和调用一个普通的自定义函数在代码上并没有什么区别，但调用后发生的事情有很大不同。
 
