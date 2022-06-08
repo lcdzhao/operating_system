@@ -118,8 +118,51 @@ CPU遇到的“事件”：
 ![中断向量和中断服务程序](README.assets/interrupt_service.png)
 
 ### 初始化`IDT`
+#### head.s 中初始化idt
+```
+...
+...
+call setup_idt
 
+...
+...
 
+setup_idt:
+    lea ignore_int,%edx
+    movl $0x00080000,%eax
+    movw %dx,%ax              /* selector = 0x0008 = cs */
+    movw $0x8E00,%dx /* interrupt gate：dpl=0, present */
+
+    lea idt,%edi      # 取idt的偏移给edi
+    mov $256,%ecx     # 循环256次
+rp_sidt:
+    movl %eax,(%edi)     # eax -> [edi]
+    movl %edx,4(%edi)    # edx -> [edi+4]
+    addl $8,%edi         # edi + 8 -> edi
+    dec %ecx
+    jne rp_sidt
+    lidt idt_descr       # 加载IDTR
+    ret
+
+...
+...
+
+idt_descr:
+    .word 256*8-1       # idt contains 256 entries
+    .long idt           # IDT 的线性基地址
+
+...
+...
+
+idt: 
+    .fill 256,8,0       # idt is uninitialized
+```
+#### main.c 中初始化各个设备及陷阱门初始化
+
+![main.c](README.assets/init_idt_in_main.png)
+#### trapinit()
+
+![trapinit](README.assets/trapinit.png)
 #### _set_gate
 _set_gate 的定义是：
 ```
