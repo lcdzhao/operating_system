@@ -130,7 +130,7 @@ int close(int fd)
 
 ```
 /*
-而在应用程序中，要有：
+而在系统调用API中，要有：
 */
 
 /* 有它，_syscall1 等才有效。详见unistd.h */
