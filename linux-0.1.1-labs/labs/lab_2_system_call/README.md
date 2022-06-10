@@ -307,9 +307,9 @@ call sys_call_table(,%eax,4) 之前是一些压栈保护，修改段选择子为
 
 根据汇编寻址方法它实际上是：call sys_call_table + 4 * %eax，其中 eax 中放的是系统调用号，即 __NR_xxxxxx。
 
-显然，sys_call_table 一定是一个函数指针数组的起始地址，它定义在 include/linux/sys.h 中：
+显然，sys_call_table 一定是一个函数指针数组的起始地址，它定义在 `include/linux/sys.h` 中：
 
-fn_ptr sys_call_table[] = { sys_setup, sys_exit, sys_fork, sys_read,...
+```fn_ptr sys_call_table[] = { sys_setup, sys_exit, sys_fork, sys_read,...```
 
 增加实验要求的系统调用，需要在这个函数表中增加两个函数引用 ——sys_iam 和 sys_whoami。当然该函数在 sys_call_table 数组中的位置必须和 __NR_xxxxxx 的值对应上。
 
