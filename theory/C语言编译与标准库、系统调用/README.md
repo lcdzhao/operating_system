@@ -516,9 +516,9 @@ End of assembler dump.
 
 虽然我们找到了Hello World的printf调用轨迹，但是仍然无法看到函数的源码。跟踪反汇编代码不是个好主意，最好的方式是直接阅读glibc的源代码！我们可以从官网下载最新的glibc源代码（glibc-2.18）进行阅读分析，或者直接访问在线源码分析网站LXR。然后按照调用轨迹的的逆序查找函数的调用点。
 
-1.puts 调用 _IO_new_file_xsputn
+### 1.puts 调用 `_IO_new_file_xsputn`
 
-具体的符号转化关系为：_IO_puts => _IO_sputn => _IO_XSPUTN => __xsputn => _IO_file_xsputn => _IO_new_file_xsputn
+具体的符号转化关系为：`_IO_puts` => _IO_sputn => _IO_XSPUTN => __xsputn => _IO_file_xsputn => _IO_new_file_xsputn`
 ```
 $cat ./libio/ioputs.c
 
@@ -566,9 +566,9 @@ weak_alias (_IO_puts, puts)
 ```
 这里注意weak_alias宏的含义，即将puts绑定到符号_IO_puts，并且puts符号为weak类型的。这也就解释了puts符号被解析为_IO_puts的真正原因。
 
-2._IO_new_file_xsputn 调用 _IO_new_file_overflow
+### 2.`_IO_new_file_xsputn` 调用 `_IO_new_file_overflow`
 
-具体的符号转化关系为：`_IO_new_file_xsputn => _IO_OVERFLOW => __overflow => _IO_new_file_overflow`
+具体的符号转化关系为：`_IO_new_file_xsputn` => _IO_OVERFLOW => __overflow => _IO_new_file_overflow`
 
 ```
 $cat ./libio/fileops.c
@@ -607,7 +607,7 @@ _IO_new_file_xsputn (f, data, n)
 
 ...
 ```
-3._IO_new_file_overflow 调用 _IO_new_do_write
+### 3.`_IO_new_file_overflow` 调用 `_IO_new_do_write`
 
 具体的符号转化关系为：`_IO_new_file_overflow =>_IO_do_write =>_IO_new_do_write`
 
@@ -636,7 +636,7 @@ _IO_new_file_overflow (f, ch)
 
 }
 ```
-4. _IO_new_do_write 调用 new_do_write
+### 4. `_IO_new_do_write` 调用 `new_do_write`
 
 具体的符号转化关系为：`_IO_new_do_write => new_do_write`
 ```
@@ -660,7 +660,7 @@ _IO_new_do_write (fp, data, to_do)
 
 }
 ```
-5. new_do_write调用 _IO_new_file_write
+### 5. `new_do_write`调用 `_IO_new_file_write`
 
 具体的符号转化关系为：`new_do_write =>_IO_SYSWRITE => __write() => write() => _IO_new_file_write`
 ```
@@ -691,7 +691,7 @@ _IO_size_t to_do;
 }
 ```
 
-6. _IO_new_file_write调用 write_nocancel
+### 6.` _IO_new_file_write`调用` write_nocancel`
 
 具体的符号转化关系为：`_IO_new_file_write=>write_not_cancel => write_nocancel`
 ```
@@ -722,12 +722,12 @@ _IO_ssize_t n;
 }
 ```
 
-7. write_nocancel 调用 linux-gate.so::__kernel_vsyscall
+### 7. `write_nocancel` 调用 `linux-gate.so::__kernel_vsyscall`
 
 具体的符号转化关系为：`write_nocancel => INLINE_SYSCALL  => INTERNAL_SYSCALL =>__kernel_vsyscall`
 
 注意 linux-gate.so在磁盘上并不存在，它是内核镜像中的特定页，由内核编译生成。关于它的更多信息，可以参考文章《linux-gate.so技术细节》和《What is linux-gate.so.1?》。
 
-四、总结
+## 四、总结
 
 本文从printf(“Hello World !\n”)谈起，按照编译器工作的流程发掘了printf函数的代码位置。然后使用gdb反向跟踪的方式找到了printf函数的调用轨迹，最后借助于glibc源代码描述了printf函数的详细调用过程。相信这些内容会给大家带来一个更加清晰的printf函数，透过对printf函数的实现机制的解析，更可以加深对计算机工作机制的理解。希望本文对你有所帮助。
