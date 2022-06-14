@@ -184,12 +184,12 @@ C语言编译的整个过程是非常复杂的，里面涉及到的编译器知�
 > 作者：Florian <br>
 > 本文版权归作者和博客园共有，欢迎转载，但未经作者同意必须保留此段声明，且在文章页面明显位置给出原文链接，否则作者保留追究法律责任的权利。
 
-说起编程语言，C语言大家再熟悉不过。说起最简单的代码，Helloworld更是众所周知。一条简单的printf语句便可以完成这个简单的功能，可是printf背后到底做了什么事情呢？可能很多人不曾在意，也或许你比我还要好奇！那我们就聊聊printf背后的故事。
+说起编程语言，C语言大家再熟悉不过。说起最简单的代码，`Helloworld`更是众所周知。一条简单的`printf`语句便可以完成这个简单的功能，可是`printf`背后到底做了什么事情呢？可能很多人不曾在意，也或许你比我还要好奇！那我们就聊聊`printf`背后的故事。
 
-一、printf的代码在哪里？
+## 一、`printf`的代码在哪里？
 
-显然，Helloworld的源代码需要经过编译器编译，操作系统的加载才能正确执行。而编译器包含预编译、编译、汇编和链接四个步骤。
-
+显然，`Helloworld`的源代码需要经过编译器编译，操作系统的加载才能正确执行。而编译器包含预编译、编译、汇编和链接四个步骤。
+```
 #include<stdio.h>
 
 int main()
@@ -201,9 +201,9 @@ int main()
     return 0;
 
 }
-
-首先，预编译器处理源代码中的宏，比如#include。预编译结束后，我们发现printf函数的声明。
-
+```
+首先，预编译器处理源代码中的宏，比如`#include`。预编译结束后，我们发现printf函数的声明。
+```
 $/usr/lib/gcc/i686-linux-gnu/4.7/cc1 -E -quiet              \
 
     main.c -o main.i
@@ -229,9 +229,9 @@ int main()
  return 0;
 
 }
-
+```
 然后编译器将高级语言程序转化为汇编代码。
-
+```
 $/usr/lib/gcc/i686-linux-gnu/4.7/cc1 -fpreprocessed -quiet  \
 
     main.i -o main.s
@@ -273,11 +273,11 @@ main:
     .size      main, .-main
 
 ...
+```
+我们发现`printf`函数调用被转化为`call puts`指令，而不是`call printf`指令，这好像有点出乎意料。不过不用担心，这是编译器对`printf`的一种优化。实践证明，对于`printf`的参数如果是以'\n'结束的纯字符串，`printf`会被优化为`puts`函数，而字符串的结尾'\n'符号被消除。除此之外，都会正常生成`call printf`指令。
 
-我们发现printf函数调用被转化为call puts指令，而不是call printf指令，这好像有点出乎意料。不过不用担心，这是编译器对printf的一种优化。实践证明，对于printf的参数如果是以'\n'结束的纯字符串，printf会被优化为puts函数，而字符串的结尾'\n'符号被消除。除此之外，都会正常生成call printf指令。
-
-如果我们仍希望通过printf调用"Hello World !\n"的话，只需要按照如下方式修改即可。不过这样做就不能在printf调用结束后立即看到打印字符串了，因为puts函数可以立即刷新输出缓冲区。我们仍然使用puts作为例子继续阐述。
-
+如果我们仍希望通过`printf`调用"Hello World !\n"的话，只需要按照如下方式修改即可。不过这样做就不能在`printf`调用结束后立即看到打印字符串了，因为puts函数可以立即刷新输出缓冲区。我们仍然使用`puts`作为例子继续阐述。
+```
     .section   .rodata
 
 .LC0:
@@ -289,9 +289,9 @@ main:
     call       printf
 
 ...
-
-接下来，汇编器开始工作。将汇编文件转化为我们不能直接阅读的二进制格式——可重定位目标文件，这里我们需要gcc工具包的objdump命令查看它的二进制信息。可是我们发现call puts指令里保存了无效的符号地址。
-
+```
+接下来，汇编器开始工作。将汇编文件转化为我们不能直接阅读的二进制格式——可重定位目标文件，这里我们需要`gcc`工具包的`objdump`命令查看它的二进制信息。可是我们发现`call puts`指令里保存了无效的符号地址。
+```
 $as -o main.o main.s
 
 $objdump –d main.o
@@ -319,9 +319,9 @@ Disassembly of section .text:
   1a:  c9                     leave 
 
   1b:  c3                     ret
-
-而链接器最终会将puts的符号地址修正。由于链接方式分为静态链接和动态链接两种，虽然链接方式不同，但是不影响最终代码对库函数的调用。我们这里关注printf函数背后的原理，因此使用更易说明问题的静态链接的方式阐述。
-
+```
+而链接器最终会将puts的符号地址修正。由于链接方式分为静态链接和动态链接两种，虽然链接方式不同，但是不影响最终代码对库函数的调用。我们这里关注`printf`函数背后的原理，因此使用更易说明问题的静态链接的方式阐述。
+```
 $/usr/lib/gcc/i686-linux-gnu/4.7/collect2                   \
 
     -static -o main                                         \
@@ -375,11 +375,11 @@ Disassembly of section .text:
  8048ebf:  c3                     ret
 
 ...
+```
+静态链接时，链接器将C语言的运行库（CRT）链接到可执行文件，其中`crt1.o、crti.o、crtbeginT.o、crtend.o、crtn.o`便是这五个核心的文件，它们按照上述命令显示的顺序分居在用户目标文件和库文件的两侧。由于我们使用了库函数`puts`，因此需要库文件`libc.a`，而`libc.a`与`libgcc.a`和`libgcc_eh.a`有相互依赖关系，因此需要使用`-start-group`和`-end-group`将它们包含起来。
 
-静态链接时，链接器将C语言的运行库（CRT）链接到可执行文件，其中crt1.o、crti.o、crtbeginT.o、crtend.o、crtn.o便是这五个核心的文件，它们按照上述命令显示的顺序分居在用户目标文件和库文件的两侧。由于我们使用了库函数puts，因此需要库文件libc.a，而libc.a与libgcc.a和libgcc_eh.a有相互依赖关系，因此需要使用-start-group和-end-group将它们包含起来。
-
-链接后，call puts的地址被修正，但是反汇编显示的符号是_IO_puts而不是puts！难道我们找的文件不对吗？当然不是，我们使用readelf命令查看一下main的符号表。竟然发现puts和_IO_puts这两个符号的性质是等价的！objdump命令只是显示了全局的符号_IO_puts而已。
-
+链接后，`call puts`的地址被修正，但是反汇编显示的符号是`_IO_puts`而不是`puts`！难道我们找的文件不对吗？当然不是，我们使用`readelf`命令查看一下`main`的符号表。竟然发现`puts`和`_IO_puts`这两个符号的性质是等价的！`objdump`命令只是显示了全局的符号`_IO_puts`而已。
+```
 $readelf main –s
 
 Symbol table '.symtab' contains 2307 entries:
@@ -395,9 +395,9 @@ Symbol table '.symtab' contains 2307 entries:
   1674: 08049910   352 FUNC    GLOBAL DEFAULT    6 _IO_puts
 
 ...
-
-那么puts函数的定义真的是在libc.a里吗？我们需要对此确认。我们将libc.a解压缩，然后全局符号_IO_puts所在的二进制文件，输出结果为ioputs.o。然后查看该文件的符号表。发现ioputs.o定义了puts和_IO_puts符号，因此可以确定ioputs.o就是puts函数的代码文件，且在库文件libc.a内。
-
+```
+那么`puts`函数的定义真的是在`libc.a`里吗？我们需要对此确认。我们将`libc.a`解压缩，然后全局符号`_IO_puts`所在的二进制文件，输出结果为`ioputs.o`。然后查看该文件的符号表。发现`ioputs.o`定义了`puts`和`_IO_puts`符号，因此可以确定`ioputs.o`就是`puts`函数的代码文件，且在库文件`libc.a`内。
+```
 $ar -x /usr/lib/i386-linux-gnu/libc.a
 
 $grep -rin "_IO_puts" *.o
@@ -415,19 +415,19 @@ Symbol table '.symtab' contains 20 entries:
 ...
 
     19: 00000000   352 FUNC    WEAK   DEFAULT    1 puts
+```
+## 二、printf的调用轨迹
 
-二、printf的调用轨迹
+我们知道对于"Hello World !\n"的`printf`调用被转化为`puts`函数，并且我们找到了`puts`的实现代码是在库文件`libc.a`内的，并且知道它是以二进制的形式存储在文件`ioputs.o`内的，那么我们如何寻找`printf`函数的调用轨迹呢？换句话说，`printf`函数是如何一步步执行，最终使用`Linux`的`int 0x80`软中断进行系统调用陷入内核的呢？
 
-我们知道对于"Hello World !\n"的printf调用被转化为puts函数，并且我们找到了puts的实现代码是在库文件libc.a内的，并且知道它是以二进制的形式存储在文件ioputs.o内的，那么我们如何寻找printf函数的调用轨迹呢？换句话说，printf函数是如何一步步执行，最终使用Linux的int 0x80软中断进行系统调用陷入内核的呢？
-
-如果让我们向终端输出一段字符串信息，我们一般会使用系统调用write()。那么打印Helloworld的printf最终是这样做的吗？我们借助于gdb来追踪这个过程，不过我们需要在编译源文件的时候添加-g选项，支持调试时使用符号表。
-
+如果让我们向终端输出一段字符串信息，我们一般会使用系统调用`write()`。那么打印`Helloworld`的`printf`最终是这样做的吗？我们借助于`gdb`来追踪这个过程，不过我们需要在编译源文件的时候添加-g选项，支持调试时使用符号表。
+```
 $/usr/lib/gcc/i686-linux-gnu/4.7/cc1 -fpreprocessed -quiet -g\
 
     main.i -o main.s
-
+```
 然后使用gdb调试可执行文件。
-
+```
 $gdb ./main
 
 (gdb)break main
@@ -435,9 +435,9 @@ $gdb ./main
 (gdb)run
 
 (gdb)stepi
-
+```
 在main函数内下断点，然后调试执行，接着不断的使用stepi指令执行代码，直到看到Hello World !输出为止。这也是为什么我们使用puts作为示例而不是使用printf的原因。
-
+```
 (gdb)
 
 0xb7fff419 in __kernel_vsyscall ()
@@ -445,9 +445,9 @@ $gdb ./main
 (gdb)
 
 Hello World!
-
+```
 我们发现Hello World!打印位置的上一行代码的执行位置为0xb7fff419。我们查看此处的反汇编代码。
-
+```
 (gdb)disassemble
 
 Dump of assembler code for function __kernel_vsyscall:
@@ -487,11 +487,11 @@ Dump of assembler code for function __kernel_vsyscall:
    0xb7fff427 <+19>: ret   
 
 End of assembler dump.
-
+```
 我们惊奇的发现，地址0xb7fff419正是指向sysenter指令的位置！这里便是系统调用的入口。如果想了解这里为什么不是int 0x80指令，请参考文章《Linux 2.6 对新型 CPU 快速系统调用的支持》。或者参考Linus在邮件列表里的文章《Intel P6 vs P7 system call performance》。
 
 系统调用的位置已经是printf函数调用的末端了，我们只需要按照函数调用关系便能得到printf的调用轨迹了。
-
+```
 (gdb)backtrace
 
 #0  0xb7fff424 in __kernel_vsyscall ()
@@ -509,17 +509,17 @@ End of assembler dump.
 #6  0x08049a37 in puts ()
 
 #7  0x08048eb9 in main () at main.c:4
-
+```
 我们发现系统调用前执行的函数是__write_nocancel，它执行了系统调用__write！
 
-三、printf源码阅读
+## 三、printf源码阅读
 
 虽然我们找到了Hello World的printf调用轨迹，但是仍然无法看到函数的源码。跟踪反汇编代码不是个好主意，最好的方式是直接阅读glibc的源代码！我们可以从官网下载最新的glibc源代码（glibc-2.18）进行阅读分析，或者直接访问在线源码分析网站LXR。然后按照调用轨迹的的逆序查找函数的调用点。
 
 1.puts 调用 _IO_new_file_xsputn
 
 具体的符号转化关系为：_IO_puts => _IO_sputn => _IO_XSPUTN => __xsputn => _IO_file_xsputn => _IO_new_file_xsputn
-
+```
 $cat ./libio/ioputs.c
 
 int
@@ -563,14 +563,14 @@ _IO_puts (str)
 weak_alias (_IO_puts, puts)
 
 #endif
-
+```
 这里注意weak_alias宏的含义，即将puts绑定到符号_IO_puts，并且puts符号为weak类型的。这也就解释了puts符号被解析为_IO_puts的真正原因。
 
 2._IO_new_file_xsputn 调用 _IO_new_file_overflow
 
-具体的符号转化关系为：_IO_new_file_xsputn => _IO_OVERFLOW => __overflow => _IO_new_file_overflow
+具体的符号转化关系为：`_IO_new_file_xsputn => _IO_OVERFLOW => __overflow => _IO_new_file_overflow`
 
- 
+```
 $cat ./libio/fileops.c
 
 _IO_size_t
@@ -606,12 +606,12 @@ _IO_new_file_xsputn (f, data, n)
     return (to_do == 0 || to_do == n) ? EOF : n - to_do;
 
 ...
-
+```
 3._IO_new_file_overflow 调用 _IO_new_do_write
 
-具体的符号转化关系为：_IO_new_file_overflow =>_IO_do_write =>_IO_new_do_write
+具体的符号转化关系为：`_IO_new_file_overflow =>_IO_do_write =>_IO_new_do_write`
 
- 
+```
 $cat ./libio/fileops.c
 
 int
@@ -635,11 +635,11 @@ _IO_new_file_overflow (f, ch)
   return (unsigned char) ch;
 
 }
-
+```
 4. _IO_new_do_write 调用 new_do_write
 
-具体的符号转化关系为：_IO_new_do_write => new_do_write
-
+具体的符号转化关系为：`_IO_new_do_write => new_do_write`
+```
 $cat ./libio/fileops.c
 
 int
@@ -659,11 +659,11 @@ _IO_new_do_write (fp, data, to_do)
       || (_IO_size_t) new_do_write (fp, data, to_do) == to_do) ? 0 : EOF;
 
 }
-
+```
 5. new_do_write调用 _IO_new_file_write
 
-具体的符号转化关系为：new_do_write =>_IO_SYSWRITE => __write() => write() => _IO_new_file_write
-
+具体的符号转化关系为：`new_do_write =>_IO_SYSWRITE => __write() => write() => _IO_new_file_write`
+```
 $cat ./libio/fileops.c
 
 _IO_size_t
@@ -689,11 +689,12 @@ _IO_size_t to_do;
  ...
 
 }
+```
 
 6. _IO_new_file_write调用 write_nocancel
 
-具体的符号转化关系为：_IO_new_file_write=>write_not_cancel => write_nocancel
-
+具体的符号转化关系为：`_IO_new_file_write=>write_not_cancel => write_nocancel`
+```
 $cat ./libio/fileops.c
 
 _IO_ssize_t
@@ -719,10 +720,11 @@ _IO_ssize_t n;
 ...
 
 }
+```
 
 7. write_nocancel 调用 linux-gate.so::__kernel_vsyscall
 
-具体的符号转化关系为：write_nocancel => INLINE_SYSCALL  => INTERNAL_SYSCALL =>__kernel_vsyscall
+具体的符号转化关系为：`write_nocancel => INLINE_SYSCALL  => INTERNAL_SYSCALL =>__kernel_vsyscall`
 
 注意 linux-gate.so在磁盘上并不存在，它是内核镜像中的特定页，由内核编译生成。关于它的更多信息，可以参考文章《linux-gate.so技术细节》和《What is linux-gate.so.1?》。
 
