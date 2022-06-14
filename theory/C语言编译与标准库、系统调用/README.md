@@ -23,7 +23,7 @@
 
 如果对于C语言编译不熟悉的话，可以先看下面的`C语言编译`部分。
 
-# C 语言编译
+# C 语言编译过程
 
 > 该部分内容转载自：[C/C++程序编译过程详解](https://www.cnblogs.com/mickole/articles/3659112.html) <br>
 > 作者：mickole <br>
