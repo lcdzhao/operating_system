@@ -6,6 +6,7 @@
 - [实模式与保护模式](https://github.com/lcdzhao/operating_system/tree/master/theory/%E5%AE%9E%E6%A8%A1%E5%BC%8F%E4%B8%8E%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F)
 - [中断与系统调用](https://github.com/lcdzhao/operating_system/tree/master/theory/%E4%B8%AD%E6%96%AD%E4%B8%8E%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8)
 - [函数调用机制](https://github.com/lcdzhao/operating_system/tree/master/theory/%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%9C%BA%E5%88%B6)
+- [C语言变量内存位置及m指令寻址方式](https://github.com/lcdzhao/operating_system/tree/master/theory/C%E8%AF%AD%E8%A8%80%E5%8F%98%E9%87%8F%E5%86%85%E5%AD%98%E4%BD%8D%E7%BD%AE%E5%8F%8Am%E6%8C%87%E4%BB%A4%E5%AF%BB%E5%9D%80%E6%96%B9%E5%BC%8F)
 
 内嵌汇编语言可以参考：
 - [内联汇编](https://www.cnblogs.com/codeprojects/p/14081910.html)
