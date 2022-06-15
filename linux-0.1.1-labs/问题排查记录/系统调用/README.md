@@ -41,3 +41,27 @@ __asm__(
 		::
 		"m"(buf),"m"(name),"c"(name_size));	
 ```
+或者也可以这样：
+```
+int sys_iam(const char * name,int name_size){
+	printk("Step 1 : Sys_iam begin.  name_address: %d , buf_address: %d , name_size: %d,buf: %s.\r\n", name,buf, name_size,buf);
+	int buf_address = buf;
+	__asm__(
+		// src
+		"movl $0x17,%%edx\n\t"
+		"mov %%dx,%%ds\n\t"
+		"movl %0,%%edi\n\t"
+		"movl %1,%%esi\n\t"
+		// copy
+		"cld\n\t"
+		"rep\n\t"
+		"movsb\n\t"
+		"movl $0x10,%%edx\n\t"
+		"mov %%dx,%%ds\n\t"
+		::
+		"m"(buf_address),"m"(name),"c"(name_size));	
+
+	printk("Step 2 : Sys_iam end.  buf: %s .\r\n", buf);
+	return 1;
+}
+```
