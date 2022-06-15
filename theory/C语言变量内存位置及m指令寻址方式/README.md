@@ -43,6 +43,7 @@ int sys_iam(const char * name,int name_size){
 
 ##### GCC ...c -S 汇编后的代码
 ```
+who.c:25:7: 内存输入0，不可直接寻址  //编译器识别到buf取到的值为0，不可以寻址地址0，故直接报错
 ```
 
 #### 正确做法，赋值edi后，再修改ds，没有错误(buf 为内核空间)：
