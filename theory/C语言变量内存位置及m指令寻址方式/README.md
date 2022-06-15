@@ -121,6 +121,7 @@ sys_iam:
 	!将buf的值入栈
 	movl	$buf, %eax
 	movl	%eax, -4(%rbp)
+	!将name_size赋值给ecx
 	movl	-28(%rbp), %eax
 	movl	%eax, %ecx
 #APP
