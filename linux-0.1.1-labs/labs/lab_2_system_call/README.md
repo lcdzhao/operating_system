@@ -291,6 +291,7 @@ system_call:
     # 答：0x17是任务0的数据段选择符。
     # 由段选择符的结构可知，数据段Index=2，TI=1(表示在LDT中)，RPL=3(处理器的保护机制可识别4个特权级，0级到3级，详见4.5.1 段级保护)，
     # 即得段选择符为： 0000000000010(Index) 1(TI) 11(RPL)，故得16进制为: 0x17
+    mov %dx,%fs
     call sys_call_table(,%eax,4)
     pushl %eax
     movl current,%eax
