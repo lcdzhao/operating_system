@@ -67,7 +67,7 @@ int sys_iam(const char * name,int name_size){
 		"movl $0x10,%%edx\n\t"
 		"mov %%dx,%%ds\n\t"
 		::
-		"m"(buf_address),"m"(name),"c"(name_size));	
+		"m"(buf),"m"(name),"c"(name_size));	
 
 	printk("Step 2 : Sys_iam end.  buf: %s .\r\n", buf);
 	return 1;
