@@ -9,7 +9,7 @@
 ```c
 __asm__(
 		// 附值edi前进行了修改ds，导致了错误
-    "movl $0x17,%%edx\n\t"
+    		"movl $0x17,%%edx\n\t"
 		"mov %%dx,%%ds\n\t"
 		"movl %0,%%edi\n\t"
 		"movl %1,%%esi\n\t"
@@ -29,7 +29,7 @@ __asm__(
 __asm__(
 		// 附值edi后，再修改ds
 		"movl %0,%%edi\n\t"
-    "movl $0x17,%%edx\n\t"
+    		"movl $0x17,%%edx\n\t"
 		"mov %%dx,%%ds\n\t"
 		"movl %1,%%esi\n\t"
 		// copy
