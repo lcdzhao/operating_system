@@ -102,5 +102,35 @@ int sys_iam(const char * name,int name_size){
 }
 ```
 ##### GCC ...c -S 汇编后的代码
-```
+```asm
+	.file	"who.c"
+	.local	buf
+	.comm	buf,24,16
+	.section	.rodata
+
+.align 8
+...
+
+sys_iam:
+.LFB0:
+	!...省略pritk部分
+	!将buf的值入栈
+	movl	$buf, %eax
+	movl	%eax, -4(%rbp)
+	movl	-28(%rbp), %eax
+	movl	%eax, %ecx
+#APP
+# 16 "who.c" 1
+	movl $0x17,%edx
+	mov %dx,%ds
+	!从栈中给edi赋值buf
+	movl -4(%rbp),%edi
+	!从栈中给esi赋值name
+	movl -24(%rbp),%esi
+	cld
+	rep
+	movsb
+	movl $0x10,%edx
+	mov %dx,%ds
+	!...省略其他代码
 ```
