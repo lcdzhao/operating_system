@@ -1,5 +1,5 @@
 **历史**:
-> - [Intel CPU 历史](https://github.com/lcdzhao/operating_system/tree/master/theory/CPU(Intel)%E5%8F%8A%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%8F%91%E5%B1%95%E5%8E%86%E5%8F%B2)
+> - [Intel CPU 历史](https://github.com/lcdzhao/operating_system/tree/master/theory/%E7%A1%AC%E4%BB%B6%E7%9B%B8%E5%85%B3/CPU(Intel)%E5%8F%8A%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%8F%91%E5%B1%95%E5%8E%86%E5%8F%B2)
 > - [寻访x86处理器“实模式”和“保护模式”的前世此生](http://www.javashuo.com/article/p-pthhjsnp-ev.html)
 
 # 实模式
