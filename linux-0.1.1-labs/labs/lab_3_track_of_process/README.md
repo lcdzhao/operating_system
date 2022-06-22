@@ -287,16 +287,18 @@ outb_p(LATCH>>8, 0x40);
 #define HZ 100
 ```
 再加上 PC 机 8253 定时芯片的输入时钟频率为 1.193180MHz，即 1193180/每秒，`LATCH=1193180/100`，时钟每跳 11931.8 下产生一次时钟中断，即每 1/100 秒（10ms）产生一次时钟中断，所以 `jiffies` 实际上记录了从开机以来共经过了多少个 `10ms`。
-寻找状态切换点
+
+### 寻找状态切换点
+
 必须找到所有发生进程状态切换的代码点，并在这些点添加适当的代码，来输出进程状态变化的情况到 log 文件中。
 
-此处要面对的情况比较复杂，需要对 kernel 下的 fork.c、sched.c 有通盘的了解，而 exit.c 也会涉及到。
+此处要面对的情况比较复杂，需要对 kernel 下的 `fork.c`、`sched.c` 有通盘的了解，而 `exit.c` 也会涉及到。
 
 我们给出两个例子描述这个工作该如何做，其他情况实验者可仿照完成。
 
-（1）例子 1：记录一个进程生命期的开始
+#### （1）例子 1：记录一个进程生命期的开始
 第一个例子是看看如何记录一个进程生命期的开始，当然这个事件就是进程的创建函数 fork()，由《系统调用》实验可知，fork() 功能在内核中实现为 sys_fork()，该“函数”在文件 kernel/system_call.s 中实现为：
-
+```
 sys_fork:
     call find_empty_process
 !    ……
@@ -309,9 +311,9 @@ sys_fork:
 ! 调用 copy_process 实现进程创建
     call copy_process
     addl $20,%esp
-copy
-所以真正实现进程创建的函数是 copy_process()，它在 kernel/fork.c 中定义为：
-
+```
+所以真正实现进程创建的函数是 `copy_process()`，它在 `kernel/fork.c` 中定义为：
+```
 int copy_process(int nr,……)
 {
     struct task_struct *p;
@@ -331,14 +333,14 @@ int copy_process(int nr,……)
 
     return last_pid;
 }
-copy
-因此要完成进程运行轨迹的记录就要在 copy_process() 中添加输出语句。
+```
+因此要完成进程运行轨迹的记录就要在 `copy_process()` 中添加输出语句。
 
 这里要输出两种状态，分别是“N（新建）”和“J（就绪）”。
 
-（2）例子 2：记录进入睡眠态的时间
-第二个例子是记录进入睡眠态的时间。sleep_on() 和 interruptible_sleep_on() 让当前进程进入睡眠状态，这两个函数在 kernel/sched.c 文件中定义如下：
-
+#### （2）例子 2：记录进入睡眠态的时间
+第二个例子是记录进入睡眠态的时间。`sleep_on()` 和 `interruptible_sleep_on()` 让当前进程进入睡眠状态，这两个函数在 `kernel/sched.c` 文件中定义如下：
+```
 void sleep_on(struct task_struct **p)
 {
     struct task_struct *tmp;
@@ -355,7 +357,8 @@ void sleep_on(struct task_struct **p)
     if (tmp)
         tmp->state=0;
 }
-copy
+```
+```
 /* TASK_UNINTERRUPTIBLE和TASK_INTERRUPTIBLE的区别在于不可中断的睡眠
  * 只能由wake_up()显式唤醒，再由上面的 schedule()语句后的
  *
@@ -398,7 +401,7 @@ repeat:    current->state = TASK_INTERRUPTIBLE;
     if (tmp)
         tmp->state=0;
 }
-copy
+```
 相信实验者已经找到合适的地方插入记录进程从运行到睡眠的语句了。
 
 总的来说，Linux 0.11 支持四种进程状态的转移：就绪到运行、运行到就绪、运行到睡眠和睡眠到就绪，此外还有新建和退出两种情况。其中就绪与运行间的状态转移是通过 schedule()（它亦是调度算法所在）完成的；运行到睡眠依靠的是 sleep_on() 和 interruptible_sleep_on()，还有进程主动睡觉的系统调用 sys_pause() 和 sys_waitpid()；睡眠到就绪的转移依靠的是 wake_up()。所以只要在这些函数的适当位置插入适当的处理语句就能完成进程运行轨迹的全面跟踪了。
@@ -410,3 +413,215 @@ copy
 schedule() 找到的 next 进程是接下来要运行的进程（注意，一定要分析清楚 next 是什么）。如果 next 恰好是当前正处于运行态的进程，swith_to(next) 也会被调用。这种情况下相当于当前进程的状态没变。
 
 系统无事可做的时候，进程 0 会不停地调用 sys_pause()，以激活调度算法。此时它的状态可以是等待态，等待有其它可运行的进程；也可以叫运行态，因为它是唯一一个在 CPU 上运行的进程，只不过运行的效果是等待。
+
+### 管理 log 文件
+日志文件的管理与代码编写无关，有几个要点要注意：
+
+- 每次关闭 bochs 前都要执行一下 `sync` 命令，它会刷新 cache，确保文件确实写入了磁盘。
+- 在 0.11 下，可以用 `ls -l /var` 或 `ll /var` 查看 process.log 是否建立，及它的属性和长度。
+- 一定要实践《实验环境的搭建与使用》一章中关于文件交换的部分。最终肯定要把 process.log 文件拷贝到主机环境下处理。
+- 在 0.11 下，可以用` vi /var/process.log` 或 `more /var/process.log` 查看整个 log 文件。不过，还是拷贝到 Ubuntu 下看，会更舒服。
+- 在 0.11 下，可以用 `tail -n NUM /var/process.log` 查看 log 文件的最后 NUM 行。
+
+一种可能的情况下，得到的 process.log 文件的前几行是：
+```
+1    N    48    //进程1新建（init()）。此前是进程0建立和运行，但为什么没出现在log文件里？
+1    J    49    //新建后进入就绪队列
+0    J    49    //进程0从运行->就绪，让出CPU
+1    R    49    //进程1运行
+2    N    49    //进程1建立进程2。2会运行/etc/rc脚本，然后退出
+2    J    49
+1    W    49    //进程1开始等待（等待进程2退出）
+2    R    49    //进程2运行
+3    N    64    //进程2建立进程3。3是/bin/sh建立的运行脚本的子进程
+3    J    64
+2    E    68    //进程2不等进程3退出，就先走一步了
+1    J    68    //进程1此前在等待进程2退出，被阻塞。进程2退出后，重新进入就绪队列
+1    R    68
+4    N    69    //进程1建立进程4，即shell
+4    J    69
+1    W    69    //进程1等待shell退出（除非执行exit命令，否则shell不会退出）
+3    R    69    //进程3开始运行
+3    W    75
+4    R    75
+5    N    107    //进程5是shell建立的不知道做什么的进程
+5    J    108
+4    W    108
+5    R    108
+4    J    110
+5    E    111    //进程5很快退出
+4    R    111
+4    W    116    //shell等待用户输入命令。
+0    R    116    //因为无事可做，所以进程0重出江湖
+4    J    239    //用户输入命令了，唤醒了shell
+4    R    239
+4    W    240
+0    R    240
+……
+```
+
+### 数据统计
+
+为展示实验结果，需要编写一个数据统计程序，它从 log 文件读入原始数据，然后计算平均周转时间、平均等待时间和吞吐率。
+
+任何语言都可以编写这样的程序，实验者可自行设计。我们用 python 语言编写了一个——stat_log.py（这是 python 源程序，可以用任意文本编辑器打开）。
+
+python 是一种跨平台的脚本语言，号称 “可执行的伪代码”，非常强大，非常好用，也非常有用，建议闲着的时候学习一下。
+
+其解释器免费且开源，Ubuntu 下这样安装：
+```
+# 在实验楼的环境中已经安装了 python，可以不必进行此操作
+$ sudo apt-get install python
+```
+
+然后只要给 stat_log.py 加上执行权限（使用的命令为 chmod +x stat_log.py）就可以直接运行它。
+
+此程序必须在命令行下加参数执行，直接运行会打印使用说明。
+```
+Usage:
+  ./stat_log.py /path/to/process.log [PID1] [PID2] ... [-x PID1 [PID2] ... ] [-m] [-g]
+Example:
+  # Include process 6, 7, 8 and 9 in statistics only. (Unit: tick)
+  ./stat_log.py /path/to/process.log 6 7 8 9
+  # Exclude process 0 and 1 from statistics. (Unit: tick)
+  ./stat_log.py /path/to/process.log -x 0 1
+  # Include process 6 and 7 only. (Unit: millisecond)
+  ./stat_log.py /path/to/process.log 6 7 -m
+  # Include all processes and print a COOL "graphic"! (Unit: tick)
+  ./stat_log.py /path/to/process.log -g
+```
+运行 ./stat_log.py process.log 0 1 2 3 4 5 -g（只统计 PID 为 0、1、2、3、4 和 5 的进程）的输出示例：
+```
+(Unit: tick)
+Process   Turnaround   Waiting   CPU Burst   I/O Burst
+     0           75        67           8           0
+     1         2518         0           1        2517
+     2           25         4          21           0
+     3         3003         0           4        2999
+     4         5317         6          51        5260
+     5            3         0           3           0
+Average:     1823.50     12.83
+Throughout: 0.11/s
+-----===< COOL GRAPHIC OF SCHEDULER >===-----
+
+            [Symbol]   [Meaning]
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+             number   PID or tick
+              "-"     New or Exit
+              "#"       Running
+              "|"        Ready
+              ":"       Waiting
+                    / Running with
+              "+" -|     Ready
+                    \and/or Waiting
+
+-----===< !!!!!!!!!!!!!!!!!!!!!!!!! >===-----
+
+  40 -0
+  41 #0
+  42 #
+  43 #
+  44 #
+  45 #
+  46 #
+  47 #
+  48 |0  -1
+  49 |   :1  -2
+  50 |   :   #2
+  51 |   :   #
+  52 |   :   #
+  53 |   :   #
+  54 |   :   #
+  55 |   :   #
+  56 |   :   #
+  57 |   :   #
+  58 |   :   #
+  59 |   :   #
+  60 |   :   #
+  61 |   :   #
+  62 |   :   #
+  63 |   :   #
+  64 |   :   |2  -3
+  65 |   :   |   #3
+  66 |   :   |   #
+  67 |   :   |   #
+…………
+```
+小技巧：如果命令行程序输出过多，可以用 `command arguments | more （command arguments 需要替换为脚本执行的命令）`的方式运行，结果会一屏一屏地显示。
+
+“more” 在 Linux 和 Windows 下都有。Linux 下还有一个 “less”，和 “more” 类似，但功能更强，可以上下翻页、搜索。
+
+### 修改时间片
+下面是 0.11 的调度函数 `schedule`，在文件 kernel/sched.c 中定义为：
+```
+while (1) {
+    c = -1; next = 0; i = NR_TASKS; p = &task[NR_TASKS];
+
+// 找到 counter 值最大的就绪态进程
+    while (--i) {
+        if (!*--p)    continue;
+        if ((*p)->state == TASK_RUNNING && (*p)->counter > c)
+            c = (*p)->counter, next = i;
+    }
+
+// 如果有 counter 值大于 0 的就绪态进程，则退出
+    if (c) break;
+
+// 如果没有：
+// 所有进程的 counter 值除以 2 衰减后再和 priority 值相加，
+// 产生新的时间片
+    for(p = &LAST_TASK ; p > &FIRST_TASK ; --p)
+          if (*p) (*p)->counter = ((*p)->counter >> 1) + (*p)->priority;
+}
+
+// 切换到 next 进程
+switch_to(next);
+```
+分析代码可知，0.11 的调度算法是选取 `counter` 值最大的就绪进程进行调度。
+
+其中运行态进程（即 current）的 `counter` 数值会随着时钟中断而不断减 1（时钟中断 10ms 一次），所以是一种比较典型的时间片轮转调度算法。
+
+另外，由上面的程序可以看出，当没有 `counter` 值大于 0 的就绪进程时，要对所有的进程做 `(*p)->counter = ((*p)->counter >> 1) + (*p)->priority`。其效果是对所有的进程（包括阻塞态进程）都进行 counter 的衰减，并再累加 priority 值。这样，对正被阻塞的进程来说，一个进程在阻塞队列中停留的时间越长，其优先级越大，被分配的时间片也就会越大。
+
+所以总的来说，Linux 0.11 的进程调度是一种综合考虑进程优先级并能动态反馈调整时间片的轮转调度算法。
+
+此处要求实验者对现有的调度算法进行时间片大小的修改，并进行实验验证。
+
+为完成此工作，我们需要知道两件事情：
+
+- 进程 counter 是如何初始化的
+- 当进程的时间片用完时，被重新赋成何值？
+
+首先回答第一个问题，显然这个值是在 `fork()` 中设定的。Linux 0.11 的 `fork()` 会调用 `copy_process()` 来完成从父进程信息拷贝（所以才称其为 fork），看看 `copy_process()` 的实现（也在 kernel/fork.c 文件中），会发现其中有下面两条语句：
+```
+// 用来复制父进程的PCB数据信息，包括 priority 和 counter
+*p = *current;
+
+// 初始化 counter
+p->counter = p->priority;
+// 因为父进程的counter数值已发生变化，而 priority 不会，所以上面的第二句代码将p->counter 设置成 p->priority。
+// 每个进程的 priority 都是继承自父亲进程的，除非它自己改变优先级。
+```
+```
+// 查找所有的代码，只有一个地方修改过 priority，那就是 nice 系统调用。
+int sys_nice(long increment)
+{
+    if (current->priority-increment>0)
+        current->priority -= increment;
+    return 0;
+}
+```
+本实验假定没有人调用过 nice 系统调用，时间片的初值就是进程 0 的 priority，即宏 INIT_TASK 中定义的：
+```
+#define INIT_TASK \
+    { 0,15,15,
+// 上述三个值分别对应 state、counter 和 priority;
+```
+
+接下来回答第二个问题，当就绪进程的 `counter` 为 0 时，不会被调度（schedule 要选取 counter 最大的，大于 0 的进程），而当所有的就绪态进程的 counter 都变成 0 时，会执行下面的语句：
+```
+(*p)->counter = ((*p)->counter >> 1) + (*p)->priority;
+```
+显然算出的新的 `counter` 值也等于 `priority`，即初始时间片的大小。
+
+提示就到这里。如何修改时间片，自己思考、尝试吧。
