@@ -287,3 +287,126 @@ outb_p(LATCH>>8, 0x40);
 #define HZ 100
 ```
 再加上 PC 机 8253 定时芯片的输入时钟频率为 1.193180MHz，即 1193180/每秒，`LATCH=1193180/100`，时钟每跳 11931.8 下产生一次时钟中断，即每 1/100 秒（10ms）产生一次时钟中断，所以 `jiffies` 实际上记录了从开机以来共经过了多少个 `10ms`。
+寻找状态切换点
+必须找到所有发生进程状态切换的代码点，并在这些点添加适当的代码，来输出进程状态变化的情况到 log 文件中。
+
+此处要面对的情况比较复杂，需要对 kernel 下的 fork.c、sched.c 有通盘的了解，而 exit.c 也会涉及到。
+
+我们给出两个例子描述这个工作该如何做，其他情况实验者可仿照完成。
+
+（1）例子 1：记录一个进程生命期的开始
+第一个例子是看看如何记录一个进程生命期的开始，当然这个事件就是进程的创建函数 fork()，由《系统调用》实验可知，fork() 功能在内核中实现为 sys_fork()，该“函数”在文件 kernel/system_call.s 中实现为：
+
+sys_fork:
+    call find_empty_process
+!    ……
+! 传递一些参数
+    push %gs
+    pushl %esi
+    pushl %edi
+    pushl %ebp
+    pushl %eax
+! 调用 copy_process 实现进程创建
+    call copy_process
+    addl $20,%esp
+copy
+所以真正实现进程创建的函数是 copy_process()，它在 kernel/fork.c 中定义为：
+
+int copy_process(int nr,……)
+{
+    struct task_struct *p;
+//    ……
+// 获得一个 task_struct 结构体空间
+    p = (struct task_struct *) get_free_page();
+//    ……
+    p->pid = last_pid;
+//    ……
+// 设置 start_time 为 jiffies
+    p->start_time = jiffies;
+//       ……
+/* 设置进程状态为就绪。所有就绪进程的状态都是
+   TASK_RUNNING(0），被全局变量 current 指向的
+   是正在运行的进程。*/
+    p->state = TASK_RUNNING;
+
+    return last_pid;
+}
+copy
+因此要完成进程运行轨迹的记录就要在 copy_process() 中添加输出语句。
+
+这里要输出两种状态，分别是“N（新建）”和“J（就绪）”。
+
+（2）例子 2：记录进入睡眠态的时间
+第二个例子是记录进入睡眠态的时间。sleep_on() 和 interruptible_sleep_on() 让当前进程进入睡眠状态，这两个函数在 kernel/sched.c 文件中定义如下：
+
+void sleep_on(struct task_struct **p)
+{
+    struct task_struct *tmp;
+//    ……
+    tmp = *p;
+// 仔细阅读，实际上是将 current 插入“等待队列”头部，tmp 是原来的头部
+    *p = current;
+// 切换到睡眠态
+    current->state = TASK_UNINTERRUPTIBLE;
+// 让出 CPU
+    schedule();
+// 唤醒队列中的上一个（tmp）睡眠进程。0 换作 TASK_RUNNING 更好
+// 在记录进程被唤醒时一定要考虑到这种情况，实验者一定要注意!!!
+    if (tmp)
+        tmp->state=0;
+}
+copy
+/* TASK_UNINTERRUPTIBLE和TASK_INTERRUPTIBLE的区别在于不可中断的睡眠
+ * 只能由wake_up()显式唤醒，再由上面的 schedule()语句后的
+ *
+ *   if (tmp) tmp->state=0;
+ *
+ * 依次唤醒，所以不可中断的睡眠进程一定是按严格从“队列”（一个依靠
+ * 放在进程内核栈中的指针变量tmp维护的队列）的首部进行唤醒。而对于可
+ * 中断的进程，除了用wake_up唤醒以外，也可以用信号（给进程发送一个信
+ * 号，实际上就是将进程PCB中维护的一个向量的某一位置位，进程需要在合
+ * 适的时候处理这一位。感兴趣的实验者可以阅读有关代码）来唤醒，如在
+ * schedule()中：
+ *
+ *  for(p = &LAST_TASK ; p > &FIRST_TASK ; --p)
+ *      if (((*p)->signal & ~(_BLOCKABLE & (*p)->blocked)) &&
+ *         (*p)->state==TASK_INTERRUPTIBLE)
+ *         (*p)->state=TASK_RUNNING;//唤醒
+ *
+ * 就是当进程是可中断睡眠时，如果遇到一些信号就将其唤醒。这样的唤醒会
+ * 出现一个问题，那就是可能会唤醒等待队列中间的某个进程，此时这个链就
+ * 需要进行适当调整。interruptible_sleep_on和sleep_on函数的主要区别就
+ * 在这里。
+ */
+void interruptible_sleep_on(struct task_struct **p)
+{
+    struct task_struct *tmp;
+       …
+    tmp=*p;
+    *p=current;
+repeat:    current->state = TASK_INTERRUPTIBLE;
+    schedule();
+// 如果队列头进程和刚唤醒的进程 current 不是一个，
+// 说明从队列中间唤醒了一个进程，需要处理
+    if (*p && *p != current) {
+ // 将队列头唤醒，并通过 goto repeat 让自己再去睡眠
+        (**p).state=0;
+        goto repeat;
+    }
+    *p=NULL;
+//作用和 sleep_on 函数中的一样
+    if (tmp)
+        tmp->state=0;
+}
+copy
+相信实验者已经找到合适的地方插入记录进程从运行到睡眠的语句了。
+
+总的来说，Linux 0.11 支持四种进程状态的转移：就绪到运行、运行到就绪、运行到睡眠和睡眠到就绪，此外还有新建和退出两种情况。其中就绪与运行间的状态转移是通过 schedule()（它亦是调度算法所在）完成的；运行到睡眠依靠的是 sleep_on() 和 interruptible_sleep_on()，还有进程主动睡觉的系统调用 sys_pause() 和 sys_waitpid()；睡眠到就绪的转移依靠的是 wake_up()。所以只要在这些函数的适当位置插入适当的处理语句就能完成进程运行轨迹的全面跟踪了。
+
+为了让生成的 log 文件更精准，以下几点请注意：
+
+进程退出的最后一步是通知父进程自己的退出，目的是唤醒正在等待此事件的父进程。从时序上来说，应该是子进程先退出，父进程才醒来。
+
+schedule() 找到的 next 进程是接下来要运行的进程（注意，一定要分析清楚 next 是什么）。如果 next 恰好是当前正处于运行态的进程，swith_to(next) 也会被调用。这种情况下相当于当前进程的状态没变。
+
+系统无事可做的时候，进程 0 会不停地调用 sys_pause()，以激活调度算法。此时它的状态可以是等待态，等待有其它可运行的进程；也可以叫运行态，因为它是唯一一个在 CPU 上运行的进程，只不过运行的效果是等待。
