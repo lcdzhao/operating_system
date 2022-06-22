@@ -178,3 +178,112 @@ if (!fork()) {        /* we count on this going ok */
 
 这样，文件描述符 0、1、2 和 3 就在进程 0 中建立了。根据 `fork()` 的原理，进程 1 会继承这些文件描述符，所以 `init()` 中就不必再 `open()` 它们。此后所有新建的进程都是进程 1 的子孙，也会继承它们。但实际上，`init()` 的后续代码和 `/bin/sh` 都会重新初始化它们。所以只有进程 0 和进程 1 的文件描述符肯定关联着 log 文件，这一点在接下来的写 log 中很重要。
 
+### 写 log 文件
+
+log 文件将被用来记录进程的状态转移轨迹。所有的状态转移都是在内核进行的。
+
+在内核状态下，`write()` 功能失效，其原理等同于《系统调用》实验中不能在内核状态调用 `printf()`，只能调用 `printk()`。编写可在内核调用的 `write()` 的难度较大，所以这里直接给出源码。它主要参考了 `printk()` 和 `sys_write()` 而写成的：
+```
+#include "linux/sched.h"
+#include "sys/stat.h"
+
+static char logbuf[1024];
+int fprintk(int fd, const char *fmt, ...)
+{
+    va_list args;
+    int count;
+    struct file * file;
+    struct m_inode * inode;
+
+    va_start(args, fmt);
+    count=vsprintf(logbuf, fmt, args);
+    va_end(args);
+/* 如果输出到stdout或stderr，直接调用sys_write即可 */
+    if (fd < 3)
+    {
+        __asm__("push %%fs\n\t"
+            "push %%ds\n\t"
+            "pop %%fs\n\t"
+            "pushl %0\n\t"
+        /* 注意对于Windows环境来说，是_logbuf,下同 */
+            "pushl $logbuf\n\t"
+            "pushl %1\n\t"
+        /* 注意对于Windows环境来说，是_sys_write,下同 */
+            "call sys_write\n\t"
+            "addl $8,%%esp\n\t"
+            "popl %0\n\t"
+            "pop %%fs"
+            ::"r" (count),"r" (fd):"ax","cx","dx");
+    }
+    else
+/* 假定>=3的描述符都与文件关联。事实上，还存在很多其它情况，这里并没有考虑。*/
+    {
+    /* 从进程0的文件描述符表中得到文件句柄 */
+        if (!(file=task[0]->filp[fd]))
+            return 0;
+        inode=file->f_inode;
+
+        __asm__("push %%fs\n\t"
+            "push %%ds\n\t"
+            "pop %%fs\n\t"
+            "pushl %0\n\t"
+            "pushl $logbuf\n\t"
+            "pushl %1\n\t"
+            "pushl %2\n\t"
+            "call file_write\n\t"
+            "addl $12,%%esp\n\t"
+            "popl %0\n\t"
+            "pop %%fs"
+            ::"r" (count),"r" (file),"r" (inode):"ax","cx","dx");
+    }
+    return count;
+}
+```
+因为和 printk 的功能近似，建议将此函数放入到 `kernel/printk.c` 中。`fprintk()` 的使用方式类同与 C 标准库函数 `fprintf()`，唯一的区别是第一个参数是文件描述符，而不是文件指针。
+
+例如：
+```
+// 向stdout打印正在运行的进程的ID
+fprintk(1, "The ID of running process is %ld", current->pid);
+
+// 向log文件输出跟踪进程运行轨迹
+fprintk(3, "%ld\t%c\t%ld\n", current->pid, 'R', jiffies);
+```
+
+### `jiffies`，滴答
+`jiffies` 在 `kernel/sched.c` 文件中定义为一个全局变量：
+
+```
+long volatile jiffies=0;
+```
+
+它记录了从开机到当前时间的时钟中断发生次数。在 `kernel/sched.c` 文件中的 `sched_init()` 函数中，时钟中断处理函数被设置为：
+```
+set_intr_gate(0x20,&timer_interrupt);
+```
+而在 `kernel/system_call.s` 文件中将 `timer_interrupt` 定义为：
+```
+timer_interrupt:
+!    ……
+! 增加jiffies计数值
+    incl jiffies
+!    ……
+```
+这说明 `jiffies` 表示从开机时到现在发生的时钟中断次数，这个数也被称为 “滴答数”。
+
+另外，在 `kernel/sched.c` 中的 `sched_init()` 中有下面的代码：
+```
+// 设置8253模式
+outb_p(0x36, 0x43);
+outb_p(LATCH&0xff, 0x40);
+outb_p(LATCH>>8, 0x40);
+```
+这三条语句用来设置每次时钟中断的间隔，即为`LATCH`，而 `LATCH` 是定义在文件 `kernel/sched.c` 中的一个宏：
+```
+// 在 kernel/sched.c 中
+#define LATCH  (1193180/HZ)
+
+// 在 include/linux/sched.h 中
+#define HZ 100
+```
+再加上 PC 机 8253 定时芯片的输入时钟频率为 1.193180MHz，即 1193180/每秒，`LATCH=1193180/100`，时钟每跳 11931.8 下产生一次时钟中断，即每 1/100 秒（10ms）产生一次时钟中断，所以 `jiffies` 实际上记录了从开机以来共经过了多少个 `10ms`。
