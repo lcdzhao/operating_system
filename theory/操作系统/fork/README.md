@@ -8,8 +8,25 @@
 在 `fork()` 的执行过程中，内核并不会立刻为新进程分配代码和数据内存页。**新进程将与父进程共同使用父进程己有的代码和数据内存页面**。只有当以后执行过程中如果其中有一个进程**以写方式访问内存时被访问的内存页面才会在写操作前被复制到新申请的内存页面中**。
 ![copy_on_write](./README.assets/copy_on_write.png)
 
-### `do_wp_page` 如何判断页面是否被共享
-mem_map 的定义为 `static unsigned char mem_map [ PAGING_PAGES ] = {0,};`，其每一个项的值为该页面被多少个应用共享，每个页面被新的进程共享时，其`mem_map[n]`的值都进行 `+1` 操作，同理在`do_wp_page`中（实际是在`un_wp_page`中），通过判断`mem_map[n]`是否等于1 来判断该页面是否被共享：
+### 页面共享相关
+
+> mem_map 的定义为 `static unsigned char mem_map [ PAGING_PAGES ] = {0,};`，其每一个项的值为该页面被多少个应用共享。
+
+#### 共享页面
+当每个页面被新的进程共享时，其`mem_map[n]`的值都进行 `+1` ，该操作在`/mm/memory.c`中的`copy_page_tables()`中进行，对应的代码为:
+```
+...
+			if (this_page > LOW_MEM) {
+				*from_page_table = this_page;
+				this_page -= LOW_MEM;
+				this_page >>= 12;
+				mem_map[this_page]++;
+			}
+...
+```
+
+### 共享页面写操作
+共享页面写操作会触发页面异常，该异常在`/mm/memory.c`中的`do_wp_page()`中处理（实际是在`un_wp_page`中），通过判断`mem_map[n]`是否等于1 来判断该页面是否被共享，来进行一下两种处理：
 
 - `mem_map[n]==1` : 只将该页面从不可写改为可写。
 - `mem_map[n]>1` : 复制该页面的内容到新的物理页面，修改页表项，并将原来的`mem_map[n]`的值减1(表示该页面少了一个共享进程） 。
