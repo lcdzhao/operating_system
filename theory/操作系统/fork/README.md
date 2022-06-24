@@ -9,4 +9,4 @@
 ![copy_on_write](./README.assets/copy_on_write.png)
 
 #### Copy Page Tables
-![copy_on_write](./README.assets/copy_page_tables.png)
+![copy_page_tables](./README.assets/copy_page_tables.png)
