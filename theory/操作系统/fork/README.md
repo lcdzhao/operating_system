@@ -1,21 +1,12 @@
 ## PCB定义
 `/include/linux/sched.h`:
 ```c
-struct i387_struct {
-	long	cwd;
-	long	swd;
-	long	twd;
-	long	fip;
-	long	fcs;
-	long	foo;
-	long	fos;
-	long	st_space[20];	/* 8*10 bytes for each FP-reg = 80 bytes */
-};
+
 
 struct tss_struct {
 	long	back_link;	/* 16 high bits zero */
-	long	esp0;
-	long	ss0;		/* 16 high bits zero */
+	long	esp0;           //内核栈
+	long	ss0;		//内核栈
 	long	esp1;
 	long	ss1;		/* 16 high bits zero */
 	long	esp2;
