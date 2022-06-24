@@ -1,6 +1,6 @@
 ## PCB定义
 `/include/linux/sched.h`:
-```
+```c
 struct i387_struct {
 	long	cwd;
 	long	swd;
@@ -89,7 +89,7 @@ struct task_struct {
 
 #### 共享页面
 当每个页面被新的进程共享时，其`mem_map[n]`的值都进行 `+1` ，该操作在`/mm/memory.c`中的`copy_page_tables()`中进行，对应的代码为:
-```
+```c
 ...
 			if (this_page > LOW_MEM) {
 				*from_page_table = this_page;
