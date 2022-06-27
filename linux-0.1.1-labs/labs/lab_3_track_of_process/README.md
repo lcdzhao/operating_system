@@ -126,7 +126,7 @@ if (!fork()) {        /* we count on this going ok */
 这段代码在进程 0 中运行，先切换到用户模式，然后全系统第一次调用 `fork()` 建立进程 1。进程 1 调用 `init()`。
 
 在 `init()`中：
-```
+```C
 // ……
 //加载文件系统
 setup((void *) &drive_info);
