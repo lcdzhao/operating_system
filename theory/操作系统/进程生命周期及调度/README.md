@@ -404,14 +404,14 @@ stat_addr用来保存状态信息：
 ## 总结
 在 `Linux 0.11` 内核版本中，进程状态的切换发生在如下文件中:
 ### 就绪态和运行态的相互转换
-- `schedule()`
+- `schedule(kernel/sched.c)`
 ### 运行态到睡眠态
-- `sleep_on`
-- `interruptible_sleep_on`
-- `sys_pause`
-- `sys_waitpid`
+- `sleep_on(kernel/sched.c)`
+- `interruptible_sleep_on(kernel/sched.c)`
+- `sys_pause(kernel/sched.c)`
+- `sys_waitpid(kernel/exit.c)``
 ### 睡眠态到就绪态
-- `sleep_on`
-- `interruptible_sleep_on`
-- `wake_up`
-- `fork`(初始化时设为`TASK_UNINTERRUPTIBLE`，初始化完成后设为`TASK_RUNNING`)
+- `sleep_on(kernel/sched.c)`
+- `interruptible_sleep_on(kernel/sched.c)`
+- `wake_up(kernel/sched.c)`
+- `fork`(kernel/fork.c,初始化时设为`TASK_UNINTERRUPTIBLE`，初始化完成后设为`TASK_RUNNING`)
