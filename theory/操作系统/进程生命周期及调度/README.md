@@ -277,28 +277,29 @@ repeat:	current->state = TASK_INTERRUPTIBLE;
         (**p).state=0;
         goto repeat;
     }
-    *p=NULL;// 同理，这里应该是 *p = tmp
+    *p=NULL;
     if (tmp)
         tmp->state=0;
 }
 ```
-和sleep_on函数功能类似，只是这里是将当前任务的状态置为可中断等待状态（`TASK_INTERRUPTIBLE`），其他切换点的位置和sleep_on的基本相同，不过多了一处`(**p).state = 0`，意思是将在当前任务入队之后加进等待队列的任务唤醒(即：让唤醒一定从队头开始)。
+和sleep_on函数功能类似，只是这里是将当前任务的状态置为可中断等待状态（`TASK_INTERRUPTIBLE`），其他切换点的位置和sleep_on的基本相同，不过多了一处`(**p).state = 0`，意思是将在当前任务入队之后加进等待队列的任务唤醒(即：让唤醒一定从队头开始)【猜测是因为`TASK_INTERRUPTIBLE`的进程可以被信号唤醒，而这种唤醒不一定是从队头唤醒，故使用这种与sleep_on不同的方式唤醒】。
 
-wake_up
-source code
-
+#### wake_up
+代码位置：`kernel/sched.c`,源码：
+```C
 void wake_up(struct task_struct **p)
 {
     if (p && *p) {
         (**p).state=0;
-        *p=NULL; // 此处应该删去
+        *p=NULL; 
     }
 }
-该函数用来唤醒等待队列头指针指向的任务（即最后入队的任务），(**p).state=0是一个切换点
+```
+该函数用来唤醒等待队列头指针指向的任务（即最后入队的任务），`(**p).state=0`是一个切换点。
 
-do_exit
-source code
-
+#### do_exit
+代码位置：`kernel/exit.c`,源码：
+```C
 int do_exit(long code)
 {
     int i;
@@ -321,11 +322,69 @@ int do_exit(long code)
     schedule();
     return (-1);	/* just to suppress warnings */
 }
-首先释放调用该函数的进程的代码段和数据段所占的内存页。如果当前进程有子进程，则将这些子进程的父进程改为进程 1,即 init 进程
+```
+**首先释放调用该函数的进程的代码段和数据段所占的内存页。如果当前进程有子进程，则将这些子进程的父进程改为进程 1,即 init 进程**。
 
-之后进行一系列资源释放操作，然后将当前进程的状态置为TASK_ZOMBIE，此处为一切换点
+**之后进行一系列资源释放操作，然后将当前进程的状态置为TASK_ZOMBIE，此处为一切换点。可以注意到，此处并没有回收PCB(task_struct)所在的那一页内存。**
 
-sys_waitpid
+#### sys_waitpid
+代码位置：`kernel/exit.c`,源码：
+```C
+int sys_waitpid(pid_t pid,unsigned long * stat_addr, int options)
+{
+	int flag, code;
+	struct task_struct ** p;
+
+	verify_area(stat_addr,4);
+repeat:
+	flag=0;
+	for(p = &LAST_TASK ; p > &FIRST_TASK ; --p) {
+		if (!*p || *p == current)
+			continue;
+		if ((*p)->father != current->pid)
+			continue;
+		if (pid>0) {
+			if ((*p)->pid != pid)
+				continue;
+		} else if (!pid) {
+			if ((*p)->pgrp != current->pgrp)
+				continue;
+		} else if (pid != -1) {
+			if ((*p)->pgrp != -pid)
+				continue;
+		}
+		switch ((*p)->state) {
+			case TASK_STOPPED:
+				if (!(options & WUNTRACED))
+					continue;
+				put_fs_long(0x7f,stat_addr);
+				return (*p)->pid;
+			case TASK_ZOMBIE:
+				current->cutime += (*p)->utime;
+				current->cstime += (*p)->stime;
+				flag = (*p)->pid;
+				code = (*p)->exit_code;
+				release(*p);
+				put_fs_long(code,stat_addr);
+				return flag;
+			default:
+				flag=1;
+				continue;
+		}
+	}
+	if (flag) {
+		if (options & WNOHANG)
+			return 0;
+		current->state=TASK_INTERRUPTIBLE;
+		schedule();
+		if (!(current->signal &= ~(1<<(SIGCHLD-1))))
+			goto repeat;
+		else
+			return -EINTR;
+	}
+	return -ECHILD;
+}
+```
 源码中有一处current->state = TASK_INTERRUPTIBLE，此处为一切换点
 总结
 在 Linux 0.11 内核版本中，进程状态的切换发生在如下文件中
