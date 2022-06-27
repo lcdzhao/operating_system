@@ -68,14 +68,14 @@ struct task_struct * task[NR_TASK] = {&(init_task.task), };
 ```
 
 ### 关键函数
-让我们假设一切初始化工作运转良好，操作系统顺利执行了init/main.c的main()函数，内核开始继续进行所有硬件的初始化工作，随后启动任务 0，并通过
+让我们假设一切初始化工作运转良好，操作系统顺利执行了`init/main.c`的`main()`函数，内核开始继续进行所有硬件的初始化工作，随后启动任务 0，并通过：
 ```C
 move_to_user_mode();
 ```
-CPU 从 0 特权级转换为 3 特权级
+CPU 从`0`特权级转换为`3`特权级。
 
-#### fork(`kernel/fork.c`)
-我感觉最具神秘色彩的一段代码便是下面这几行，就好像上帝前五天创造了光、空气、动物等，完成了环境的初始化工作，在第六天开始，照着自己的模样创造（fork）出了人类（新进程）
+#### fork
+我感觉最具神秘色彩的一段代码便是下面这几行，就好像上帝前五天创造了光、空气、动物等，完成了环境的初始化工作，在第六天开始，照着自己的模样创造（`fork`）出了人类（新进程）:
 ```C
 if (!fork()) {
     init();
@@ -98,13 +98,14 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 
 int find_empty_process(void);
 ```
-前面我们提到程序特权级变为 3，在运行到
-
+前面我们提到程序特权级变为 `3`，在运行到:
+```C
 if (!fork()) {
     init();
 }
-时进程是用户状态，而fork()程序涉及到内存页面复制等内核级操作，因此，执行fork()实际上是通过int $0x80进入系统调用，进而执行了sys_fork，这一点我们可以在kernel/system_call.s中找到：
-
+```
+时进程是用户状态，而`fork()`程序涉及到内存页面复制等内核级操作，因此，执行`fork()`实际上是通过`int $0x80`进入系统调用，进而执行了`sys_fork`，这一点我们可以在`kernel/system_call.s`中找到：
+```asm
 _sys_fork:
     call _find_empty_process
     testl %eax,%eax
@@ -117,10 +118,11 @@ _sys_fork:
     call _copy_process
     addl $20,%esp
 1:	ret
-可以看出，sys_fork首先调用kernel/fork.c中的find_empty_process函数，该函数旨在遍历任务数组中的任务，生成一个空闲的 pid 并分配给新进程，最后返回分配了新 pid 的任务号到eax中，之后push一堆参数入栈，以调用copy_process。
+```
+可以看出，`sys_fork`首先调用`kernel/fork.c`中的`find_empty_process`函数，该函数旨在遍历任务数组中的任务，生成一个空闲的 `pid` 并分配给新进程，最后返回分配了新 `pid` 的任务号到`eax`中，之后`push`一堆参数入栈，以调用`copy_process`。
 
-fork函数最重要的部分想必就是copy_process，而这也是进程状态发生切换的一个地方。
-
+fork函数最重要的部分想必就是`copy_process`，而这也是进程状态发生切换的一个地方。
+```C
 int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
         long ebx,long ecx,long edx,
         long fs,long es,long ds,
@@ -135,19 +137,22 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
         return -EAGAIN;
     task[nr] = p;
     *p = *current;	/* NOTE! this doesn't copy the supervisor stack */
-    p->state = TASK_UNINTERRUPTIBLE;
+    p->state = TASK_UNINTERRUPTIBLE;  // 初始化先将进程状态设为TASK_UNINTERRUPTIBLE，避免未初始化完成的进程被调度。
     p->pid = last_pid;
     p->father = current->pid;
     ...
-    p->state = TASK_RUNNING;	/* do this last, just in case */
+    p->state = TASK_RUNNING;	 // 初始化完成后，将进程状态设置为TASK_RUNNING
     return last_pid;
 }
-copy_process的主要作用是对父进程的状态进行拷贝并赋给新进程，参数nr就是find_empty_process的返回值，它是task数组的下标，在这段代码里，我们可以看到有两处切换点：
-
+```
+`copy_process`的主要作用是对父进程进行拷贝并赋给新进程，参数`nr`就是`find_empty_process`的返回值，它是`task`数组的下标，在这段代码里，我们可以看到有两处切换点：
+```C
 p->state = TASK_UNINTERRUPTIBLE;
 p->state = TASK_RUNNING;
-schedule
-schedule 是进程调度函数，它可以说是进程切换的核心部分，先来看一下 Linus Torvalds 巨佬对这个函数的描述，便可知其重要性
+```
+
+#### schedule
+schedule 是进程调度函数，位于`kernel/sched.c`，它可以说是进程切换的核心部分，先来看一下 Linus Torvalds 巨佬对这个函数的描述，便可知其重要性
 
 /*
 
