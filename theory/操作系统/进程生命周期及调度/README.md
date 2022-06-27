@@ -46,23 +46,23 @@ Linux的进程有两种睡眠状态：`TASK_INTERRUPTIBLE`和`TASK_UNINTERRUPTIB
 #### 具体状态转换
 ![状态转换图](http://ws4.sinaimg.cn/large/a105112bly1g3n5lydlmrj215n0n8tdb.jpg)
 
-#### Linux 0.11支持的任务总数
+#### Linux 0.11支持的任务总数(`include/linux/sched.h`)
 ```C
 #define NR_TASK 64
 ```
-#### 第一个任务和最后一个任务（遍历任务时会用到）
+#### 第一个任务和最后一个任务（遍历任务时会用到）(`include/linux/sched.h`)
 ```C
 #define FIRST_TASK task[0]
 #define LAST_TASK task[NR_TASKS-1]
 ```
-### 全局变量 
+### 全局变量 (`include/linux/sched.h`)
 #### 任务结构
 ```C
 struct task_struct {
     ...
 }
 ```
-#### 存放任务结构的数组
+#### 存放任务结构的数组 (`include/linux/sched.h`)
 ```C
 struct task_struct * task[NR_TASK] = {&(init_task.task), };
 ```
@@ -74,7 +74,7 @@ move_to_user_mode();
 ```
 CPU 从 0 特权级转换为 3 特权级
 
-#### fork
+#### fork(`kernel/fork.c`)
 我感觉最具神秘色彩的一段代码便是下面这几行，就好像上帝前五天创造了光、空气、动物等，完成了环境的初始化工作，在第六天开始，照着自己的模样创造（fork）出了人类（新进程）
 ```C
 if (!fork()) {
