@@ -152,8 +152,8 @@ p->state = TASK_RUNNING;
 ```
 
 #### schedule
-schedule 是进程调度函数，位于`kernel/sched.c`，它可以说是进程切换的核心部分，先来看一下 Linus Torvalds 巨佬对这个函数的描述，便可知其重要性
-
+`schedule`是进程调度函数，位于`kernel/sched.c`，它可以说是**进程切换的核心部分**，先来看一下 `Linus Torvalds` 巨佬对这个函数的描述，便可知其重要性:
+```C
 /*
 
 *  'schedule()' is the scheduler function. This is GOOD CODE! There
@@ -165,8 +165,9 @@ schedule 是进程调度函数，位于`kernel/sched.c`，它可以说是进程�
 * tasks can run. It can not be killed, and it cannot sleep. The 'state'
 * information in task[0] is never used.
 */
-代码简短而精彩
-
+```
+代码简短而精彩:
+```C
 void schedule(void)
 {
     int i,next,c;
@@ -206,25 +207,29 @@ void schedule(void)
     }
     switch_to(next);
 }
-在第一个 for 循环里，程序从最后一个任务开始向前遍历，如果信号位图中除被阻塞的信号外还有其他信号，并且任务处于TASK_INTERRUPTIBLE，则将其置为TASK_RUNNING，此处为一个切换点。 在 wihle 循环里，会先选出时间片最大的进程，如果所有进程的时间片均用完，则会对所有进程更新其时间片。
-最后，通过switch_to跳转到时间片最大（或者说优先级最高）的进程。
+```
+在第一个 `for` 循环里，程序从最后一个任务开始向前遍历，如果信号位图中除被阻塞的信号外还有其他信号，并且任务处于`TASK_INTERRUPTIBLE`，则将其置为`TASK_RUNNING`，此处为一个切换点。 在 `wihle` 循环里，会先选出时间片最大的进程，如果所有进程的时间片均用完，则会对所有进程更新其时间片。
+最后，通过`switch_t`o跳转到时间片最大（或者说优先级最高）的进程。
 
-sys_pause
-source code
-
+#### sys_pause
+代码位置：`kernel/sched.c`,源码：
+```C
 int sys_pause(void)
 {
     current->state = TASK_INTERRUPTIBLE;
     schedule();
     return 0;
 }
-该函数是pause()函数的系统调用。在init/main.c中有
-
+```
+该函数是`pause()`函数的系统调用。在`init/main.c`中有
+```
 for(;;) pause();
-表示在没有其他任务时，任务 0 会不断的执行主动让出的操作。调用sys_pause时，会先将自己的状态置为睡眠态（TASK_INTERRUPTIBLE），此处为一切换点。然后执行调度函数跳转到其他可执行的任务（当然如果没有可执行的任务，schdule 中的 next 仍为 0，又会跳回任务 0）
+```
+表示在没有其他任务时，任务 0 会不断的执行主动让出的操作。调用`sys_pause`时，会先将自己的状态置为睡眠态（`TASK_INTERRUPTIBLE`），此处为一切换点。然后执行调度函数跳转到其他可执行的任务（当然如果没有可执行的任务，`schdule` 中的 `next` 仍为0，又会跳回任务 0）
 
-sleep_on
-source code
+#### sleep_on
+代码位置：`kernel/sched.c`,源码：
+```C
 void sleep_on(struct task_struct **p)
 {
     struct task_struct *tmp;
@@ -237,23 +242,25 @@ void sleep_on(struct task_struct **p)
     *p = current;
     current->state = TASK_UNINTERRUPTIBLE;
     schedule();
-    *p = tmp; // 这行在源码里没有，但应该加上，因为当前进程已被唤醒，需将等待队列头指针指回之前的任务
     if (tmp)
         tmp->state=0;
 }
-这部分是把当前任务（即调用者）置为不可中断的等待状态，并让睡眠队列头指针指向当前任务
-首先，函数参数传入的是指针的指针，正如初学c语言时写的 swap 函数，要想在调用函数里更改两个变量的值，需要传入变量的地址。而在内核代码中，定义的任务变量本身就是一个指针，要想在调用函数里改变其状态，就需要传递指针的地址。
-接下来对当前进程进行判断，如果是任务 0，则予以警告，不允许任务 0进入睡眠状态
-tmp = *p是将tmp指向已经在等待队列头的任务
-*p = current是将睡眠队列头的指针指向当前任务，即把当前任务插入到了等待队列中
-current->state = TASK_UNINTERRUPTIBLE是将当前任务的状态置为TASK_UNINTERRUPTIBLE，此处为一切换点
-接着先执行schedule进程调度函数，当被唤醒时（wake_up，后面介绍），会将tmp指向的等待任务（即位于原等待队列头的任务）的状态置为TASK_RUNNING（tmp->state = 0），此处为一切换点
+```
+这部分是把当前任务（即调用者）置为不可中断的等待状态，并让睡眠队列头指针指向当前任务。
+首先，函数参数传入的是指针的指针，正如初学c语言时写的 `swap` 函数，要想在调用函数里更改两个变量的值，需要传入变量的地址。而在内核代码中，定义的任务变量本身就是一个指针，要想在调用函数里改变其状态，就需要传递指针的地址。
+接下来对当前进程进行判断，如果是任务 0，则予以警告，不允许任务 0进入睡眠状态。
+- `tmp = *p`是将tmp指向已经在等待队列头的任务。
+- `*p = current`是将睡眠队列头的指针指向当前任务，即把当前任务插入到了等待队列中。
+- `current->state = TASK_UNINTERRUPTIBLE`是将当前任务的状态置为TASK_UNINTERRUPTIBLE，此处为一切换点。
+
+接着先执行`schedule`进程调度函数，当被唤醒时（`wake_up`，后面介绍），会将`tmp`指向的等待任务（即位于原等待队列头的任务）的状态置为`TASK_RUNNING（tmp->state = 0）`，此处为一切换点。
+
 对于由tmp隐式构成的等待队列，可以对照《Linux内核完全注释》中的图来理解：
 
 
-interruptible_sleep_on
-source code
-
+#### interruptible_sleep_on
+代码位置：`kernel/sched.c`,源码：
+```C
 void interruptible_sleep_on(struct task_struct **p)
 {
     struct task_struct *tmp;
@@ -274,7 +281,8 @@ repeat:	current->state = TASK_INTERRUPTIBLE;
     if (tmp)
         tmp->state=0;
 }
-和sleep_on函数功能类似，只是这里是将当前任务的状态置为可中断等待状态（TASK_INTERRUPTIBLE），其他切换点的位置和sleep_on的基本相同，不过多了一处(**p).state = 0，意思是将在当前任务入队之后加进等待队列的任务唤醒。
+```
+和sleep_on函数功能类似，只是这里是将当前任务的状态置为可中断等待状态（`TASK_INTERRUPTIBLE`），其他切换点的位置和sleep_on的基本相同，不过多了一处`(**p).state = 0`，意思是将在当前任务入队之后加进等待队列的任务唤醒(即：让唤醒一定从队头开始)。
 
 wake_up
 source code
