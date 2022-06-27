@@ -51,6 +51,10 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 
 #### 设置代码位置
 
+## 进程调度
+### schedule
+
+
 ## 相关调用
 
 ### fork
@@ -66,8 +70,6 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 ### sys_waitpid
 
 
-# 进程调度
-## schedule
 
 
 ## 进程调度状态图
