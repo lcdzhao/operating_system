@@ -115,7 +115,7 @@ cpuio_bound(10, 1, 9);
 操作系统启动后先要打开 `/var/process.log`，然后在每个进程发生状态切换的时候向 log 文件内写入一条记录，其过程和用户态的应用程序没什么两样。然而，因为内核状态的存在，使过程中的很多细节变得完全不一样。
 
 为了能尽早开始记录，应当在内核启动时就打开 log 文件。内核的入口是 `init/main.c` 中的 `main()`（Windows 环境下是 `start()`），其中一段代码是：
-```
+```C
 //……
 move_to_user_mode();
 if (!fork()) {        /* we count on this going ok */
@@ -149,7 +149,7 @@ setup((void *) &drive_info);
 为了能尽早访问 log 文件，我们要让上述工作在进程 0 中就完成。所以把这一段代码从 `init()` 移动到 `main()` 中，放在 `move_to_user_mode()` 之后（不能再靠前了），同时加上打开 log 文件的代码。
 
 修改后的 `main()` 如下：
-```
+```C
 //……
 move_to_user_mode();
 
@@ -183,7 +183,7 @@ if (!fork()) {        /* we count on this going ok */
 log 文件将被用来记录进程的状态转移轨迹。所有的状态转移都是在内核进行的。
 
 在内核状态下，`write()` 功能失效，其原理等同于《系统调用》实验中不能在内核状态调用 `printf()`，只能调用 `printk()`。编写可在内核调用的 `write()` 的难度较大，所以这里直接给出源码。它主要参考了 `printk()` 和 `sys_write()` 而写成的：
-```
+```C
 #include "linux/sched.h"
 #include "sys/stat.h"
 
@@ -242,7 +242,7 @@ int fprintk(int fd, const char *fmt, ...)
 因为和 printk 的功能近似，建议将此函数放入到 `kernel/printk.c` 中。`fprintk()` 的使用方式类同与 C 标准库函数 `fprintf()`，唯一的区别是第一个参数是文件描述符，而不是文件指针。
 
 例如：
-```
+```C
 // 向stdout打印正在运行的进程的ID
 fprintk(1, "The ID of running process is %ld", current->pid);
 
@@ -272,7 +272,7 @@ timer_interrupt:
 这说明 `jiffies` 表示从开机时到现在发生的时钟中断次数，这个数也被称为 “滴答数”。
 
 另外，在 `kernel/sched.c` 中的 `sched_init()` 中有下面的代码：
-```
+```C
 // 设置8253模式
 outb_p(0x36, 0x43);
 outb_p(LATCH&0xff, 0x40);
@@ -298,7 +298,7 @@ outb_p(LATCH>>8, 0x40);
 
 #### （1）例子 1：记录一个进程生命期的开始
 第一个例子是看看如何记录一个进程生命期的开始，当然这个事件就是进程的创建函数 fork()，由《系统调用》实验可知，fork() 功能在内核中实现为 sys_fork()，该“函数”在文件 kernel/system_call.s 中实现为：
-```
+```asm
 sys_fork:
     call find_empty_process
 !    ……
@@ -340,7 +340,7 @@ int copy_process(int nr,……)
 
 #### （2）例子 2：记录进入睡眠态的时间
 第二个例子是记录进入睡眠态的时间。`sleep_on()` 和 `interruptible_sleep_on()` 让当前进程进入睡眠状态，这两个函数在 `kernel/sched.c` 文件中定义如下：
-```
+```C
 void sleep_on(struct task_struct **p)
 {
     struct task_struct *tmp;
@@ -553,7 +553,7 @@ Throughout: 0.11/s
 
 ### 修改时间片
 下面是 0.11 的调度函数 `schedule`，在文件 kernel/sched.c 中定义为：
-```
+```C
 while (1) {
     c = -1; next = 0; i = NR_TASKS; p = &task[NR_TASKS];
 
@@ -593,7 +593,7 @@ switch_to(next);
 - 当进程的时间片用完时，被重新赋成何值？
 
 首先回答第一个问题，显然这个值是在 `fork()` 中设定的。Linux 0.11 的 `fork()` 会调用 `copy_process()` 来完成从父进程信息拷贝（所以才称其为 fork），看看 `copy_process()` 的实现（也在 kernel/fork.c 文件中），会发现其中有下面两条语句：
-```
+```C
 // 用来复制父进程的PCB数据信息，包括 priority 和 counter
 *p = *current;
 
@@ -602,7 +602,7 @@ p->counter = p->priority;
 // 因为父进程的counter数值已发生变化，而 priority 不会，所以上面的第二句代码将p->counter 设置成 p->priority。
 // 每个进程的 priority 都是继承自父亲进程的，除非它自己改变优先级。
 ```
-```
+```C
 // 查找所有的代码，只有一个地方修改过 priority，那就是 nice 系统调用。
 int sys_nice(long increment)
 {
@@ -612,14 +612,14 @@ int sys_nice(long increment)
 }
 ```
 本实验假定没有人调用过 nice 系统调用，时间片的初值就是进程 0 的 priority，即宏 INIT_TASK 中定义的：
-```
+```C
 #define INIT_TASK \
     { 0,15,15,
 // 上述三个值分别对应 state、counter 和 priority;
 ```
 
 接下来回答第二个问题，当就绪进程的 `counter` 为 0 时，不会被调度（schedule 要选取 counter 最大的，大于 0 的进程），而当所有的就绪态进程的 counter 都变成 0 时，会执行下面的语句：
-```
+```C
 (*p)->counter = ((*p)->counter >> 1) + (*p)->priority;
 ```
 显然算出的新的 `counter` 值也等于 `priority`，即初始时间片的大小。
