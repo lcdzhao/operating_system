@@ -430,7 +430,7 @@ stat_addr用来保存状态信息：
 - `sleep_on(kernel/sched.c)`
 - `interruptible_sleep_on(kernel/sched.c)`
 - `sys_pause(kernel/sched.c)`
-- `sys_waitpid(kernel/exit.c)``
+- `sys_waitpid(kernel/exit.c)`
 ### 睡眠态到就绪态
 - `sleep_on(kernel/sched.c)`
 - `interruptible_sleep_on(kernel/sched.c)`
