@@ -1,7 +1,7 @@
 # 进程的生命周期(Linux 0.11)
 > 本文章参考文章：
 > - [linux4.8.4 进程状态](https://quant67.com/post/linux/taskstatus.html)
-> - [Linux 0.11 下进程状态的切换]([https://quant67.com/post/linux/taskstatus.html](https://or1onx.github.io/Linux%E4%B8%8B%E8%BF%9B%E7%A8%8B%E7%8A%B6%E6%80%81%E7%9A%84%E5%88%87%E6%8D%A2/))
+> - [Linux 0.11 下进程状态的切换](https://or1onx.github.io/Linux%E4%B8%8B%E8%BF%9B%E7%A8%8B%E7%8A%B6%E6%80%81%E7%9A%84%E5%88%87%E6%8D%A2/)
 ## 进程的所有状态
 
 linux 0.11 在`include/linux/sched.h` 中定义进程的各个状态
