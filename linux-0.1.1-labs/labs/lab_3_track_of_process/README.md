@@ -65,7 +65,7 @@ pid    X    time
 `process.c` 是样本程序的模板（在 `/home/teacher/` 目录下）。
 
 它主要实现了一个函数：
-```
+```C
 /*
  * 此函数按照参数占用CPU和I/O时间
  * last: 函数实际占用CPU和I/O的总时间，不含在就绪队列中的时间，>=0是必须的
@@ -77,7 +77,7 @@ pid    X    time
 cpuio_bound(int last, int cpu_time, int io_time);
 ```
 下面是 4 个使用的例子：
-```
+```C
 // 比如一个进程如果要占用10秒的CPU时间，它可以调用：
 cpuio_bound(10, 1, 0);
 // 只要cpu_time>0，io_time=0，效果相同
