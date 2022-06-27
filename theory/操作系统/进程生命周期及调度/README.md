@@ -364,7 +364,7 @@ repeat:
 				current->cstime += (*p)->stime;
 				flag = (*p)->pid;
 				code = (*p)->exit_code;
-				release(*p);
+				release(*p);  // 释放指定进程的占用的任务槽(task[nr])及其任务数据结构占用的内存页面。
 				put_fs_long(code,stat_addr);
 				return flag;
 			default:
@@ -385,17 +385,33 @@ repeat:
 	return -ECHILD;
 }
 ```
-源码中有一处current->state = TASK_INTERRUPTIBLE，此处为一切换点
-总结
-在 Linux 0.11 内核版本中，进程状态的切换发生在如下文件中
-就绪态和运行态的相互转换
-schedule()
-运行态到睡眠态
-sleep_on
-interruptible_sleep_on
-sys_pause
-sys_waitpid
-睡眠态到就绪态
-sleep_on
-interruptible_sleep_on
-wake_up
+分析：
+pid: 
+- 当pid>0表示等待回收该pid的子进程；
+- pid=0时，回收**进程组号**等于当前**进程组号**的任何子进程；
+- pid<-1时，回收**进程组号**为**pid绝对值**的任何子进程；
+- pid=-1，回收任何子进程。
+
+option：可以使该系统调用直接返回或者陷入阻塞等待；
+- WUNTRACE： 即使子进程已经停止，也马上返回（无需追踪）
+- WNOHANG： 表示如果没有子进程退出或终止，就马上返回
+- 否则为阻塞调用，等待子进程结束。
+
+stat_addr用来保存状态信息：
+- `put_fs_long()`将状态信息也就是退出码写到用户态堆栈上面，之后返回flag也就是子进程pid。
+   
+
+## 总结
+在 `Linux 0.11` 内核版本中，进程状态的切换发生在如下文件中:
+### 就绪态和运行态的相互转换
+- `schedule()`
+### 运行态到睡眠态
+- `sleep_on`
+- `interruptible_sleep_on`
+- `sys_pause`
+- `sys_waitpid`
+### 睡眠态到就绪态
+- `sleep_on`
+- `interruptible_sleep_on`
+- `wake_up`
+- `fork`(初始化时设为`TASK_UNINTERRUPTIBLE`，初始化完成后设为`TASK_RUNNING`)
