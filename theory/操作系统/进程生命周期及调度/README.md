@@ -150,7 +150,7 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 p->state = TASK_UNINTERRUPTIBLE;
 p->state = TASK_RUNNING;
 ```
-
+> PS: 更详细的`fork`相关的内容见：[fork](https://github.com/lcdzhao/operating_system/tree/master/theory/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/fork)
 #### schedule
 `schedule`是进程调度函数，位于`kernel/sched.c`，它可以说是**进程切换的核心部分**，先来看一下 `Linus Torvalds` 巨佬对这个函数的描述，便可知其重要性:
 ```C
@@ -314,7 +314,28 @@ int do_exit(long code)
                 (void) send_sig(SIGCHLD, task[1], 1);
         }
 
-    ...
+	// 关闭当前进程打开着的所有文件
+	for (i=0 ; i<NR_OPEN ; i++)
+		if (current->filp[i])
+			sys_close(i);
+			
+	// 对当前进程的工作目录pwd、根目录root以及程序文件的i节点进行同步操作，放回
+	// 各个i节点并分别置空(释放)
+	iput(current->pwd);
+	current->pwd=NULL;
+	iput(current->root);
+	current->root=NULL;
+	iput(current->executable);
+	current->executable=NULL;
+	// 如果当前进程是会话头领(leader)进程并且其有控制终端，则释放该终端。
+	if (current->leader && current->tty >= 0)
+		tty_table[current->tty].pgrp = 0;
+	// 如果当前进程上次使用过协处理器，则将 last_task_used_math 置空
+	if (last_task_used_math == current)
+		last_task_used_math = NULL;
+	// 如果当前进程是leader进程，则终止该会话的所有相关进程
+	if (current->leader)
+		kill_session();
 
     current->state = TASK_ZOMBIE;
     current->exit_code = code;
