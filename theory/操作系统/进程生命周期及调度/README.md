@@ -24,7 +24,7 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 		long fs,long es,long ds,
 		long eip,long cs,long eflags,long esp,long ss)
 {
-  ... // 初始化过程
+	... // 初始化过程
 	p->state = TASK_UNINTERRUPTIBLE;
 	... // 初始化过程
 	p->state = TASK_RUNNING;
