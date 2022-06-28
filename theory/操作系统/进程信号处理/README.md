@@ -47,6 +47,7 @@ ret_from_sys_call:
 
 `do_signal`的执行流程：
  ![do_signal](README.assets/do_signal.png)
+ ![stack_of_do_signal](README.assets/stack_of_do_signal.png)
  
 #### ret_from_sys_call的调用位置(`do_signal`的时机)
 ##### 系统调用
