@@ -398,7 +398,7 @@ repeat:
 			return 0;
 		current->state=TASK_INTERRUPTIBLE;
 		schedule();
-		if (!(current->signal &= ~(1<<(SIGCHLD-1))))
+		if (!(current->signal &= ~(1<<(SIGCHLD-1))))  //判断的同时将signal复位
 			goto repeat;
 		else
 			return -EINTR;
