@@ -95,4 +95,4 @@ void schedule(void)
 }
 ```
 #### `TASK_UNINTERRUPTIBLE`的进程能否被快速`kill`掉
-不能，只有当该进程执行完`UNINTERRUPTIBLE`的操作，进程状态转换为其他状态时，其才能执行`do_singal`方法，从而处理`kill`信号，结束进程。
+不能，只有当该进程执行完`UNINTERRUPTIBLE`的操作，进程状态转换为`RUNNING`时，其才能在被`schedule`调度，然后通过`timer_interrupt`->`ret_from_sys_call`->`do_singal`的链路执行信号处理，从而结束进程。
