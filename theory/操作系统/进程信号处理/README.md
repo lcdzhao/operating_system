@@ -87,8 +87,7 @@ void schedule(void)
 			...
 			if (((*p)->signal & ~(_BLOCKABLE & (*p)->blocked)) &&
 			(*p)->state==TASK_INTERRUPTIBLE)
-				(*p)->state=TASK_RUNNING;   //将收到信号且state为TASK_INTERRUPTIBLE的进程state改为TASK_RUNNING
-							    //正是这一段代码，使得TASK_INTERRUPTIBLE的进程也可以快速响应信号
+				(*p)->state= TASK_RUNNING;   
 		}
 
 	...
