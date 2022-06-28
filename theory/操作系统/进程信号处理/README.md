@@ -46,14 +46,52 @@ ret_from_sys_call:
 ```
 
 `do_signal`的执行流程：
- ！[do_signal](README.assets/do_signal.png)
+ ![do_signal](README.assets/do_signal.png)
+ 
+#### ret_from_sys_call的调用位置(`do_signal`的时机)
+##### 系统调用
+代码位置，`kernel/system_call.s`:
+```asm
+system_call:
+	...
+	cmpl $0,state(%eax)		# state
+	jne reschedule
+	cmpl $0,counter(%eax)		# counter
+	je reschedule
 
-#### 系统调用
+reschedule:
+	pushl $ret_from_sys_call
+	jmp schedule
+```
+即：在系统调用时，将会处理当前进程的信号。
+#####  时钟中断
+代码位置，`kernel/system_call.s`:
+```
+timer_interrupt:
+	...
+	call do_timer	//执行schedule方法
+	...
+	jmp ret_from_sys_call
+```
+即：在时钟中断时(进程调度)，将会处理当前进程的信号。
+#### `TASK_INTERRUPTIBLE`的进程能否被快速`kill`掉
+可以，在`kernel/sched.c`的`schedule`(调用链路：`timer_interrupt`->`do_timer`->`schedule`)方法中，执行了下面这段代码:
+```C
+void schedule(void)
+{
+	
+	...
+	for(p = &LAST_TASK ; p > &FIRST_TASK ; --p)
+		if (*p) {
+			...
+			if (((*p)->signal & ~(_BLOCKABLE & (*p)->blocked)) &&
+			(*p)->state==TASK_INTERRUPTIBLE)
+				(*p)->state=TASK_RUNNING;   //将收到信号且state为TASK_INTERRUPTIBLE的进程state改为TASK_RUNNING
+							    //正是这一段代码，使得TASK_INTERRUPTIBLE的进程也可以快速响应信号
+		}
 
-#### 时钟中断
-
-#### 如果进程状态为`TASK_INTERRUPTIBLE`
-在`schedule()`方法
-
-#### `TASK_UNINTERRUPTIBLE`的进程能否被立即`kill`掉
+	...
+}
+```
+#### `TASK_UNINTERRUPTIBLE`的进程能否被快速`kill`掉
 不能，只有当该进程执行完`UNINTERRUPTIBLE`的操作，进程状态转换为其他状态时，其才能执行`do_singal`方法，从而处理`kill`信号，结束进程。
