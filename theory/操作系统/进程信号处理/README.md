@@ -46,7 +46,7 @@ ret_from_sys_call:
 ```
 
 `do_signal`的执行流程：
-
+ ！[do_signal](README.assets/do_signal.png)
 
 #### 系统调用
 
