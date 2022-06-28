@@ -67,14 +67,14 @@ reschedule:
 **因此在系统调用返回时，将会处理当前进程的信号。**
 ####  时钟中断
 代码位置，`kernel/system_call.s`:
-```
+```asm
 timer_interrupt:
 	...
 	call do_timer	//执行schedule方法
 	...
 	jmp ret_from_sys_call
 ```
-**因此在时钟中断返回时，将会处理当前进程的信号。**
+**因此在时钟中断返回时(时钟中断中执行了schedule方法)，将会处理进程的信号。**
 #### `TASK_INTERRUPTIBLE`的进程能否被快速`kill`掉
 可以，在`kernel/sched.c`的`schedule`(调用链路：`timer_interrupt`->`do_timer`->`schedule`)方法中，执行了下面这段代码:
 ```C
