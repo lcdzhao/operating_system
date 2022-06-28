@@ -23,7 +23,7 @@ void do_signal(...)
 ```
 ### 发送信号
 `kill`系统调用发送信号的流程为：`sys_kill(kernel/exit.c)` ——> `send_sig(kernel/exit.c)`。其中`send_sig`的代码如下:
-```
+```C
 static inline int send_sig(long sig,struct task_struct * p,int priv)
 {
 	if (!p || sig<1 || sig>32)
