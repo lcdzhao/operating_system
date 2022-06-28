@@ -1,8 +1,8 @@
 # 进程信号处理
 > 对于代码更加详细的解释，见 [Linux内核完全注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)第 8.8 章节(signal.c)
 
-## 进程信号处理流程
-### 注册信号处理函数
+# 进程信号处理流程
+## 注册信号处理函数
 用户可以通过`signal`或者`sigaction`这两个系统调用来注册信号处理函数(具体区别见[Linux内核完全注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)第 8.8 章节(signal.c))。
 
 如果用户对某个信号没有注册具体的信号处理函数，则系统将会设置默认的信号处理函数`SIG_DFL`(0, 调用do_exit)或者`SIG_IGN`(1, 忽略信号)。代码(`kernel/signal.c`中的`do_signal`)如下:
@@ -21,7 +21,7 @@ void do_signal(...)
 	...
 }
 ```
-### 发送信号
+## 发送信号
 `kill`系统调用发送信号的流程为：`sys_kill(kernel/exit.c)` ——> `send_sig(kernel/exit.c)`。其中`send_sig`的代码如下:
 ```C
 static inline int send_sig(long sig,struct task_struct * p,int priv)
@@ -35,7 +35,7 @@ static inline int send_sig(long sig,struct task_struct * p,int priv)
 	return 0;
 }
 ```
-### 处理信号
+## 处理信号
 信号的处理实际上通过`kernel/signal.c`中的`do_signal`方法执行，而调用`do_signal`的位置**有且只有**在`kernel/system_call.s`中的`ret_from_sys_call`中，具体如下:
 ```asm
 ret_from_sys_call:
@@ -49,8 +49,8 @@ ret_from_sys_call:
  ![do_signal](README.assets/do_signal.png)
  ![stack_of_do_signal](README.assets/stack_of_do_signal.png)
  
-#### ret_from_sys_call的调用位置(`do_signal`的时机)
-##### 系统调用
+### ret_from_sys_call的调用位置(`do_signal`的时机)
+#### 系统调用
 代码位置，`kernel/system_call.s`:
 ```asm
 system_call:
@@ -65,7 +65,7 @@ reschedule:
 	jmp schedule
 ```
 **因此在系统调用返回时，将会处理当前进程的信号。**
-#####  时钟中断
+####  时钟中断
 代码位置，`kernel/system_call.s`:
 ```
 timer_interrupt:
