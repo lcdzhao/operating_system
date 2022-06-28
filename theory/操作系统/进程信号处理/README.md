@@ -36,7 +36,7 @@ static inline int send_sig(long sig,struct task_struct * p,int priv)
 }
 ```
 ### 处理信号
-信号的处理实际上通过`kernel/signal.c`中的`do_signal`方法执行，而调用`do_signal`的位置在`kernel/system_call.s`中的`ret_from_sys_call`中，具体如下:
+信号的处理实际上通过`kernel/signal.c`中的`do_signal`方法执行，而调用`do_signal`的位置有且只有在`kernel/system_call.s`中的`ret_from_sys_call`中，具体如下:
 ```asm
 ret_from_sys_call:
 	...
