@@ -193,4 +193,4 @@ void schedule(void)
 不能，只有当该进程执行完`UNINTERRUPTIBLE`的操作，进程状态转换为`RUNNING`时，其才能在被`schedule`调度，然后通过`timer_interrupt`->`ret_from_sys_call`->`do_singal`的链路执行信号处理，从而结束进程。
 
 ## 从信号处理中恢复
-：通过`sa_restorer`来恢复用户寄存器值，以及去除当前信号的blocked位等。这部分说明见：[Linux内核完全注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)第 8.8 章节中的`sa_restorer`部分。
+通过`sa_restorer`来恢复用户寄存器值，以及去除当前信号的blocked位等。这部分说明见：[Linux内核完全注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)第 8.8 章节中的`sa_restorer`部分。
