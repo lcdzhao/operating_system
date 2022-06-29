@@ -103,11 +103,11 @@ void do_signal(long signr,long eax, long ebx, long ecx, long edx,
 	}
 	if (sa->sa_flags & SA_ONESHOT)
 		sa->sa_handler = NULL;
-	*(&eip) = sa_handler;
-	longs = (sa->sa_flags & SA_NOMASK)?7:8;
-	*(&esp) -= longs;
+	*(&eip) = sa_handler;  	   //采用这种写法直接修改栈中eip的值
+	longs = (sa->sa_flags & SA_NOMASK)?7:8;  //计算用户栈需要压炸几个参数，压栈的参数对应下面put_fs_long这几个
+	*(&esp) -= longs;        //采用这种写法直接修改栈中esp的值
 	verify_area(esp,longs*4);
-	tmp_esp=esp;
+	tmp_esp=esp;             
 	put_fs_long((long) sa->sa_restorer,tmp_esp++);
 	put_fs_long(signr,tmp_esp++);
 	if (!(sa->sa_flags & SA_NOMASK))
@@ -120,7 +120,6 @@ void do_signal(long signr,long eax, long ebx, long ecx, long edx,
 	current->blocked |= sa->sa_mask;
 }
 ```
-
 
 而调用`do_signal`的位置**有且只有**在`kernel/system_call.s`中的`ret_from_sys_call`中，具体如下:
 ```asm
