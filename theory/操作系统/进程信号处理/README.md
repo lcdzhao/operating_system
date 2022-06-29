@@ -117,7 +117,7 @@ void do_signal(long signr,long eax, long ebx, long ecx, long edx,
 	put_fs_long(edx,tmp_esp++);
 	put_fs_long(eflags,tmp_esp++);
 	put_fs_long(old_eip,tmp_esp++);
-	current->blocked |= sa->sa_mask;   //有掩码时，在处理该信号的时候暂时阻塞掩码信号(掩码信号即为当前信号，通过sys_sigaction可以看出，sa_mask用来屏蔽当前信号)
+	current->blocked |= sa->sa_mask;   //有掩码时，在处理该信号的时候暂时阻塞掩码信号(掩码信号即为当前信号，通过sys_sigaction可以看出，sa_mask用来表示当前信号)
 					   //否则的话可能会导致正在处理该信号时，突然新的该信号又到来，导致重复处理的信号处理
 }
 ```
