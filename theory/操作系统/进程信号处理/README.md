@@ -44,6 +44,15 @@ int sys_sigaction(int signum, const struct sigaction * action,
 	return 0;
 }
 ```
+`sigaction(include/signal.h)` 定义：
+```C
+struct sigaction {
+	void (*sa_handler)(int);
+	sigset_t sa_mask;
+	int sa_flags;
+	void (*sa_restorer)(void);  //由编译器在链接时指定，具体见本章节的最后一章
+};
+```
 
 如果用户对某个信号没有注册具体的信号处理函数，则系统将会设置默认的信号处理函数`SIG_DFL`(0, 调用do_exit)或者`SIG_IGN`(1, 忽略信号)。代码(`kernel/signal.c`中的`do_signal`)如下:
 ```C
