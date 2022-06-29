@@ -39,7 +39,7 @@ int sys_sigaction(int signum, const struct sigaction * action,
 	if (current->sigaction[signum-1].sa_flags & SA_NOMASK)
 		current->sigaction[signum-1].sa_mask = 0;
 	else
-		current->sigaction[signum-1].sa_mask |= (1<<(signum-1));
+		current->sigaction[signum-1].sa_mask |= (1<<(signum-1));  //通过sa_mask在do_singal中暂时阻塞重复的信号
 	return 0;
 }
 ```
@@ -110,14 +110,15 @@ void do_signal(long signr,long eax, long ebx, long ecx, long edx,
 	tmp_esp=esp;             
 	put_fs_long((long) sa->sa_restorer,tmp_esp++);
 	put_fs_long(signr,tmp_esp++);
-	if (!(sa->sa_flags & SA_NOMASK))          //有掩码时，在处理该信号的时候暂时阻塞其他信号
+	if (!(sa->sa_flags & SA_NOMASK))          
 		put_fs_long(current->blocked,tmp_esp++);
 	put_fs_long(eax,tmp_esp++);
 	put_fs_long(ecx,tmp_esp++);
 	put_fs_long(edx,tmp_esp++);
 	put_fs_long(eflags,tmp_esp++);
 	put_fs_long(old_eip,tmp_esp++);
-	current->blocked |= sa->sa_mask;
+	current->blocked |= sa->sa_mask;   //有掩码时，在处理该信号的时候暂时阻塞掩码信号(掩码信号即为当前信号，通过sys_sigaction可以看出，sa_mask用来屏蔽当前信号)
+					   //否则的话可能会导致正在处理该信号时，突然新的该信号又到来，导致重复处理的信号处理
 }
 ```
 
