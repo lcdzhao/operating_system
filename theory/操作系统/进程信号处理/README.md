@@ -17,7 +17,7 @@ int sys_signal(int signum, long handler, long restorer)
 		return -1;
 	tmp.sa_handler = (void (*)(int)) handler;
 	tmp.sa_mask = 0;
-	tmp.sa_flags = SA_ONESHOT | SA_NOMASK;
+	tmp.sa_flags = SA_ONESHOT | SA_NOMASK;   //flags这种都是使用一个bit位来表示一个功能，极致地节省内存空间
 	tmp.sa_restorer = (void (*)(void)) restorer;
 	handler = (long) current->sigaction[signum-1].sa_handler;
 	current->sigaction[signum-1] = tmp;
@@ -101,16 +101,16 @@ void do_signal(long signr,long eax, long ebx, long ecx, long edx,
 		else
 			do_exit(1<<(signr-1));
 	}
-	if (sa->sa_flags & SA_ONESHOT)
+	if (sa->sa_flags & SA_ONESHOT)    //使用这种位操作，来判断是否是ONESHOT
 		sa->sa_handler = NULL;
-	*(&eip) = sa_handler;  	   //采用这种写法直接修改栈中eip的值
-	longs = (sa->sa_flags & SA_NOMASK)?7:8;  //计算用户栈需要压炸几个参数，压栈的参数对应下面put_fs_long这几个
-	*(&esp) -= longs;        //采用这种写法直接修改栈中esp的值
+	*(&eip) = sa_handler;  	   //采用这种写法直接修改内核栈中eip的值，最终从系统调用恢复时代码直接跳转到该位置
+	longs = (sa->sa_flags & SA_NOMASK)?7:8;  //计算用户栈需要压栈几个参数，压栈的参数对应下面put_fs_long这几个
+	*(&esp) -= longs;          //采用这种写法直接修改内核栈中esp的值，最终从系统调用恢复时用户栈直接跳转到该位置
 	verify_area(esp,longs*4);
 	tmp_esp=esp;             
 	put_fs_long((long) sa->sa_restorer,tmp_esp++);
 	put_fs_long(signr,tmp_esp++);
-	if (!(sa->sa_flags & SA_NOMASK))
+	if (!(sa->sa_flags & SA_NOMASK))          //有掩码时，在处理该信号的时候暂时阻塞其他信号
 		put_fs_long(current->blocked,tmp_esp++);
 	put_fs_long(eax,tmp_esp++);
 	put_fs_long(ecx,tmp_esp++);
