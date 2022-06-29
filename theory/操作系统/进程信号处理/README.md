@@ -174,9 +174,7 @@ reschedule:
 ```asm
 timer_interrupt:
 	...
-	call do_timer	//执行schedule方法，
-                        //schedule方法没有调度到其他进程时，才往下执行
-                        //如果调度到其他进程，则直接切换到其他进程
+	call do_timer	//执行schedule方法
 	...
 	jmp ret_from_sys_call
 ```
