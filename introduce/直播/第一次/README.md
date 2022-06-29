@@ -23,4 +23,4 @@ https://github.com/lcdzhao/operating_system/tree/master/theory/%E7%A1%AC%E4%BB%B
 ## C语言栈帧设计与Java栈帧设计的异同
 https://github.com/lcdzhao/operating_system/tree/master/theory/%E5%85%B6%E4%BB%96/C%E8%AF%AD%E8%A8%80%E6%A0%88%E5%B8%A7%E4%B8%8EJava%E6%A0%88%E5%B8%A7
 ## Why X86比ARM更加耗电
-https://github.com/lcdzhao/operating_system/tree/master/theory/%E5%85%B6%E4%BB%96/OJT
+[https://github.com/lcdzhao/operating_system/tree/master/theory/%E5%85%B6%E4%BB%96/OJT](https://github.com/lcdzhao/operating_system/tree/master/theory/%E5%85%B6%E4%BB%96/Why%20X86%20%E6%AF%94%E8%B5%B7%20ARM%20%E6%9B%B4%E8%B4%B9%E7%94%B5)
