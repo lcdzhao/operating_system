@@ -125,9 +125,19 @@ void do_signal(long signr,long eax, long ebx, long ecx, long edx,
 ```asm
 ret_from_sys_call:
 	...
+	//通过下面这段代码来判断是否信号被屏蔽，如果被屏蔽则不跳转到do_signal
+	movl signal(%eax),%ebx
+	movl blocked(%eax),%ecx
+	notl %ecx
+	andl %ebx,%ecx
+	bsfl %ecx,%ecx
+	je 3f
+	btrl %ecx,%ebx
+	movl %ebx,signal(%eax)
+	incl %ecx
+	pushl %ecx
 	call do_signal
-	popl %eax
-  ...
+  	...
 ```
 
 
