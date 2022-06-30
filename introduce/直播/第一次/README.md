@@ -1,8 +1,9 @@
 # 前言
 https://github.com/lcdzhao/operating_system
+分层次介绍课程。
 # 大纲
 ![大纲](README.assets/arch.png)
-
+主要是一些重要的有意思的核心。
 # 从0到1设计计算机：指令如何执行
 ## 计算机模块简单讲解
 仿真软件。
