@@ -139,30 +139,37 @@ switch_to:
     popl %ebp
 ret
 ```
-虽然看起来完成了挺多的切换，但实际上每个部分都只有很简单的几条指令。完成 PCB 的切换可以采用下面两条指令，其中 ebx 是从参数中取出来的下一个进程的 PCB 指针，
+虽然看起来完成了挺多的切换，但实际上每个部分都只有很简单的几条指令。
+#### PCB 切换
+完成 PCB 的切换可以采用下面两条指令，其中 ebx 是从参数中取出来的下一个进程的 PCB 指针，
 ```asm
 movl %ebx,%eax
 xchgl %eax,current
 ```
 经过这两条指令以后，eax 指向现在的当前进程，ebx 指向下一个进程，全局变量 current 也指向下一个进程。
-
-TSS 中的内核栈指针的重写可以用下面三条指令完成，其中宏 ESP0 = 4，struct tss_struct *tss = &(init_task.task.tss); 也是定义了一个全局变量，和 current 类似，用来指向那一段 0 号进程的 TSS 内存。
+#### TSS中的内核栈指针的重写
+TSS 中的内核栈指针的重写可以用下面三条指令完成：
+```asm
+movl tss,%ecx
+# 通过ebx = 4096 + ebx 来计算出内核栈真正的位置，初始的ebx为PCB的起始位置，4096为一页内存的大小，内核栈在PCB的末尾
+addl $4096,%ebx
+movl %ebx,ESP0(%ecx)
+```
+其中宏 `ESP0 = 4`，`struct tss_struct *tss = &(init_task.task.tss);` 也是定义了一个全局变量，和 current 类似，用来指向那一段 0 号进程的 TSS 内存。
 
 前面已经详细论述过，在中断的时候，要找到内核栈位置，并将用户态下的 SS:ESP，CS:EIP 以及 EFLAGS 这五个寄存器压到内核栈中，这是沟通用户栈（用户态）和内核栈（内核态）的关键桥梁，而找到内核栈位置就依靠 TR 指向的当前 TSS。
 
 现在虽然不使用 TSS 进行任务切换了，但是 Intel 的这态中断处理机制还要保持，所以仍然需要有一个当前 TSS，这个 TSS 就是我们定义的那个全局变量 tss，即 0 号进程的 tss，所有进程都共用这个 tss，任务切换时不再发生变化。
-```asm
-movl tss,%ecx
-addl $4096,%ebx
-movl %ebx,ESP0(%ecx)
-```
+
 定义 ESP0 = 4 是因为 TSS 中内核栈指针 esp0 就放在偏移为 4 的地方，看一看 tss 的结构体定义就明白了。
 
+#### 内核栈的切换
 完成内核栈的切换也非常简单，和我们前面给出的论述完全一致，将寄存器 esp（内核栈使用到当前情况时的栈顶位置）的值保存到当前 PCB 中，再从下一个 PCB 中的对应位置上取出保存的内核栈栈顶放入 esp 寄存器，这样处理完以后，再使用内核栈时使用的就是下一个进程的内核栈了。
 
 由于现在的 Linux 0.11 的 PCB 定义中没有保存内核栈指针这个域（kernelstack），所以需要加上，而宏 KERNEL_STACK 就是你加的那个位置，当然将 kernelstack 域加在 task_struct 中的哪个位置都可以，但是在某些汇编文件中（主要是在 kernal/system_call.s 中）有些关于操作这个结构一些汇编硬编码，所以一旦增加了 kernelstack，这些硬编码需要跟着修改，由于第一个位置，即 long state 出现的汇编硬编码很多，所以 kernelstack 千万不要放置在 task_struct 中的第一个位置，当放在其他位置时，修改 kernal/system_call.s 中的那些硬编码就可以了。
 ```asm
 KERNEL_STACK = 12
+！eax为PCB的位置
 movl %esp,KERNEL_STACK(%eax)
 ! 再取一下 ebx，因为前面修改过 ebx 的值
 movl 8(%ebp),%ebx
@@ -178,8 +185,8 @@ struct task_struct {
     long kernelstack;
 //......
 ```
-由于这里将 PCB 结构体的定义改变了，所以在产生 0 号进程的 PCB 初始化时也要跟着一起变化，需要将原来的 #define INIT_TASK { 0,15,15, 0,{{},},0,... 修改为 #define INIT_TASK { 0,15,15,PAGE_SIZE+(long)&init_task, 0,{{},},0,...，即在 PCB 的第四项中增加关于内核栈栈指针的初始化。
-
+由于这里将 PCB 结构体的定义改变了，所以在产生 0 号进程的 PCB 初始化时也要跟着一起变化，需要将原来的 #define INIT_TASK { 0,15,15, 0,{{},},0,... 修改为 #define INIT_TASK { 0,15,15,PAGE_SIZE+(long)&init_task, 0,{{},},0,...，即在 PCB 的第四项中增加关于内核栈栈指针的初始化。`PAGE_SIZE+(long)&init_task`表示当前的内核栈为空。
+#### LDT的切换
 再下一个切换就是 LDT 的切换了，指令 movl 12(%ebp),%ecx 负责取出对应 LDT(next)的那个参数，指令 lldt %cx 负责修改 LDTR 寄存器，一旦完成了修改，下一个进程在执行用户态程序时使用的映射表就是自己的 LDT 表了，地址空间实现了分离。
 
 最后一个切换是关于 PC 的切换，和前面论述的一致，依靠的就是 switch_to 的最后一句指令 ret，虽然简单，但背后发生的事却很多：schedule() 函数的最后调用了这个 switch_to 函数，所以这句指令 ret 就返回到下一个进程（目标进程）的 schedule() 函数的末尾，遇到的是}，继续 ret 回到调用的 schedule() 地方，是在中断处理中调用的，所以回到了中断处理中，就到了中断返回的地址，再调用 iret 就到了目标进程的用户态程序去执行，和书中论述的内核态线程切换的五段论是完全一致的。
