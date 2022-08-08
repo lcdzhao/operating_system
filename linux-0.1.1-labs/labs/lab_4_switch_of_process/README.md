@@ -213,7 +213,7 @@ mov %cx,%fs
 
 ![子进程内核栈结构](README.assets/userid19614labid571time1424053880667.png)
 
-不难想象，对 fork() 的修改就是对子进程的内核栈的初始化，在 fork() 的核心实现 copy_process 中，p = (struct task_struct *) get_free_page();用来完成申请一页内存作为子进程的 PCB，而 p 指针加上页面大小就是子进程的内核栈位置，所以语句 krnstack = (long *) (PAGE_SIZE + (long) p); 就可以找到子进程的内核栈位置，接下来就是初始化 krnstack 中的内容了。
+不难想象，fork() 的修改部分主要是子进程的内核栈的初始化，在 fork() 的核心实现 copy_process 中，`p = (struct task_struct *) get_free_page();`用来完成申请一页内存作为子进程的 PCB，而 p 指针加上页面大小就是子进程的内核栈位置，所以语句 `krnstack = (long *) (PAGE_SIZE + (long) p);` 就可以找到子进程的内核栈位置，接下来就是初始化 krnstack 中的内容了。
 ```c
 *(--krnstack) = ss & 0xffff;
 *(--krnstack) = esp;
@@ -221,7 +221,7 @@ mov %cx,%fs
 *(--krnstack) = cs & 0xffff;
 *(--krnstack) = eip;
 ```
-这五条语句就完成了上图所示的那个重要的关联，因为其中 ss,esp 等内容都是 copy_proces() 函数的参数，这些参数来自调用 copy_proces() 的进程的内核栈中，就是父进程的内核栈中，所以上面给出的指令不就是将父进程内核栈中的前五个内容拷贝到子进程的内核栈中，图中所示的关联不也就是一个拷贝吗？
+这五条语句就完成了上图所示的那个重要的关联，因为其中 ss,esp 等内容都是 copy_process() 函数的参数。
 
 接下来的工作就需要和 switch_to 接在一起考虑了，故事从哪里开始呢？回顾一下前面给出来的 switch_to，应该从 “切换内核栈” 完事的那个地方开始，现在到子进程的内核栈开始工作了，接下来做的四次弹栈以及 ret 处理使用的都是子进程内核栈中的东西，
 ```asm
