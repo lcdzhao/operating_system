@@ -92,7 +92,7 @@ if ((*p)->state == TASK_RUNNING && (*p)->counter > c)
 switch_to(next);
 ```
 修改为：
-```
+```c
 if ((*p)->state == TASK_RUNNING && (*p)->counter > c)
     c = (*p)->counter, next = i, pnext = *p;
 
@@ -195,3 +195,58 @@ mov %cx,%fs
 不过，细心的读者可能会发现：fs 是一个选择子，即 fs 是一个指向描述符表项的指针，这个描述符才是指向实际的用户态内存的指针，所以上一个进程和下一个进程的 fs 实际上都是 0x17，真正找到不同的用户态内存是因为两个进程查的 LDT 表不一样，所以这样重置一下 fs=0x17 有用吗，有什么用？要回答这个问题就需要对段寄存器有更深刻的认识，实际上段寄存器包含两个部分：显式部分和隐式部分，如下图给出实例所示，就是那个著名的 jmpi 0, 8，虽然我们的指令是让 cs=8，但在执行这条指令时，会在段表（GDT）中找到 8 对应的那个描述符表项，取出基地址和段限长，除了完成和 eip 的累加算出 PC 以外，还会将取出的基地址和段限长放在 cs 的隐藏部分，即图中的基地址 0 和段限长 7FF。为什么要这样做？下次执行 jmp 100 时，由于 cs 没有改过，仍然是 8，所以可以不再去查 GDT 表，而是直接用其隐藏部分中的基地址 0 和 100 累加直接得到 PC，增加了执行指令的效率。现在想必明白了为什么重新设置 fs=0x17 了吧？而且为什么要出现在切换完 LDT 之后？
 
 ![段寄存器中的两个部分](README.assets/userid19614labid571time1424053856897.png)
+
+### 修改 fork
+开始修改 fork() 了，和书中论述的原理一致，就是要把进程的用户栈、用户程序和其内核栈通过压在内核栈中的 SS:ESP，CS:IP 关联在一起。
+
+另外，由于 fork() 这个叉子的含义就是要让父子进程共用同一个代码、数据和堆栈，现在虽然是使用内核栈完成任务切换，但 fork() 的基本含义不会发生变化。
+
+将上面两段描述联立在一起，修改 fork() 的核心工作就是要形成如下图所示的子进程内核栈结构。
+
+![子进程内核栈结构](README.assets/userid19614labid571time1424053880667.png)
+
+不难想象，对 fork() 的修改就是对子进程的内核栈的初始化，在 fork() 的核心实现 copy_process 中，p = (struct task_struct *) get_free_page();用来完成申请一页内存作为子进程的 PCB，而 p 指针加上页面大小就是子进程的内核栈位置，所以语句 krnstack = (long *) (PAGE_SIZE + (long) p); 就可以找到子进程的内核栈位置，接下来就是初始化 krnstack 中的内容了。
+```c
+*(--krnstack) = ss & 0xffff;
+*(--krnstack) = esp;
+*(--krnstack) = eflags;
+*(--krnstack) = cs & 0xffff;
+*(--krnstack) = eip;
+```
+这五条语句就完成了上图所示的那个重要的关联，因为其中 ss,esp 等内容都是 copy_proces() 函数的参数，这些参数来自调用 copy_proces() 的进程的内核栈中，就是父进程的内核栈中，所以上面给出的指令不就是将父进程内核栈中的前五个内容拷贝到子进程的内核栈中，图中所示的关联不也就是一个拷贝吗？
+
+接下来的工作就需要和 switch_to 接在一起考虑了，故事从哪里开始呢？回顾一下前面给出来的 switch_to，应该从 “切换内核栈” 完事的那个地方开始，现在到子进程的内核栈开始工作了，接下来做的四次弹栈以及 ret 处理使用的都是子进程内核栈中的东西，
+```asm
+1: popl %eax
+    popl %ebx
+    popl %ecx
+    popl %ebp
+ret
+```
+为了能够顺利完成这些弹栈工作，子进程的内核栈中应该有这些内容，所以需要对 krnstack 进行初始化：
+```c
+*(--krnstack) = ebp;
+*(--krnstack) = ecx;
+*(--krnstack) = ebx;
+// 这里的 0 最有意思。
+*(--krnstack) = 0;
+```
+现在到了 ret 指令了，这条指令要从内核栈中弹出一个 32 位数作为 EIP 跳去执行，所以需要弄一个函数地址（仍然是一段汇编程序，所以这个地址是这段汇编程序开始处的标号）并将其初始化到栈中。我们弄的一个名为 first_return_from_kernel 的汇编标号，然后可以用语句 *(--krnstack) = (long) first_return_from_kernel; 将这个地址初始化到子进程的内核栈中，现在执行 ret 以后就会跳转到 first_return_from_kernel 去执行了。
+
+想一想 first_return_from_kernel 要完成什么工作？PCB 切换完成、内核栈切换完成、LDT 切换完成，接下来应该那个“内核级线程切换五段论”中的最后一段切换了，即完成用户栈和用户代码的切换，依靠的核心指令就是 iret，当然在切换之前应该回复一下执行现场，主要就是 eax,ebx,ecx,edx,esi,edi,gs,fs,es,ds 等寄存器的恢复.
+
+下面给出了 first_return_from_kernel 的核心代码，当然 edx 等寄存器的值也应该先初始化到子进程内核栈，即 krnstack 中。
+```asm
+popl %edx
+popl %edi
+popl %esi
+pop %gs
+pop %fs
+pop %es
+pop %ds
+iret
+```
+最后别忘了将存放在 PCB 中的内核栈指针修改到初始化完成时内核栈的栈顶，即：
+```c
+p->kernelstack = stack;
+```
