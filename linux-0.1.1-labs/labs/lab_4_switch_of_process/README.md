@@ -161,15 +161,15 @@ movl %ebx,ESP0(%ecx)
 完成内核栈的切换也非常简单，和我们前面给出的论述完全一致，将寄存器 esp（内核栈使用到当前情况时的栈顶位置）的值保存到当前 PCB 中，再从下一个 PCB 中的对应位置上取出保存的内核栈栈顶放入 esp 寄存器，这样处理完以后，再使用内核栈时使用的就是下一个进程的内核栈了。
 
 由于现在的 Linux 0.11 的 PCB 定义中没有保存内核栈指针这个域（kernelstack），所以需要加上，而宏 KERNEL_STACK 就是你加的那个位置，当然将 kernelstack 域加在 task_struct 中的哪个位置都可以，但是在某些汇编文件中（主要是在 kernal/system_call.s 中）有些关于操作这个结构一些汇编硬编码，所以一旦增加了 kernelstack，这些硬编码需要跟着修改，由于第一个位置，即 long state 出现的汇编硬编码很多，所以 kernelstack 千万不要放置在 task_struct 中的第一个位置，当放在其他位置时，修改 kernal/system_call.s 中的那些硬编码就可以了。
-```c
+```asm
 KERNEL_STACK = 12
 movl %esp,KERNEL_STACK(%eax)
 ! 再取一下 ebx，因为前面修改过 ebx 的值
 movl 8(%ebp),%ebx
 movl KERNEL_STACK(%ebx),%esp
-copy
+```
 task_struct 的定义：
-
+```c
 // 在 include/linux/sched.h 中
 struct task_struct {
     long state;
