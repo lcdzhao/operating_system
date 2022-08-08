@@ -241,9 +241,9 @@ ret
 ```
 现在到了 ret 指令了，这条指令要从内核栈中弹出一个 32 位数作为 EIP 跳去执行，所以需要弄一个函数地址（仍然是一段汇编程序，所以这个地址是这段汇编程序开始处的标号）并将其初始化到栈中。我们弄的一个名为 first_return_from_kernel 的汇编标号，然后可以用语句 *(--krnstack) = (long) first_return_from_kernel; 将这个地址初始化到子进程的内核栈中，现在执行 ret 以后就会跳转到 first_return_from_kernel 去执行了。
 
-想一想 first_return_from_kernel 要完成什么工作？PCB 切换完成、内核栈切换完成、LDT 切换完成，接下来应该那个“内核级线程切换五段论”中的最后一段切换了，即完成用户栈和用户代码的切换，依靠的核心指令就是 iret，当然在切换之前应该回复一下执行现场，主要就是 eax,ebx,ecx,edx,esi,edi,gs,fs,es,ds 等寄存器的恢复.
+想一想 first_return_from_kernel 要完成什么工作？PCB 切换完成、内核栈切换完成、LDT 切换完成，接下来就应该回复一下执行现场，主要就是 eax,ebx,ecx,edx,esi,edi,gs,fs,es,ds 等寄存器的恢复.
 
-下面给出了 first_return_from_kernel 的核心代码，当然 edx 等寄存器的值也应该先初始化到子进程内核栈，即 krnstack 中。
+下面给出了 first_return_from_kernel 的核心代码，即 krnstack 中。
 ```asm
 popl %edx
 popl %edi
@@ -254,6 +254,7 @@ pop %es
 pop %ds
 iret
 ```
+因此fork中应该将其他寄存器的值也应该先初始化到子进程内核栈中。
 最后别忘了将存放在 PCB 中的内核栈指针修改到初始化完成时内核栈的栈顶，即：
 ```c
 p->kernelstack = stack;
