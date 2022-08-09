@@ -105,4 +105,5 @@ struct task_struct {
 ![copy_page_tables](./README.assets/copy_page_tables.png)
 
 
-
+## fork时为什么不拷贝内核栈
+因为 linux0.11 在`switch_to`时直接通过tss转换到新进程，而在fork时，tss中填写的cs ip 直接为用户态的代码段，因此switch将直接将新进程转换到用户态。
