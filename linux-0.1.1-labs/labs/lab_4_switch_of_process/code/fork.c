@@ -62,7 +62,7 @@ int copy_mem(int nr,struct task_struct * p)
 }
 
 
-extern long first_return_from_kernel(void);
+extern long first_run_after_fork(void);
 /*
  *  Ok, this is the main fork-routine. It copies the system process
  * information (task[nr]) and sets up the necessary registers. It
@@ -97,14 +97,14 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 
  	long *krnstack = (long *)(PAGE_SIZE + (long)p); 
 	
-	/* INT0x80，此处将在first_return_from_kernel中通过iret使用从而切换回用户代码 */
+	/* INT0x80，此处将在first_run_after_fork中通过iret使用从而切换回用户代码 */
  	*(--krnstack) = ss & 0xffff; 
 	*(--krnstack) = esp;
 	*(--krnstack) = eflags;
 	*(--krnstack) = cs & 0xffff;
 	*(--krnstack) = eip; 
 	
-	/* 此处将在first_return_from_kernel中恢复到寄存器 */
+	/* 此处将在first_run_after_fork中恢复到寄存器 */
  	*(--krnstack) = ds & 0xffff; 
 	*(--krnstack) = es & 0xffff; 
 	*(--krnstack) = fs & 0xffff; 
@@ -114,19 +114,18 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 	*(--krnstack) = edi;
 	*(--krnstack) = edx; 
 	
-	/* schedule() */
 	/* switch_to 弹栈后执行 ret 
 	 * ret会继续弹一次栈给 EIP 执行
 	 * 所以这次弹出来的要求是函数地址
 	 * 如果是经历过切换的老进程，不是新fork出来的，
 	 * 那这里的地址会是 schedule() 中 switch_to 的下一条指令
-	 * 即 }
-	 * 但由于这里新 fork 出来的，这里的地址就改变到另一个函数 
-	 * 即 first_return_from_kernel 
-	 * 在 first_return_from_kernel 中执行中断返回 iret
-	 * 所以这里 schedule() 就不用入栈一些值，因为跳过了       
+	 * 但由于这里新 fork 出来的，和经历过切换的老进程并不一样，
+	 * 即需要恢复寄存器的值，又需要恢复到用户态。
+	 * 因此我们将上面这两个任务都放到first_run_after_fork中去执行
+	 * 这里将first_run_after_fork的地址压栈，
+	 * 那么将会在switch_to最后的ret执行时直接执行first_run_after_fork
 	 */
- 	*(--krnstack) = (long)first_return_from_kernel;
+ 	*(--krnstack) = (long)first_run_after_fork;
 	
 	
 	/* 此处在switch_to()方法的最后几行代码中恢复到寄存器 */

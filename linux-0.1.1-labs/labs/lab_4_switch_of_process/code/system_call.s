@@ -71,7 +71,7 @@ nr_system_calls = 72
 .globl system_call,sys_fork,timer_interrupt,sys_execve
 .globl hd_interrupt,floppy_interrupt,parallel_interrupt
 .globl device_not_available, coprocessor_error
-.globl first_return_from_kernel, switch_to
+.globl first_run_after_fork, switch_to
 
 /* switch_to */
 .align 2
@@ -124,7 +124,7 @@ switch_to:
 	ret
 
 .align 2
-first_return_from_kernel:
+first_run_after_fork:
 	popl %edx
 	popl %edi
 	popl %esi
