@@ -106,4 +106,4 @@ struct task_struct {
 
 
 ## fork时为什么不拷贝内核栈
-因为 linux0.11 在`switch_to`时直接通过tss转换到新进程，而在fork时，tss中填写的cs ip 直接为用户态的代码段，因此switch将直接将新进程转换到用户态。
+因为 linux0.11 在`switch_to`时直接通过tss转换到新进程，而在`fork`时，`tss`中填写的`cs eip ss esp eflags` 都直接为用户态的参数，因此switch将直接将新进程转换到用户态。
