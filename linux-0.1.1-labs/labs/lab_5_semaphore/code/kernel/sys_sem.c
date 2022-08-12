@@ -121,8 +121,8 @@ int sys_sem_wait(sem* sem)
 
 int sys_sem_post(sem* sem)
 {
-	cli();
 	struct task_struct *p;
+	cli();
 	sem->value++;
 	sti();
 	if(sem->value <= 0)
