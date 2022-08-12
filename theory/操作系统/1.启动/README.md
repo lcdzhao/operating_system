@@ -7,7 +7,6 @@
 
 在Linux 0.11 源码的根目录的[Makefile文件](https://github.com/lcdzhao/operating_system/blob/master/linux-0.1.1-labs/linux-0.1.1/Makefile)中，核心字段如下：
 ```makefile
-...
 # 开头的这一大段主要进行makefile中的各种变量
 # 
 # if you want the ram-disk device, define this to be the
