@@ -108,6 +108,7 @@ int sys_sem_wait(sem* sem)
 {
 	cli();
 	sem->value--;
+	sti();
 	if(sem->value < 0)
 	{
 		// 参见sleep_on
@@ -115,7 +116,6 @@ int sys_sem_wait(sem* sem)
 		insert_task(current,&(sem->wait_queue));
 		schedule();
 	}
-	sti();
 	return 0;
 }
 
@@ -124,6 +124,7 @@ int sys_sem_post(sem* sem)
 	cli();
 	struct task_struct *p;
 	sem->value++;
+	sti();
 	if(sem->value <= 0)
 	{
 		p = get_first__task(&(sem->wait_queue));
@@ -132,7 +133,6 @@ int sys_sem_post(sem* sem)
 			(*p).state = TASK_RUNNING;
 		}
 	}
-	sti();
 	return 0;
 }
 
