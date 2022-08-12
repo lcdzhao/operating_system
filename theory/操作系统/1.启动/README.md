@@ -6,7 +6,7 @@
 在Linux 0.11 源码的根目录的[Makefile文件](https://github.com/lcdzhao/operating_system/blob/master/linux-0.1.1-labs/linux-0.1.1/Makefile)中，核心字段如下：
 ```makefile
 ...
-# 开头的这一大段主要进行makefile中的各种关键字的配置
+# 开头的这一大段主要进行makefile中的各种变量
 # 
 # if you want the ram-disk device, define this to be the
 # size in blocks.
@@ -76,7 +76,8 @@ boot/setup: boot/setup.s
 	$(AS86) -o boot/setup.o boot/setup.s
 	$(LD86) -s -o boot/setup boot/setup.o
 
-# 指定 tools/system 依赖 boot/head.o init/main.o，并最终将 boot/head.o init/main.o 编译为 bools/system
+# 指定 tools/system 依赖 boot/head.o init/main.o $(ARCHIVES) $(DRIVERS) $(MATH) $(LIBS)，
+# 并最终将 boot/head.o init/main.o $(ARCHIVES) $(DRIVERS) $(MATH) $(LIBS) 编译为 bools/system
 tools/system:	boot/head.o init/main.o \
 		$(ARCHIVES) $(DRIVERS) $(MATH) $(LIBS)
 	$(LD) $(LDFLAGS) boot/head.o init/main.o \
@@ -88,10 +89,14 @@ tools/system:	boot/head.o init/main.o \
   # 将tools/system中的的符号处理后输出到 System.map 中去
 	nm tools/system | grep -v '\(compiled\)\|\(\.o$$\)\|\( [aU] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)'| sort > System.map 
 
+
+# 下面都是一些编译和依赖了，这里就不再增加注释了，通过上面的一些注释我们已经可以自己看出来下面的是什么意思了
+
 boot/head.o: boot/head.s
 	gcc-3.4 -m32 -g -I./include -traditional -c boot/head.s
 	mv head.o boot/
-
+ 
+# 下面的这个意味着执行 cd kernel/math 与 make 命令将得到 kernel/math/math.a
 kernel/math/math.a: FORCE
 	(cd kernel/math; make)
 
@@ -141,7 +146,7 @@ dep:
 # Force make run into subdirectories even no changes on source
 FORCE:
 
-### Dependencies:
+# init/main.o 的 Dependencies:
 init/main.o: init/main.c include/unistd.h include/sys/stat.h \
   include/sys/types.h include/sys/times.h include/sys/utsname.h \
   include/utime.h include/time.h include/linux/tty.h include/termios.h \
@@ -149,77 +154,7 @@ init/main.o: init/main.c include/unistd.h include/sys/stat.h \
   include/linux/mm.h include/signal.h include/asm/system.h \
   include/asm/io.h include/stddef.h include/stdarg.h include/fcntl.h
 ```
-上面的几条指令指定`tools/build`为`tools/build.c`，并且对tools/build.c程序的编译。
 
-```makefile
-Image: boot/bootsect boot/setup tools/system tools/build
-
-objcopy -O binary -R .note -R .comment tools/system tools/kernel
-
-tools/build boot/bootsect boot/setup tools/kernel $(ROOT_DEV) > Image
-
-rm tools/kernel -f
-
-sync
-```
-
-`objcopy`这条命令首先将`tools/system`这个编译后的内核代码制作成纯二进制文件，保存在`tools/kernel`中，然后使用上述编译好的`build`工具，将`boot/bootsect`、`boot/setup`、`tools/kernel`、`根设备号`作为`build`的参数，并将结果重定向输出到`Image`中。最后强制删除`tools/kernel`。
-### build.c程序的功能
-1. 首先根据传入参数的个数，设置根设备号，并填写到第一个扇区的第`508`,`509`字节中，也就是说我们可以覆盖根设备号，自主设定根设备号，如果我们没有指定根设备号，`build.c`程序将使用默认值`DEFAULT_MAJOR_ROOT`，`DEFAULT_MINOR_ROOT`，这个值可能是`0x21d`，也就是第二个软盘。由于使用的是重定向，DEBUG信息只能通过`stderr`来输出。
-
-2. 然后读取`boot/bootsect`，先读掉`MINIX`可执行文件头，再读取`512`字节二进制代码，并写到标准输出流1中。
-
-3. 接着把`boot/setup`也输出到标准输出流1中，先读掉MINIX可执行文件头，再继续读取剩下的整个文件，然后补0，直到4个扇区为止。
-
-对于bootsect和setup的编译，有
-```
-boot/bootsect:boot/bootsect.s
-
-$(AS86) -o boot/bootsect.o boot/bootsect.s
-
-$(LD86) -s -o boot/bootsect boot/bootsect.o
-
-boot/setup: boot/setup.s
-
-$(AS86) -o boot/setup.o boot/setup.s
-
-$(LD86) -s -o boot/setup boot/setup.o
-```
-也就是使用`as86`和`ld86`来编译的，可执行文件与gcc编译后的不一样。
-
-接着读取`boot/kernel`，将其全部输出到标准输出流1中，注意内核的大小不超过`0x30000`个字节，也就是`192KB`。
-
-对于system的编译，有
-```
-tools/system:boot/head.o init/main.o \
-
-$(ARCHIVES) $(DRIVERS) $(MATH) $(LIBS)
-
-$(LD) $(LDFLAGS) boot/head.o init/main.o \
-
-$(ARCHIVES) \
-
-$(DRIVERS) \
-
-$(MATH) \
-
-$(LIBS) \
-
--o tools/system
-
-nm tools/system | grep -v 'compiledcompiled\|\.o$$\.o$$\|[aU][aU]\|\.\.ng$$\.\.ng$$\|LASH[RL]DILASH[RL]DI'| sort > System.map
-```
-很显然，它是将很多内核代码连接在一起的，其中head.o在system的最前面。
-
- 
-
-最后在主Makefile中，还提供了这样的工具：
-```
-disk: Image
-
-dd bs=8192 if=Image of=/dev/fd0
-```
-表示将Image拷贝到/dev/fd0这个软盘中
 
 
 
