@@ -38,6 +38,17 @@ DRIVERS =kernel/blk_drv/blk_drv.a kernel/chr_drv/chr_drv.a
 MATH	=kernel/math/math.a
 LIBS	=lib/lib.a
 
+.c.s:
+	$(CC) $(CFLAGS) \
+	-nostdinc -Iinclude -S -o $*.s $<
+.s.o:
+	$(AS)  -o $*.o $<
+.c.o:
+	$(CC) $(CFLAGS) \
+	-nostdinc -Iinclude -c -o $*.o $<
+
+all:	Image
+
 # 第一句表示在处理Image之前，先处理 boot/bootsect boot/setup tools/system tools/build
 # 这个模块，这四个模块见紧接着的下面的模块
 Image: boot/bootsect boot/setup tools/system tools/build
@@ -137,6 +148,7 @@ backup: clean
 	(cd .. ; tar cf - linux | compress16 - > backup.Z)
 	sync
 
+# dep 表示编译依赖部分，dep 本身也为 Dependencies 的缩写
 dep:
 	sed '/\#\#\# Dependencies/q' < Makefile > tmp_make
 	(for i in init/*.c;do echo -n "init/";$(CPP) -M $$i;done) >> tmp_make
