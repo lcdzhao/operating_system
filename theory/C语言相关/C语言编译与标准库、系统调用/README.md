@@ -114,7 +114,7 @@ UNIX环境下主要有三种类型的目标文件：
 
 ## 链接过程
 
-> PS：加深入地了解链接过程的话可以看下面的视频，十分短小精悍：
+> PS：想要更加深入地了解链接过程的细节的话可以看下面的视频，十分短小精悍：
 > 
 > - [【CSAPP-深入理解计算机系统】7-1. 编译器驱动程序](https://www.bilibili.com/video/BV1X34y1o7zq?spm_id_from=333.999.0.0&vd_source=afbe39567defad401c79f6fbb57691cf)
 > - [【CSAPP-深入理解计算机系统】7-2. 可重定位目标文件](https://www.bilibili.com/video/BV13q4y137za/?spm_id_from=333.788&vd_source=afbe39567defad401c79f6fbb57691cf)
