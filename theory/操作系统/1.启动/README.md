@@ -138,7 +138,6 @@ backup: clean
 	sync
 
 dep:
-	# 下面这两行将 init/main.c 编译为了 init/main.o
 	sed '/\#\#\# Dependencies/q' < Makefile > tmp_make
 	(for i in init/*.c;do echo -n "init/";$(CPP) -M $$i;done) >> tmp_make
 	cp tmp_make Makefile
@@ -149,6 +148,7 @@ dep:
 # Force make run into subdirectories even no changes on source
 FORCE:
 
+# init/main.o 的 依赖
 ### Dependencies:
 init/main.o: init/main.c include/unistd.h include/sys/stat.h \
   include/sys/types.h include/sys/times.h include/sys/utsname.h \
