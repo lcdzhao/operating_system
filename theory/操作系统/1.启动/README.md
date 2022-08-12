@@ -77,7 +77,7 @@ boot/setup: boot/setup.s
 	$(LD86) -s -o boot/setup boot/setup.o
 
 # 指定 tools/system 依赖 boot/head.o init/main.o $(ARCHIVES) $(DRIVERS) $(MATH) $(LIBS)，
-# 并最终将 boot/head.o init/main.o $(ARCHIVES) $(DRIVERS) $(MATH) $(LIBS) 编译为 bools/system
+# 并最终将 boot/head.o init/main.o $(ARCHIVES) $(DRIVERS) $(MATH) $(LIBS) 链接为 bools/system
 tools/system:	boot/head.o init/main.o \
 		$(ARCHIVES) $(DRIVERS) $(MATH) $(LIBS)
 	$(LD) $(LDFLAGS) boot/head.o init/main.o \
