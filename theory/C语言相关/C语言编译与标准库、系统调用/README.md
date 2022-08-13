@@ -143,6 +143,9 @@ UNIX环境下主要有三种类型的目标文件：
 > - [【CSAPP-深入理解计算机系统】7-7. 可执行目标文件](https://www.bilibili.com/video/BV1mR4y1g7s1/?spm_id_from=333.788&vd_source=afbe39567defad401c79f6fbb57691cf)
 > - [【CSAPP-深入理解计算机系统】7-8. 动态链接共享库](https://www.bilibili.com/video/BV1yq4y1t7is/?spm_id_from=333.788&vd_source=afbe39567defad401c79f6fbb57691cf)
 
+#### 深入学习链接的作用
+![深入学习链接的作用](./README.assets/usage_of_link.png)
+usage_of_link.png
 
 ## GCC的编译链接
 我们在linux使用的gcc编译器便是把以上的几个过程进行捆绑，使用户只使用一次命令就把编译工作完成，这的确方便了编译工作，但对于初学者了解编译过程就很不利了，下图便是gcc代理的编译过程：
