@@ -151,6 +151,7 @@ UNIX环境下主要有三种类型的目标文件：
 ![可重定位目标文件](./README.assets/relocatable_1.png)
 #### 可执行文件
 ![可执行文件](./README.assets/ex.png)
+![可执行文件header_table](./README.assets/ex_h_t.png)
 
 ## GCC的编译链接
 我们在linux使用的gcc编译器便是把以上的几个过程进行捆绑，使用户只使用一次命令就把编译工作完成，这的确方便了编译工作，但对于初学者了解编译过程就很不利了，下图便是gcc代理的编译过程：
