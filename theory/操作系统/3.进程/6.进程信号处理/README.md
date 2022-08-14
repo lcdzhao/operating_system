@@ -9,7 +9,10 @@
 - STEP 4：从信号处理中恢复：通过`sa_restorer`来恢复用户寄存器值，以及去除当前信号的blocked位等。`sa_restorer`有编译器在链接阶段加入。具体见本章节最后一小节的说明。
 ## 信号有哪些
 使用 `kill -l` 可以查看有哪些信号：
+
 ![kill_l](README.assets/kill.png)
+
+
 ![sigs](README.assets/sigs.png)
 
 ## 注册信号处理函数
