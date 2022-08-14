@@ -50,7 +50,8 @@ Linux系统共定义了 64 种信号，分为两大类：`可靠信号`与`不�
 |30|	SIGPWR	|关机	|默认忽略|
 |31|	SIGSYS	|系统调用异常	 ||
 
-对于signal信号，绝大部分的默认处理都是终止进程或停止进程，或dump内核映像转储。 上述的31的信号为非实时信号，其他的信号32-64 都是实时信号。
+#### 接受信号的一些默认行为
+![接受信号的一些默认行为](README.assets/r_sig_d.png)
 
 ## 注册信号处理函数
 用户可以通过`signal`或者`sigaction`这两个系统调用来注册信号处理函数(具体区别见[Linux内核完全注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)第 8.8 章节(signal.c))。
