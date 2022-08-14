@@ -1,6 +1,6 @@
 # 进程信号处理
 > - 本章节描述了信号处理的核心步骤，更加的解释见: [Linux 内核完全注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A) 的第 8.8 章节(signal.c)
-> - 该视频简单地说明了进程的信号处理，可以作为导读：https://www.bilibili.com/video/BV1Xr4y1t7Jt/?spm_id_from=pageDriver&vd_source=afbe39567defad401c79f6fbb57691cf
+> - 该视频简单地说明了进程的信号处理，可以作为导读：[【CSAPP-深入理解计算机系统】8-6. 信号](https://www.bilibili.com/video/BV1Xr4y1t7Jt/?spm_id_from=pageDriver&vd_source=afbe39567defad401c79f6fbb57691cf)
 
 进程信号处理分为三个步骤： 
 - STEP 1：注册信号处理函数：应用程序通过`signal`或者`sigaction`这两个系统调用注册自己的信号处理函数，如果应用程序自身没注册则使用默认的处理函数。
