@@ -7,6 +7,10 @@
 - STEP 2：发送信号：如`kill`等，发送信号是通过修改进程的`task_struct.singal`来进行信号传递。
 - STEP 3：处理信号：操作系统内核通过`do_signal`来处理进程信号。
 - STEP 4：从信号处理中恢复：通过`sa_restorer`来恢复用户寄存器值，以及去除当前信号的blocked位等。`sa_restorer`有编译器在链接阶段加入。具体见本章节最后一小节的说明。
+## 信号有哪些
+使用 `kill -l` 可以查看有哪些信号：
+![kill_l](README.assets/kill.png)
+![sigs](README.assets/sigs.png)
 
 ## 注册信号处理函数
 用户可以通过`signal`或者`sigaction`这两个系统调用来注册信号处理函数(具体区别见[Linux内核完全注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)第 8.8 章节(signal.c))。
