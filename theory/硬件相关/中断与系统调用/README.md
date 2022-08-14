@@ -9,6 +9,22 @@ CPU遇到的“事件”：
 这些“事件”被称为“中断”或“异常”。
 ## 中断相关的硬件电路
 [北京大学——计算机组成与设计——中断](https://www.bilibili.com/video/BV1tp4y197Av?p=46)
+## 中断(异常)的分类
+![中断(异常)的分类](README.assets/exs.png)
+### Interupter
+![Interupter](README.assets/int.png)
+### Trap
+![Trap](README.assets/trap.png)
+### Fault
+![Fault](README.assets/fault.png)
+### Abort
+![Abort](README.assets/aburt.png)
+### 中断(异常)编号
+- 0-31 号中断(异常)由芯片厂商指定
+- 31-255 号中断(异常)由操作系统指定
+#### 部分中断(异常)编号举例
+![部分中断(异常)编号举例](README.assets/exs_num.png)
+
 ## 中断的进步
 ### Intel  8086（1978年） 
 
