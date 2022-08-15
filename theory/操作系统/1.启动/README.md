@@ -181,6 +181,8 @@ init/main.o: init/main.c include/unistd.h include/sys/stat.h \
 ![why_start_from_0x7c](README.assets/why_start_from_0x7c.png)
 
 - `boosect`为什么要移动代码
+
+
 ![为什么要移动代码](README.assets/why_move_code.png)
 
 
