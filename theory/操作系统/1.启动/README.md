@@ -175,6 +175,7 @@ init/main.o: init/main.c include/unistd.h include/sys/stat.h \
 ## Image的启动运行过程
 ### BIOS 与 `boosect`
 #### 流程图
+![bios_and_bootsect](README.assets/bios_and_bootsect.png)
 
 #### QA
 - BIOS 为什么将`boosect`加载到`0x7c0(31KB)`，而不是 `0x0` 位置处?
