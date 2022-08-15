@@ -184,9 +184,13 @@ init/main.o: init/main.c include/unistd.h include/sys/stat.h \
 ![why_start_from_0x7c](README.assets/why_start_from_0x7c.png)
 
 - `boosect`为什么要移动代码
-- 
+
 ![为什么要移动代码](README.assets/why_move_code.png)
 
-
+### setup
+#### 流程图
+![setup](README.assets/setup.png)
+#### setup执行完后的内存映像
+![image_after_setup](README.assets/image_after_setup.png)
 
 > 参考文章：[Linux 0.11内核的启动过程](https://blog.csdn.net/ac_dao_di/article/details/52144608)
