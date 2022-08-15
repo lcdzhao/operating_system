@@ -178,11 +178,12 @@ init/main.o: init/main.c include/unistd.h include/sys/stat.h \
 
 #### QA
 - BIOS 为什么将`boosect`加载到`0x7c0(31KB)`，而不是 `0x0` 位置处?
+
+
 ![why_start_from_0x7c](README.assets/why_start_from_0x7c.png)
 
 - `boosect`为什么要移动代码
-
-
+- 
 ![为什么要移动代码](README.assets/why_move_code.png)
 
 
