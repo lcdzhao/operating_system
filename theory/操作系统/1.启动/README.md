@@ -168,8 +168,8 @@ init/main.o: init/main.c include/unistd.h include/sys/stat.h \
   include/linux/mm.h include/signal.h include/asm/system.h \
   include/asm/io.h include/stddef.h include/stdarg.h include/fcntl.h
 ```
-
-
+### 最终Image文件的构成
+![最终Image文件的构成](README.assets/image_s.png)
 
 
 > 参考文章：[Linux 0.11内核的启动过程](https://blog.csdn.net/ac_dao_di/article/details/52144608)
