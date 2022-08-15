@@ -172,5 +172,18 @@ init/main.o: init/main.c include/unistd.h include/sys/stat.h \
 ### 最终Image文件的构成
 ![最终Image文件的构成](README.assets/image_s.png)
 
+## Image的启动运行过程
+### BIOS 与 `boosect`
+#### 流程图
+
+#### QA
+1. BIOS 为什么将`boosect`加载到`0x7c0(31KB)`，而不是 `0x0` 位置处?
+
+因为 BIOS 在物理地址 `0x0` 处初始化了中断向量表，因此`0x0`处位置已经被占用，而那个时候的中断向量表的大小不可能超过`0x7c0(31KB)`，故BIOS将`boosect`加载到`0x7c0(31KB)`。
+
+2. `boosect`为什么要移动代码
+![为什么要移动代码](README.assets/why_move_code.png)
+
+
 
 > 参考文章：[Linux 0.11内核的启动过程](https://blog.csdn.net/ac_dao_di/article/details/52144608)
