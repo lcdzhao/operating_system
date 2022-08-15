@@ -1,6 +1,7 @@
 # 内核启动过程
 
 ## Image 文件构成
+Image 文件的构成由`Makefile`所指定。
 ### Makefile
 > 如果对于C语言的编译过程不熟悉的话，建议在阅读本节之前先阅读一下 [C语言编译与标准库、系统调用](https://github.com/lcdzhao/operating_system/tree/master/theory/C%E8%AF%AD%E8%A8%80%E7%9B%B8%E5%85%B3/C%E8%AF%AD%E8%A8%80%E7%BC%96%E8%AF%91%E4%B8%8E%E6%A0%87%E5%87%86%E5%BA%93%E3%80%81%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8)，看懂Makefile需要掌握C语言编译相关知识。
 
