@@ -201,7 +201,7 @@ init/main.o: init/main.c include/unistd.h include/sys/stat.h \
 #### head 执行完后的内存映像
 ![image_after_head](README.assets/image_after_head.png)
 #### QA
-head设置的页表权限如何控制？
+- head设置的页表权限如何控制？
 ![page_p](README.assets/page_p.png)
 
 > 参考文章：[Linux 0.11内核的启动过程](https://blog.csdn.net/ac_dao_di/article/details/52144608)
