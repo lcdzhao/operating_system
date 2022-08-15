@@ -178,8 +178,7 @@ init/main.o: init/main.c include/unistd.h include/sys/stat.h \
 
 #### QA
 - BIOS 为什么将`boosect`加载到`0x7c0(31KB)`，而不是 `0x0` 位置处?
-
-	因为 BIOS 在物理地址 `0x0` 处初始化了中断向量表，因此`0x0`处位置已经被占用，而那个时候的中断向量表的大小不可能超过`0x7c0(31KB)`，故BIOS将`boosect`加载到`0x7c0(31KB)`。
+![why_start_from_0x7c](README.assets/why_start_from_0x7c.png)
 
 - `boosect`为什么要移动代码
 ![为什么要移动代码](README.assets/why_move_code.png)
