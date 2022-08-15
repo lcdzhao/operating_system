@@ -204,4 +204,66 @@ init/main.o: init/main.c include/unistd.h include/sys/stat.h \
 - head设置的页表权限如何控制？
 ![page_p](README.assets/page_p.png)
 
+### main
+前面主要涉及到获取硬件参数，进入保护模式，开启分页模式，初始化中断描述符合和全局描述符等工作，所以用了汇编语言来写。main函数位于/init/main.c中，是用C语言写的。main主要是设置中断时执行的函数，块设备和字符设备的初始化，tty初始化，以及内存缓冲区链表的初始化，系统开机时间的初始化，硬盘的初始化，以及任务0的初始化，允许中断处理，然后将任务0移动到用户态下执行，启动任务1（init进程），进入无休止的睡眠。任务1挂载根文件系统，设置标准输入输出和错误，并创建shell进程，最后循环等待所有子进程退出，回收僵尸进程。
+
+#### 初始化部分代码
+```c
+void main(void)		/* This really IS void, no error here. */
+{			/* The startup routine assumes (well, ...) this */
+/*
+ * Interrupts are still disabled. Do necessary setups, then
+ * enable them
+ */
+ 	ROOT_DEV = ORIG_ROOT_DEV;
+ 	drive_info = DRIVE_INFO;
+	memory_end = (1<<20) + (EXT_MEM_K<<10);
+	memory_end &= 0xfffff000;
+	if (memory_end > 16*1024*1024)
+		memory_end = 16*1024*1024;
+	if (memory_end > 12*1024*1024) 
+		buffer_memory_end = 4*1024*1024;
+	else if (memory_end > 6*1024*1024)
+		buffer_memory_end = 2*1024*1024;
+	else
+		buffer_memory_end = 1*1024*1024;
+	main_memory_start = buffer_memory_end;
+#ifdef RAMDISK
+	main_memory_start += rd_init(main_memory_start, RAMDISK*1024);
+#endif
+	mem_init(main_memory_start,memory_end);
+	trap_init();
+	blk_dev_init();
+	chr_dev_init();
+	tty_init();
+	time_init();
+	sched_init();
+	buffer_init(buffer_memory_end);
+	hd_init();
+	floppy_init();
+	sti();
+	move_to_user_mode();
+	if (!fork()) {		/* we count on this going ok */
+		init();
+	}
+/*
+ *   NOTE!!   For any other task 'pause()' would mean we have to get a
+ * signal to awaken, but task0 is the sole exception (see 'schedule()')
+ * as task 0 gets activated at every idle moment (when no other tasks
+ * can run). For task0 'pause()' just means we go check if some other
+ * task can run, and if not we return here.
+ */
+	for(;;) pause();
+}
+```
+
+#### 流程图及进程流转
+> PS：进入`main`时，CPU正式开始以保护模式运行，且已经开启了分页模式。
+![processes](README.assets/processes.png)
+
+#### `main` 初始化完成后的内存映像
+![image_after_main](README.assets/image_after_main.png)
+
 > 参考文章：[Linux 0.11内核的启动过程](https://blog.csdn.net/ac_dao_di/article/details/52144608)
+
+
