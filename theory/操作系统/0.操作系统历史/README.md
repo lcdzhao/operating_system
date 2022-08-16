@@ -128,7 +128,7 @@ IBM公司试图通过引入system/360系列来同时满足科学计算和商业�
 多道技术中的多道指的是多个程序，多道技术的实现是为了解决多个程序竞争或者说共享同一个资源（比如cpu）的有序调度问题，解决方式即多路复用，多路复用分为时间上的复用和空间上的复用。
 - 空间上的复用：
 
-  ![memory_depart](README.assets/memory_depart.jpg)、
+  ![memory_depart](README.assets/memory_depart.jpg)
   
   > 将内存分为几部分，每个部分放入一个程序，这样，同一时间内存中就有了多道程序。
 
