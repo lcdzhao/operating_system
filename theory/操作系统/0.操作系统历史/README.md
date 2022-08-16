@@ -162,7 +162,7 @@ IBM公司试图通过引入system/360系列来同时满足科学计算和商业�
 
 - **UNIX**：后来一位参加过MULTICS研制的贝尔实验室计算机科学家Ken Thompson开发了一个简易的，单用户版本的MULTICS，这就是后来的UNIX系统。
 
-- **POSIX**： 基于它衍生了很多其他的Unix版本，为了使程序能在任何版本的unix上运行，IEEE提出了一个unix标准，即posix（可移植的操作系统接口Portable Operating System Interface）
+- **POSIX(是标准，不是操作系统)**： 基于UNIX衍生了很多其他的Unix版本，为了使程序能在任何版本的unix上运行，IEEE提出了一个unix标准，即posix（可移植的操作系统接口Portable Operating System Interface）
 
 - **Linux**： 后来，在1987年，出现了一个UNIX的小型克隆，即minix，用于教学使用。芬兰学生Linus Torvalds基于它编写了Linux
 
