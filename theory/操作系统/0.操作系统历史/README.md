@@ -414,7 +414,7 @@ POSIX全称为Portable Operating System Interface，中文翻译为可移植操�
 - 1994年，Linux的第一个商业发行版Slackware问世。
 - 1996年，美国国家标准技术局的计算机系统实验室确认Linux版本1.2.13（由Open Linux公司打包）符合POSIX标准。
 - 1999年，Linux的简体中文发行版问世。
-- 2000年后，Linux系统日趋成熟，涌现大量基于Linux服务器平台的应用，并广泛应用于基于ARM技术的嵌入式系统中。、
+- 2000年后，Linux系统日趋成熟，涌现大量基于Linux服务器平台的应用，并广泛应用于基于ARM技术的嵌入式系统中。
 - 2003年4月，Rad Hat Linux 9.0发布。重点放在改善桌面应用方面，包括改进安装过程、更好的字体浏览、更好的打印服务等。2003年，Rad Hat的Linux市场份额超过80%。
 - 2004年4月，Red hat公司正式停止对Red Hat 9.0版本的支持，标志着Red Hat Linux的正式完结。原本的桌面版Red Hat Linux发行包则与来自民间的Fedora计划合并，称为Fedora Core发行版本。Red Hat公司不再开发桌面版的Linux发行包，而将全部力量集中在服务器版的开发上，也就是Red Hat Enterprise Linux版。
 - 2005年10月RHEL4（Red Hat Enterprise Linux4）发布。
