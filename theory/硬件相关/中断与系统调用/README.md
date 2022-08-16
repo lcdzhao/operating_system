@@ -84,6 +84,12 @@ CPU遇到的“事件”：
 
 ![中断处理过程](README.assets/interrupt_process.png)
 
+### 特权级切换
+
+![change_](README.assets/change_.png)
+
+![change](README.assets/change.png)
+
 ### 中断描述符
 1. 在X86体系结构的保护模式下，通过中断描述符表IDT组织中断描述符
 
