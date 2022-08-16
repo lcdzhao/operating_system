@@ -355,11 +355,13 @@ GNU is not unix，但是所有软件建立在unix之上。迫切的希望拥有�
 
 1977年Bill Joy（比尔·乔伊）释放出BSD（Berkeley Software Distribution）的Unix-Like操作系统
 #### 6.6.2.X86架构的Minix诞生
+![minix](README.assets/minix.jpg)
 
 1984谭宁邦教授的Minix教学操作系统，提供原始码以及软件
 
 
 #### 6.6.3.各种免费软件团队的产生
+![gnu](README.assets/gnu.jpg)
 
 1984 Richard Stallman GNU（GNU's not unix）计划：
 
@@ -385,6 +387,7 @@ GPL（General Public License）通用公共许可证
 　　　　4>任何人可透过任何正常渠道取得此自由软件，且均可取得此授权模式
 ```
 #### 6.6.4.Linux操作系统的产生
+![linux](README.assets/linux.jpg)
 
 1991年芬兰人开发出Linux（以Minix、GNU、Internet、POSIX标准、虚拟团队）
 
@@ -498,6 +501,8 @@ GPL：通用公共许可协议
 > 该文章转载自：[操作系统的发展历史](https://zhuanlan.zhihu.com/p/367996835)，并对原文章部分结构和表达进行了调整。
 > 
 > 作者：       [Drew](https://www.zhihu.com/people/drew-62-16)
+>
+> 转载请注明出处！
 ## 其他相关历史
 - [模拟电路历史](https://www.bilibili.com/video/BV1774114798/?spm_id_from=333.788.recommend_more_video.3&vd_source=afbe39567defad401c79f6fbb57691cf)
 - [数字电路历史](https://www.bilibili.com/video/BV1Hi4y1t7zY/?spm_id_from=333.788.recommend_more_video.0&vd_source=afbe39567defad401c79f6fbb57691cf)
