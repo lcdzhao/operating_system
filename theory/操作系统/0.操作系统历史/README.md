@@ -423,6 +423,10 @@ POSIX全称为Portable Operating System Interface，中文翻译为可移植操�
 - 2014年6月，RHEL7（Red Hat Enterprise Linux 7.0）发布，RHEL7.0版本和RHEL6.0以前的版本有了较大的变化，例如：内核版本升级到3.10以上，系统启动和基本管理变化较大，文件系统也有传统的ext改为xfs，同时在大数据、云计算、Docker方面做了很大优化。
 
 Linux的发行商包括Slackware、Red Hat、Debian、Fedora、TurboLinux、Mandrake、SUSE、CentOS、Ubuntu、红旗、麒麟……
+#### 6.6.5 Linux 内核版本及源码
+
+https://elixir.bootlin.com/
+
 ## 7. 总结
 ### 7.1 操作系统发展简史
 
