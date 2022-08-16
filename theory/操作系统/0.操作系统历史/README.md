@@ -428,7 +428,7 @@ Linux的发行商包括Slackware、Red Hat、Debian、Fedora、TurboLinux、Mand
 
 批处理系统-》分时操作系统-》multics-》unix-》linux-》各种linux发行版
 
-### 美国的贝尔实验室诞生了unix，unix系统的优秀特性如下：
+##### 美国的贝尔实验室诞生了unix，unix系统的优秀特性如下：
 1. 技术可靠、稳定性高
 2. 极强的可伸缩性、可适用于各种x86架构
 3. 强大的网络功能，tcp、ip支持良好
