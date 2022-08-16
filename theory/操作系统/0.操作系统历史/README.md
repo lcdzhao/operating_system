@@ -199,7 +199,90 @@ Unix的诞生对整个后续操作系统发展具有深远的影响，Ken Thomps
 
 Go语言是在2007年由三个创始人在业余时间联合开发：Robert Griesemer（罗伯特.格利茨默）、Rob Pike（罗伯.派克）、Ken Thompson（肯.汤普森）
 
+## 6. 现代操作系统发展史
+### 6.1 Multics操作系统
+MULTICS 其实是"MULTiplexed Information and Computing System"的缩写。
 
+Bell(贝尔实验室), MIT（麻省理工学院人工智能实验室）, GE（General Electric，通用电气）联合建立Multics操作系统。
+Multics操作系统是一套多使用者、多任务、多层次。
+
+Multics是完成了，但是Multics 不断完善，和追求高目标，目标不明确了，渐渐的目标迷失，GE退出，后面bell也退出了。
+### 6.2 unix的诞生
+贝尔实验属于：AT&T
+
+bell 为完成multics招聘了很多优秀的工程师，退出Multics后工程师比较闲了。
+
+ken Tphmpson（肯.汤普森）在multics制作了一款游戏：space Travel（星际旅行）跑在multics。
+
+bell 退出multics之后，ken Tphmpson（肯.汤普森）不能使用multics的运算能力了，要使用得付费。所以决定自己写一个小型系统程序可以跑起自己的游戏。
+
+向公司申请购买PDP-11小型计算机，驳回。
+
+PDP-11属于DEC（数字设备公司），该公司还有VAX（VMS）电脑。
+
+在公司某角落找到PDP-7，老古董，使用汇编语言编码。
+
+老古董好过没有，他在上面写了系统，居然可以跑起他的游戏了。
+
+1969年，他兴奋的向各个同事兜售游戏，几乎所有的同事对于游戏没有兴趣，但是对他的系统很感兴趣，在1970年时，那部PDP-7却只能支持两个使用者，所以当时，Brian Kernighan（布莱恩·克尼汉）就开玩笑地戏称他们的系统其实是："UNiplexed Information and Computing System"（复杂的信息与计算系统），缩写为"UNICS"，后来，大家取其谐音，就称其为"Unix"了，Unix因此得名，所以1970年可称为是Unix元年。
+
+unix系统短小精悍，性能很强大，接口规范，当然功能有限。
+
+以现在的眼光看unix依然强大没有硬伤，可见unix的设计是何等超前和强大的。
+
+unix真正的使用，在1971年，贝尔实验室需要为自己的专利部门提供一个文字处理程序nroff。该程序的运行，需要一个底层系统。nroff在PDP运行的并不好，所以决定自己写一个系统。
+
+ken Tphmpson（肯.汤普森）和他的同事一起承包了这个项目。unix也在这当中得到了发展。
+
+unix刚开始用汇编语言B语言所写，跟计算机PDP7耦合太大。
+
+后来Dennis Ritch（丹尼斯·里奇）用高级C语言重写了，适用范围扩大了。
+
+但是，当时这么做风险很大，语言越高级，消耗的计算机性能越大，而当时的计算机性能很差。
+#### 6.2.1 UNIX的问世
+1974，双方发表一片论文在《美国计算机通信》，unix第一次公知于众，走出贝尔实验室。引起很大反响。
+
+很多人期望学习和研究unix。
+
+AT&T（美国电话电报公司）当时被美国裁定不能销售除电话电报以外任何商品，不仅不能销售，别人要还需给。ken那是很长一段时间，把unix系统发给别人。
+
+很多人加入的研究，反馈给贝尔实验室，unix发展迅速。
+
+##### unix发行：
+- 1978:SCO 包装发行商用版unix   # SCO 现在SCO是世界上首屈一指的业务关键性(Business Critical)服务器系统软件供应商
+- 1979 年发行了：System V7（现在公认的第一个完美版本）
+- 1980年DARPA（机构）想研究TCP/IP协议。把这个合同给了BSD。TCP/IP协议在unix上诞生了。
+- 1980: Microsoft, XENIX包装发行商用版unix
+- BSD后面也开始发行了商业版。
+- windows 1990年之前一直在Unix上开发的。
+
+- Berkeley(美国加州伯克利学校): Ken 1979年在berkeley上课。
+- Bill Joy, BSRG, 1977, BSD(Berkeley System Distribution)发行的unix版本
+- 1980年，美国DARPA（Defense Advanced Research Projects Agency）美国国防高级研究计划局 ,准备制定 TCP/IP协议，最终选择了BSD合作，BSD在unix基础上研究的TCP/IP协议，所以这对unix是一个极大的促进。
+
+#### 6.2.2 UNIX的家谱
+
+UNIX的历史开始于1969年ken Thompson，Dennis Ritchie（即著名的K&G，C语言的发明人）与一群人在一部PDP-7上进行的一些工作，后来这个系统变成了UNIX。它主要的几个版本为：
+- V1（1971）：第一版的UNIX，以PDP-11/20的汇编语言写成。包括文件系统，fork、roff、ed等软件。
+- V4（1973）：以C语言从头写过，这使得UNIX修改容易，可以在几个月内移植到新的硬件平台上。最初C语言是为UNIX设计的，所以C与UNIX间有紧密的关系。
+- V6（1975）：第一个在贝尔实验室外（尤其是大学中）广为流传的UNIX版本。这也是UNIX分支的起点与广受欢迎的开始。1.xBSD （PDP-II）就是由这个版本衍生出来的。
+- V7（1979）：在许多UNIX玩家的心目中，这是“最后一个真正的UNIX，”这个版本包括一个完整的K&RC编译器，Bourne shell（交换式的命令解释器和命令编程语言）。V7移植到VAX机器后称为32V。
+
+目前开发UNIX（System V）的公司是Unix System Laboratories (USL)。USL本为AT&T（美国电话电报公司）所有，1993年初被Novell（网络系统公司）收购。Novell（网络系统公司）于1993年末将UNIX这个注册商标转让给X/Open（国际联盟组织）。
+
+目前为止，UNIX有两大流派：那就是AT&T（美国电话电报公司）发布的UNIX操作系统System V与美国加州大学伯克利分校发布的UNIX版BSD（Berkeley Software Distribution）。SVR4是两大流派融合后的产物。1991年底，与System V针锋相对的开放软件基金会(Open Software Foundation)推出了OSF/1。
+  
+现在几种主要的UNIX版本：
+- AIX：IBM的UNIX，是根据SVR2（最近已经出到SVR3.2）以及一部分BSD延伸而来，加上各种硬件的支持。具备特有的系统管理（SMIT）。
+- 386BSD：Jolitz（比尔·乔利兹）从Net/2 software移植过来的。支持Posix，32位。
+- FreeBSD：1.x从386BSD 0.1而来，FreeBSD 2.x版是用4.4BSD lite改写。
+- HP-UX（HP）：旧系统是从S III（SVRx）发展面来，现在是由SVR2（4.2BSD）发展而来，目前是10.x版。
+- Linux(x86)：遵从POSIX，SYSV及BSD的扩展，这一点从上页表中即可看出。
+- OSF/1（DEC）：DEC对OSF/1的移植。
+- SCO UNIX（x86）：SVR3.2，目前影响较大的PC UNIX。
+- SunOS（680x0，Sparc，i386）：根据4.3BSD，包含许多来自System V的东西。Sun的主要成果在于：NFS，OpenLook GUI标准，现演变为Solaris 。
+- Ultrix(DEC)：根据4.2BSD再加上许多4.3BSD的东西。
+- Xenix(x86)：Intel硬件平台上的UNIX，以SVR2为基础，由微软推出。在中国使用较广泛。
 
 ## 文章来源
 > 该文章转载自：[操作系统的发展历史](https://zhuanlan.zhihu.com/p/367996835)，并对原文章部分结构和表达进行了调整。
