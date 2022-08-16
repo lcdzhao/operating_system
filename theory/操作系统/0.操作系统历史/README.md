@@ -284,6 +284,216 @@ UNIX的历史开始于1969年ken Thompson，Dennis Ritchie（即著名的K&G，C
 - Ultrix(DEC)：根据4.2BSD再加上许多4.3BSD的东西。
 - Xenix(x86)：Intel硬件平台上的UNIX，以SVR2为基础，由微软推出。在中国使用较广泛。
 
+### 6.3 其他操作系统的发展：windows-图形操作系统的时代
+1981年，那时候个人计算机已经出现，但是没有系统，unix不屑于个人计算机的低性能。一个教授写了一个个人计算机系统CPM卖3W美元。
+
+SCP（西雅图计算机产品公司）：一个员工写了一个QDOS（Quick and Dirty Operating System）系统。
+
+Bill Gates比尔盖茨，他的母亲在IBM公司上班。通过他的母亲知道IBM准备大批售卖个人计算机，花5W买断了该系统QDOS版权，然后和IBM的PC机一起售卖一台20几美元，赚了几千万。
+
+
+在1990之前，window的开发也一直是在unix上的。
+
+SUN公司的Bill joy（比尔·乔伊），发行了workstation系统（工作站鉴于服务器和个人计算机之间）
+
+##### windows和apple爱恨情仇
+
+intel ：当时主要生产内存，cpu比较低级，但是日本也开始生产更好的内存，intel转型专注生产cpu。
+
+cpu的高速发展，导致个人计算机快速的普及。
+
+XEROX: PARK实验室。鼠标和以太网就是park开发出来的。star 图形界面操作系统也被他们开发出来了。
+
+乔布斯在park实验室看到了受到冷遇的图形界面操作系统，立即被apple购入。
+
+比尔盖茨听说过之后，和乔布斯说向你学习学习。参考过后，觉得这绝对是一个影响世人的使用，立即和乔布斯商量，说我研究之后给你共享成果，年轻的乔布斯居然相信了。然后比尔盖茨在DOS上拼凑了一个图形界面系统，抢在乔布斯之前发布了图形界面系统，抢了乔布斯的客户。乔布斯大为恼火，去找比尔盖茨理论，然后终究不是老辣的比尔盖茨的对手，最后被比尔盖茨各种手段逼退了。
+
+DOS是个非常实用的[操作系统]，因此，它深深受到国内外人们的普遍喜爱，一直拥有数以亿计的用户。但是，自从1995年以来，Microsoft公司出于商业利益等方面的原因，决定抛弃手中的MS-DOS。当时，DOS已有许多种，除MS-DOS以外，还有PC-DOS，DR-DOS，FreeDOS等，但是由于受到Microsoft公司的挤压，故使用的人数不多，而大多数用户都在使用MS-DOS。由于Microsoft彻底放弃了MS-DOS，而转以开发Windows，引起了广大DOS使用者和爱好者的不满，而且，大家通常所使用的Windows 9x也只是DOS下的一个大型程序罢了，如果没有DOS的支持，它根本无法运行。但也由此可见[DOS]的功能其实是非常强大的，以及DOS软件拥有巨大的[开发潜能]，因为像Windows那样强大的DOS增强程序都可以编出来，即windows的底层就是基于DOS开发而来的。
+
+VMS被linux抢了饭碗，遇冷。比尔盖茨又拉入了VMS的研究人员。重新开发windows。开发了windows nt(new technology)
+
+apple，乔布斯因内部斗争被赶出了apple，然后成了一个皮克斯动画公司，随后两三年成了好莱坞最著名的动画公司之一，后来又被apple召回委以重任CEO。
+
+### 6.4 unix商业化
+AT&T（美国电话电报公司） 被裁定违反了反垄断法，被分拆了，贝尔实验室独立出来了。
+
+贝尔实验室不在受限于只能卖电话电报，那么unix是可以卖的了。那么当年那些受益于unix的，被他看成了肥肉了，是时候索取回报了，直接把BSD告上了法庭。
+
+旷日持久的官司，让他们停步不前，而其他公司迅速发展。也最终导致了Unix这个昔日的巨人的没落。
+
+unix商业化之后，一份unix4W美元。
+
+Unix商业版本：
+- SUN：Solaris
+- IBM: AIX
+- HP:HP-UX
+### 6.5 GNU
+1985年，Richard Stallman（理查德·马修·斯托曼） 愤怒的认为unix大家都有过添砖加瓦的建设，应该共享。随即，发起GNU(GNU is not unix)自由操作系统，软件共享运动。
+
+- GPL：章程协议，英文全称（general Public License）
+- FSF：英文全称（Free Software Foundation）自由软件基金会
+- free: freedom。（自由）
+- X-window：加入GPL（分散式系统）
+
+```
+** GNU软件包列表 **
+gcc : gnx c complier
+vi: visual interface
+…
+free: freedom
+```
+GNU is not unix，但是所有软件建立在unix之上。迫切的希望拥有自己的操作系统。
+
+大学教授Andrew，中文名:谭宁邦 : Minix, 4000行代码，但是不准别人加入代码（洁癖？），所以没能加入进来。
+
+### 6.6. Linux的发展之路
+#### 6.6.1.Unix操作系统的诞生
+
+1969年Ken Thompson（肯.汤普森）利用组译语言编写Unix操作系统
+
+1971~1973年Dennis Ritchie（丹尼斯·里奇）以C语言改写Unix
+
+1977年Bill Joy（比尔·乔伊）释放出BSD（Berkeley Software Distribution）的Unix-Like操作系统
+#### 6.6.2.X86架构的Minix诞生
+
+1984谭宁邦教授的Minix教学操作系统，提供原始码以及软件
+
+
+#### 6.6.3.各种免费软件团队的产生
+
+1984 Richard Stallman GNU（GNU's not unix）计划：
+
+Emacs编辑器+GNU C（GCC）+GNU C Library （glibc）+Bash Shell
+
+FSF（free software foundation）自由软件基金会
+
+GPL（General Public License）通用公共许可证
+
+1988年 XFree86计划：X Window System+Free+X86
+
+其他的开源团队： sendmail团队 wu-ftp团队 apache团队
+
+```
+#　GNU的GPL解释
+
+　　　　1>任何个人或公司可释放出自由软件(free software)
+
+　　　　2>任何释放出自由软件的个人或公司，均可由自己的服务来收取适当的费用
+
+　　　　3>该软件的原始码(source code)需要随软件附上，并且是可公开发表的
+
+　　　　4>任何人可透过任何正常渠道取得此自由软件，且均可取得此授权模式
+```
+#### 6.6.4.Linux操作系统的产生
+
+1991年芬兰人开发出Linux（以Minix、GNU、Internet、POSIX标准、虚拟团队）
+
+它是一个基于POSIX 的多用户、多任务并且支持多线程和多CPU的操作系统。
+
+POSIX全称为Portable Operating System Interface，中文翻译为可移植操作系统接口，POSIX标准定义了操作系统应该为应用程序提供的接口
+
+
+
+1994年linux 2.0 Linux Distribution(安装套件):Kernel+Free Softwares()+Application Tools
+
+##### 众多的distribution（安装套件）有何异同：
+
+- 相同点：利用同样的Linux Kernel，几乎相同的自由软件套件 (如GNU里面的gcc/glibc/vi/apache/sendmail/bind),几乎相同的操作系统接口 (bash/KDE/GNOME等等)
+- 不同点：使用的kernel与各软件的版本可能会不同；各开发商加入的应用工具不同 ，使用的套件管理方式不同(debian与RPM)
+
+##### Linux的发展历程简介 
+- 1984年，Andrew S.Tanenbaum开发了用于教学的UNIX系统，命名为Minix。
+- 1989年，Andrew S.Tanenbaum将Minix系统运行于x86的PC平台。
+- 1990年，芬兰赫尔辛基大学学生Linus Torvalds首次接触Minix系统。
+- 1991年，Linus Torvalds开始在Minix上编写各种驱动程序等操作系统内核组件。
+- 1991年年底，Linus Torvalds公开了Linux内核源码0.02版（http://www.kernel.org ），注意，这里公开的Linux内核源码并不是我们现在使用的Linux系统的全部，而仅仅是Linux内核（kernel）部分的代码。
+- 1993年，Linux 1.0版发行，Linux转向GPL版权协议。
+- 1994年，Linux的第一个商业发行版Slackware问世。
+- 1996年，美国国家标准技术局的计算机系统实验室确认Linux版本1.2.13（由Open Linux公司打包）符合POSIX标准。
+- 1999年，Linux的简体中文发行版问世。
+- 2000年后，Linux系统日趋成熟，涌现大量基于Linux服务器平台的应用，并广泛应用于基于ARM技术的嵌入式系统中。、
+- 2003年4月，Rad Hat Linux 9.0发布。重点放在改善桌面应用方面，包括改进安装过程、更好的字体浏览、更好的打印服务等。2003年，Rad Hat的Linux市场份额超过80%。
+- 2004年4月，Red hat公司正式停止对Red Hat 9.0版本的支持，标志着Red Hat Linux的正式完结。原本的桌面版Red Hat Linux发行包则与来自民间的Fedora计划合并，称为Fedora Core发行版本。Red Hat公司不再开发桌面版的Linux发行包，而将全部力量集中在服务器版的开发上，也就是Red Hat Enterprise Linux版。
+- 2005年10月RHEL4（Red Hat Enterprise Linux4）发布。
+- 2007年3月，主流版本RHEL5（Red Hat Enterprise Linux 5）发布，CentOS系统开始在中国互联网公司流行。
+- 2010年4月，RHEL6（Red Hat Enterprise Linux 6.0）BETA测试版发布。
+- 2014年6月，RHEL7（Red Hat Enterprise Linux 7.0）发布，RHEL7.0版本和RHEL6.0以前的版本有了较大的变化，例如：内核版本升级到3.10以上，系统启动和基本管理变化较大，文件系统也有传统的ext改为xfs，同时在大数据、云计算、Docker方面做了很大优化。
+
+Linux的发行商包括Slackware、Red Hat、Debian、Fedora、TurboLinux、Mandrake、SUSE、CentOS、Ubuntu、红旗、麒麟……
+## 7. 总结
+### 7.1 操作系统发展简史
+
+批处理系统-》分时操作系统-》multics-》unix-》linux-》各种linux发行版
+
+### 美国的贝尔实验室诞生了unix，unix系统的优秀特性如下：
+1. 技术可靠、稳定性高
+2. 极强的可伸缩性、可适用于各种x86架构
+3. 强大的网络功能，tcp、ip支持良好
+4. 强大的数据库支持能力
+5. 强大的开发能力，比如c语言
+### 7.2 Linux介绍
+linux完全兼容unix的特特性，为何现在linux会如此受欢迎呢？
+
+1. 开源、不收费的操作系统，可自由传播(windows 操作系统收费，不开源)
+2. 没有任何的商业化版权制约(也会有商业发行版，但我们都不用)
+3. linux支持多用户多任务多线程多cpu，主要用于企业环境
+
+
+##### linux主要用于：
+1. 服务器
+2. 嵌入式开发
+3. 个人pc桌面
+### 7.3 Linux 历史
+
+- 1969年 在美国的贝尔实验室诞生了unix
+
+- 1985年 斯托曼 发起自由软件运动 自由之父 FSF 自由软件基金会
+
+         成立了一个项目 GNU （GNU is not unix）
+
+         成立一个协议 GPL 通用公共许可协议
+
+- 1987年 谭宁邦 大学教授，minix 微内核 主要 用于教学
+
+- 1991年 托瓦兹 大学学生，研究内核 ，发布了0.02版本的Linux，Linux之父
+
+- 1994年 发布了Linux1.0版本 并加入了GPL  -〉  GNU Linux操作系统
+
+
+##### Linux操作系统的组成：
+
+Linux内核 + GNU的项目 + 成千上万的程序员研发的程序软件
+### 7.4 Linux的核心概念
+
+FSF：自由软件基金会的缩写，提供技术上的研发
+
+GNU：是FSF下面的一个项目 GNU is not unix
+
+    优秀的软件：
+
+    Emacs  编辑器 ； gcc 编译软件 ； bash 命令解释器 ；gawk 编程语言； 
+
+    hurd内核（研发中）
+
+GPL：通用公共许可协议
+
+    a，开放源代码，可自由传播
+
+    b，任何人都可以修改，必须把修改之后的源代码发布出来
+### 7.5 Linux的发行版本
+
+- redhat 红帽，收费
+
+- Centos 红帽公司收购，去除了redhat的收费及logo部分编译而成的，开源
+
+- Fedora 红帽公司收购，redhat的预发布版，测试版
+
+- Ubuntu 乌班图，桌面版操作系统
+
+- Debian  对安全性要求比较高 FreeBSD差不多
+
+- SUSE  对数据库和电子邮件服务 ，收费的德国用的多；openSUSE免费
+
 ## 文章来源
 > 该文章转载自：[操作系统的发展历史](https://zhuanlan.zhihu.com/p/367996835)，并对原文章部分结构和表达进行了调整。
 > 
