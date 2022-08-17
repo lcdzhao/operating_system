@@ -120,12 +120,12 @@ void sched_init(void)
 	if (sizeof(struct sigaction) != 16)
 		panic("Struct sigaction MUST be 16 bytes");
     
-  //将 LDT与TSS放入GDT中，用于硬件寻址
+	//将 LDT与TSS放入GDT中，用于硬件寻址
 	set_tss_desc(gdt+FIRST_TSS_ENTRY,&(init_task.task.tss));
 	set_ldt_desc(gdt+FIRST_LDT_ENTRY,&(init_task.task.ldt));
 	
-  //省略其他代码
-  ...
+	//省略其他代码
+	...
 }
 ```
 ##### 3. 让CPU运行`0 号`进程
