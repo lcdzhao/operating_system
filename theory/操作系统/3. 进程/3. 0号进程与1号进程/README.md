@@ -120,7 +120,7 @@ void sched_init(void)
 	if (sizeof(struct sigaction) != 16)
 		panic("Struct sigaction MUST be 16 bytes");
     
-	//将 LDT与TSS放入GDT中，用于硬件寻址
+	//将 LDT与TSS放入GDT中，用于为硬件保护模式寻址做准备
 	set_tss_desc(gdt+FIRST_TSS_ENTRY,&(init_task.task.tss));
 	set_ldt_desc(gdt+FIRST_LDT_ENTRY,&(init_task.task.ldt));
 	
