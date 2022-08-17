@@ -1,11 +1,57 @@
 # 进程信号处理
-> 本章节描述了信号处理的核心步骤，更加的解释见: [Linux 内核完全注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A) 的第 8.8 章节(signal.c)
+> - 本章节描述了信号处理的核心步骤，更加的解释见: [Linux 内核完全注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A) 的第 8.8 章节(signal.c)
+> - 该视频简单地说明了进程的信号处理，可以作为导读：[【CSAPP-深入理解计算机系统】8-6. 信号](https://www.bilibili.com/video/BV1Xr4y1t7Jt/?spm_id_from=pageDriver&vd_source=afbe39567defad401c79f6fbb57691cf)
 
 进程信号处理分为三个步骤： 
 - STEP 1：注册信号处理函数：应用程序通过`signal`或者`sigaction`这两个系统调用注册自己的信号处理函数，如果应用程序自身没注册则使用默认的处理函数。
 - STEP 2：发送信号：如`kill`等，发送信号是通过修改进程的`task_struct.singal`来进行信号传递。
 - STEP 3：处理信号：操作系统内核通过`do_signal`来处理进程信号。
 - STEP 4：从信号处理中恢复：通过`sa_restorer`来恢复用户寄存器值，以及去除当前信号的blocked位等。`sa_restorer`有编译器在链接阶段加入。具体见本章节最后一小节的说明。
+## 信号有哪些
+### 类型
+Linux系统共定义了 64 种信号，分为两大类：`可靠信号`与`不可靠信号`，前32种信号为`不可靠信号`，后32种为`可靠信号`。
+> - `不可靠信号`： 也称为非实时信号，不支持排队，信号可能会丢失, 比如发送多次相同的信号, 进程只能收到一次. 信号值取值区间为1~31；
+> - `可靠信号`： 也称为实时信号，支持排队, 信号不会丢失, 发多少次, 就可以收到多少次. 信号值取值区间为32~64
+### 信号表
+在终端，可通过`kill -l`查看所有的signal信号：
+
+![kill_l](README.assets/kill.png)
+
+|  取值	|  名称|  	解释|  	默认动作|  
+|  ----  | ----  |----  |----  |
+|1|	SIGHUP	|挂起	||
+|2|	SIGINT|	中断	|| 
+|3|	SIGQUIT|	退出||	 
+|4|	SIGILL|	非法指令	 ||
+|5|	SIGTRAP|	断点或陷阱指令	 ||
+|6|	SIGABRT|	abort发出的信号	 ||
+|7|	SIGBUS	|非法内存访问	 ||
+|8|	SIGFPE	|浮点异常	 ||
+|9|	SIGKILL	|kill信号	|不能被忽略、处理和阻塞|
+|10|	SIGUSR1	|用户信号1	 ||
+|11|	SIGSEGV	|无效内存访问	 ||
+|12|	SIGUSR2	|用户信号2	 ||
+|13|	SIGPIPE	|管道破损，没有读端的管道写数据	 ||
+|14|	SIGALRM	|alarm发出的信号	 ||
+|15|	SIGTERM	|终止信号	 ||
+|16|	SIGSTKFLT|	栈溢出	|| 
+|17|	SIGCHLD	|子进程退出	|默认忽略|
+|19|	SIGSTOP	|进程停止	|不能被忽略、处理和阻塞|
+|20|	SIGTSTP	|进程停止	 ||
+|21|	SIGTTIN	|进程停止，后台进程从终端读数据时	 ||
+|22|	SIGTTOU	|进程停止，后台进程想终端写数据时	 ||
+|23|	SIGURG	|I/O有紧急数据到达当前进程	|默认忽略|
+|24|	SIGXCPU	|进程的CPU时间片到期	 ||
+|25|	SIGXFSZ	|文件大小的超出上限	 ||
+|26|	SIGVTALRM|	虚拟时钟超时	 ||
+|27|	SIGPROF	|profile时钟超时	 ||
+|28|	SIGWINCH|	窗口大小改变|	默认忽略|
+|29|	SIGIO	|I/O相关	 ||
+|30|	SIGPWR	|关机	|默认忽略|
+|31|	SIGSYS	|系统调用异常	 ||
+
+#### 接受信号的一些默认行为
+![接受信号的一些默认行为](README.assets/r_sig_d.png)
 
 ## 注册信号处理函数
 用户可以通过`signal`或者`sigaction`这两个系统调用来注册信号处理函数(具体区别见[Linux内核完全注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)第 8.8 章节(signal.c))。

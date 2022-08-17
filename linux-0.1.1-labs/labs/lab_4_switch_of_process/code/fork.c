@@ -121,9 +121,9 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 	 * 那这里的地址会是 schedule() 中 switch_to 的下一条指令
 	 * 但由于这里新 fork 出来的，和经历过切换的老进程并不一样，
 	 * 即需要恢复寄存器的值，又需要恢复到用户态。
-	 * 因此我们将上面这两个任务都放到first_run_after_fork中去执行
-	 * 这里将first_run_after_fork的地址压栈，
-	 * 那么将会在switch_to最后的ret执行时直接执行first_run_after_fork
+	 * 因此我们需要将上面这两个任务都放到一个函数中去执行，而这个函数就是first_run_after_fork
+	 * 因此这里需要将first_run_after_fork的地址压栈，
+	 * 从而使得在switch_to最后的ret执行时直接执行first_run_after_fork
 	 */
  	*(--krnstack) = (long)first_run_after_fork;
 	

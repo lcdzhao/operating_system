@@ -1,0 +1,1 @@
+https://blog.csdn.net/ljianhui/article/details/10243617  结合 https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/labs/lab_5_semaphore  该实验，放上源码，尤其时schedule的精髓，不展开解释，大概说明一下需要对于 schedule 和 sleep_on 和 wake_up 机制都很熟悉，看这段代码就很简单。

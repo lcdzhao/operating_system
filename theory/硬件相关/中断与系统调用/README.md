@@ -9,6 +9,22 @@ CPU遇到的“事件”：
 这些“事件”被称为“中断”或“异常”。
 ## 中断相关的硬件电路
 [北京大学——计算机组成与设计——中断](https://www.bilibili.com/video/BV1tp4y197Av?p=46)
+## 中断(异常)的分类
+![中断(异常)的分类](README.assets/exs.png)
+### Interupter
+![Interupter](README.assets/int.png)
+### Trap
+![Trap](README.assets/trap.png)
+### Fault
+![Fault](README.assets/fault.png)
+### Abort
+![Abort](README.assets/aburt.png)
+### 中断(异常)编号
+- 0-31 号中断(异常)由芯片厂商指定
+- 31-255 号中断(异常)由操作系统指定
+#### 部分中断(异常)编号举例
+![部分中断(异常)编号举例](README.assets/exs_num.png)
+
 ## 中断的进步
 ### Intel  8086（1978年） 
 
@@ -64,9 +80,15 @@ CPU遇到的“事件”：
 
 上面步骤中：
 **1、2、3 由CPU自己完成，4、5、6由中断服务来完成**
-其中**第2步**会自动**将 CS、IP、PSW三个寄存器压栈**，因此在**第4步**保护现场时，**不再需要将CS、IP、PSW进行入栈操作，而需要将其它寄存器进行入栈**，**第6步恢复现场时，也只需要恢复其它寄存器的值，而返回时执行`IRET`指令即可使 旧的CS/IP/PSW 弹出堆栈**。
+其中**第2步**会自动**将 CS、IP、PSW(EFLAGS)三个寄存器压栈（如果切换了优先级，还会压栈 ESP 与 SS 寄存器）**，因此在**第4步**保护现场时，**不再需要将CS、IP、PSW进行入栈操作，而需要将其它寄存器进行入栈**，**第6步恢复现场时，也只需要恢复其它寄存器的值，而返回时执行`IRET`指令即可使 旧的CS/IP/PSW 弹出堆栈。<font color="#660000">如果返回到另一个特权级别，则在恢复程序执行之前，IRET 指令还从堆栈弹出 ESP 与 SS 。</font>**
 
 ![中断处理过程](README.assets/interrupt_process.png)
+
+### 特权级切换
+
+![change_](README.assets/change_.png)
+
+![change](README.assets/change.png)
 
 ### 中断描述符
 1. 在X86体系结构的保护模式下，通过中断描述符表IDT组织中断描述符

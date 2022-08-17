@@ -131,6 +131,37 @@ UNIX环境下主要有三种类型的目标文件：
 
 对于可执行文件中的函数调用，可分别采用动态链接或静态链接的方法。使用动态链接能够使最终的可执行文件比较短小，并且当共享对象被多个进程使用时能节约一些内存，因为在内存中只需要保存一份此共享对象的代码。但并不是使用动态链接就一定比使用静态链接要优越。在某些情况下动态链接可能带来一些性能上损害。
 
+### 链接过程细节
+> 可以配合看下面的视频，十分短小精悍：
+> 
+> - [【CSAPP-深入理解计算机系统】7-1. 编译器驱动程序](https://www.bilibili.com/video/BV1X34y1o7zq?spm_id_from=333.999.0.0&vd_source=afbe39567defad401c79f6fbb57691cf)
+> - [【CSAPP-深入理解计算机系统】7-2. 可重定位目标文件](https://www.bilibili.com/video/BV13q4y137za/?spm_id_from=333.788&vd_source=afbe39567defad401c79f6fbb57691cf)
+> - [【CSAPP-深入理解计算机系统】7-3. 符号和符号表](https://www.bilibili.com/video/BV1Bq4y1u7aG/?spm_id_from=333.788&vd_source=afbe39567defad401c79f6fbb57691cf)
+> - [【CSAPP-深入理解计算机系统】7-4. 符号解析与静态库](https://www.bilibili.com/video/BV1VP4y1L7U9/?spm_id_from=333.788&vd_source=afbe39567defad401c79f6fbb57691cf)
+> - [【CSAPP-深入理解计算机系统】7-5. 静态库的解析过程](https://www.bilibili.com/video/BV1oS4y1T7Uf/?spm_id_from=333.788&vd_source=afbe39567defad401c79f6fbb57691cf)
+> - [【CSAPP-深入理解计算机系统】7-6. 重定位](https://www.bilibili.com/video/BV1JL411L7ku/?spm_id_from=333.788&vd_source=afbe39567defad401c79f6fbb57691cf)
+> - [【CSAPP-深入理解计算机系统】7-7. 可执行目标文件](https://www.bilibili.com/video/BV1mR4y1g7s1/?spm_id_from=333.788&vd_source=afbe39567defad401c79f6fbb57691cf)
+> - [【CSAPP-深入理解计算机系统】7-8. 动态链接共享库](https://www.bilibili.com/video/BV1yq4y1t7is/?spm_id_from=333.788&vd_source=afbe39567defad401c79f6fbb57691cf)
+
+#### 深入学习链接的作用
+![深入学习链接的作用](./README.assets/usage_of_link.png)
+
+#### 可重定位目标文件
+![可重定位目标文件](./README.assets/relocatable_0.png)
+![可重定位目标文件](./README.assets/relocatable_1.png)
+#### 可执行文件
+![可执行文件](./README.assets/ex.png)
+![可执行文件header_table](./README.assets/ex_h_t.png)
+#### 运行时进程地址空间
+![运行时进程地址空间](./README.assets/runtime.png)
+#### 静态链接的缺点
+![静态链接的缺点](./README.assets/short.png)
+#### 动态链接的使用
+- 应用链接时指定需要的动态链接库
+![应用链接时指定需要的动态链接库](./README.assets/dyc1.png)
+- 应用代码中指定需要的动态链接库(无需在链接时再进行指定)
+![应用代码中指定需要的动态链接库](./README.assets/dyc2.png)
+
 ## GCC的编译链接
 我们在linux使用的gcc编译器便是把以上的几个过程进行捆绑，使用户只使用一次命令就把编译工作完成，这的确方便了编译工作，但对于初学者了解编译过程就很不利了，下图便是gcc代理的编译过程：
 
