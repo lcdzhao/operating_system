@@ -3,6 +3,8 @@
 [Linux进程地址空间与进程内存布局详解](https://zhuanlan.zhihu.com/p/348171413?utm_id=0)
 ## 图解操作系统中的进程结构
 
+![structure_of_task](README.assets/structure_of_task.png)
+
 ## 关于进程结构的一些问题
 - **为什么要将内核空间投射到用户虚拟地址**？
 
