@@ -5,8 +5,8 @@
 void main(void)		/* This really IS void, no error here. */
 {			
 
-  //省略其他代码
-  ...
+  	//省略其他代码
+  	...
   
 	mem_init(main_memory_start,memory_end);
 	trap_init();
@@ -153,14 +153,122 @@ void sched_init(void)
 }
 ```
 ## `0` 号进程作用
+```c
+void main(void)		/* This really IS void, no error here. */
+{			
 
+ 	 //省略其他代码
+  	...
+  
+ 	 //下面这行代码初始化0号进程
+	sched_init();  
+  
+ 	//下面的代码均以0号进程的身份运行
+	
+	// 内存高速缓冲区的初始化
+	buffer_init(buffer_memory_end);
+	// 硬盘的初始化
+	hd_init();
+	// 软盘的初始化
+	floppy_init();
+	
+	// 开启中断
+	sti();
+	
+	// 首次进入到用户模式
+	move_to_user_mode();
+	
+	// 生成进程1
+	if (!fork()) {		/* we count on this going ok */
+		init();
+	}
+/*
+ *   NOTE!!   For any other task 'pause()' would mean we have to get a
+ * signal to awaken, but task0 is the sole exception (see 'schedule()')
+ * as task 0 gets activated at every idle moment (when no other tasks
+ * can run). For task0 'pause()' just means we go check if some other
+ * task can run, and if not we return here.
+ */
+ 	// 在无进程占用CPU时，不断主动触发调度
+	for(;;) pause();
+}
+```
+通过上面的源码可以看出。其功能有：
+- 内存高速缓冲区的初始化
+- 硬盘的初始化
+- 软盘的初始化
+- 首次进入到用户模式
+- 生成进程1
+- 在无进程占用CPU时，不断主动触发调度
+
+想了解其具体细节时，可以参看：https://blog.csdn.net/ac_dao_di/article/details/52144608 中的第五部分。
 
 # `1` 号进程
-
+`1` 号进程又被称为 `init进程`, 由`0`号进入用户模式后创建。
 ## `1` 号进程如何初始化
-
+`1` 号进程通过 `0` 号进程`fork()` 而来, 关于`fork()`，参见：[4. fork](https://github.com/lcdzhao/operating_system/tree/master/theory/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/3.%20%E8%BF%9B%E7%A8%8B/4.%20fork)
 ## `1` 号进程的作用
+```c
+void init(void)
+{
+	int pid,i;
 
-## 进程流转
+	// 挂载根文件系统
+	setup((void *) &drive_info);
+	(void) open("/dev/tty0",O_RDWR,0);
+	(void) dup(0);
+	(void) dup(0);
+	printf("%d buffers = %d bytes buffer space\n\r",NR_BUFFERS,
+		NR_BUFFERS*BLOCK_SIZE);
+	printf("Free mem: %d bytes\n\r",memory_end-main_memory_start);
+	
+	// 启动"/etc/rc"初始化进程2
+	if (!(pid=fork())) {
+		close(0);
+		if (open("/etc/rc",O_RDONLY,0))
+			_exit(1);
+		execve("/bin/sh",argv_rc,envp_rc);
+		_exit(2);
+	}
+	if (pid>0)
+		while (pid != wait(&i))
+			/* nothing */;
+			
+	
+	while (1) {
+		if ((pid=fork())<0) {
+			printf("Fork failed in init\r\n");
+			continue;
+		}
+		
+		// 启动Shell
+		if (!pid) {
+			close(0);close(1);close(2);
+			setsid();
+			(void) open("/dev/tty0",O_RDWR,0);
+			(void) dup(0);
+			(void) dup(0);
+			_exit(execve("/bin/sh",argv,envp));
+		}
+		
+		// 回收僵尸进程
+		while (1)
+			if (pid == wait(&i))
+				break;
+		printf("\n\rchild %d died with code %04x\n\r",pid,i);
+		sync();
+	}
+	_exit(0);	/* NOTE! _exit, not exit() */
+}
+```
+通过上面的源码可以看出。其功能有：
+- 挂载根文件系统
+- 启动"/etc/rc"初始化进程2
+- 启动Shell
+- 回收僵尸进程
+
+想了解其具体细节时，可以参看：https://blog.csdn.net/ac_dao_di/article/details/52144608 中的第六部分。
+
+# 进程流转
 
 ![processes](../../1.%20启动/README.assets/processes.png)
