@@ -151,7 +151,7 @@ xchgl %eax,current
 TSS 中的内核栈指针的重写可以用下面三条指令完成：
 ```asm
 movl tss,%ecx
-# 通过ebx = 4096 + ebx 来计算出内核栈真正的位置，初始的ebx为PCB的起始位置，4096为一页内存的大小，内核栈在PCB的末尾
+# 通过ebx = 4096 + ebx 来计算出内核栈真正的起始位置，初始的ebx为PCB的起始位置，4096为一页内存的大小，内核栈在PCB的末尾
 addl $4096,%ebx
 movl %ebx,ESP0(%ecx)
 ```
