@@ -76,7 +76,7 @@ void main(void)		/* This really IS void, no error here. */
 
 - `task_struct` ：`INIT_TASK`本身`
 
-- 页表目录(虚拟内存的映射表)：`(long)&pg_dir`)
+- 页表目录CR3(虚拟内存的映射表)：`(long)&pg_dir`
 
 - `LDT`(代码段、数据段的段描述符)：
 
