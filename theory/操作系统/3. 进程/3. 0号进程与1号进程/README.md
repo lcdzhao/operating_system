@@ -1,4 +1,4 @@
-# `0` 号进程
+# 1. `0` 号进程
 
 `0` 号进程是所有进程的老祖宗，所有的进程都由其或其子孙`fork()`而来，其在操作系统启动时在`main()`函数中进行初始化，如下：
 ```c
@@ -38,7 +38,7 @@ void main(void)		/* This really IS void, no error here. */
 }
 ```
 
-## `0` 号进程如何初始化
+## 1.1 `0` 号进程如何初始化
 从 [进程结构](https://github.com/lcdzhao/operating_system/blob/master/theory/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/3.%20%E8%BF%9B%E7%A8%8B/2.%20%E8%BF%9B%E7%A8%8B%E7%BB%93%E6%9E%84/README.md#%E8%BF%9B%E7%A8%8B%E7%BB%93%E6%9E%84-1) 部分我们了解到了一个进程的：
 - [1. 进程核心数据结构](https://github.com/lcdzhao/operating_system/blob/master/theory/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/3.%20%E8%BF%9B%E7%A8%8B/2.%20%E8%BF%9B%E7%A8%8B%E7%BB%93%E6%9E%84/README.md#1-%E8%BF%9B%E7%A8%8B%E6%A0%B8%E5%BF%83%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84)
 - [2. 进程如何与硬件保护模式寻址联合](https://github.com/lcdzhao/operating_system/blob/master/theory/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/3.%20%E8%BF%9B%E7%A8%8B/2.%20%E8%BF%9B%E7%A8%8B%E7%BB%93%E6%9E%84/README.md#2-%E8%BF%9B%E7%A8%8B%E5%A6%82%E4%BD%95%E4%B8%8E%E7%A1%AC%E4%BB%B6%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E5%AF%BB%E5%9D%80%E8%81%94%E5%90%88)
@@ -152,7 +152,7 @@ void sched_init(void)
   ...
 }
 ```
-## `0` 号进程作用
+## 1.2 `0` 号进程作用
 ```c
 void main(void)		/* This really IS void, no error here. */
 {			
@@ -203,11 +203,11 @@ void main(void)		/* This really IS void, no error here. */
 
 想了解其具体细节时，可以参看：https://blog.csdn.net/ac_dao_di/article/details/52144608 中的第五部分。
 
-# `1` 号进程
+# 2. `1` 号进程
 `1` 号进程又被称为 `init进程`, 由`0`号进入用户模式后创建。
-## `1` 号进程如何初始化
+## 2.1 `1` 号进程如何初始化
 `1` 号进程通过 `0` 号进程`fork()` 而来, 关于`fork()`，参见：[4. fork](https://github.com/lcdzhao/operating_system/tree/master/theory/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/3.%20%E8%BF%9B%E7%A8%8B/4.%20fork)
-## `1` 号进程的作用
+## 2.2 `1` 号进程的作用
 ```c
 void init(void)
 {
@@ -269,6 +269,6 @@ void init(void)
 
 想了解其具体细节时，可以参看：https://blog.csdn.net/ac_dao_di/article/details/52144608 中的第六部分。
 
-# 进程流转
+# 3. 进程流转
 
 ![processes](../../1.%20启动/README.assets/processes.png)
