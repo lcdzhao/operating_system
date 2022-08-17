@@ -269,6 +269,6 @@ void init(void)
 
 想了解其具体细节时，可以参看：https://blog.csdn.net/ac_dao_di/article/details/52144608 中的第六部分。
 
-# 3. 进程流转
+# 3. `0`号`1`号进程及其他进程流转
 
 ![processes](../../1.%20启动/README.assets/processes.png)
