@@ -17,9 +17,13 @@
 
 - 内核栈的起始位置：对应了 `task_struct -> tss -> esp0`  
 
-- 当前代码执行位置，以及栈等位置还有其他寄存器的值：对应了`task_struct -> tss`中的各个项
+- cs、ss、es...等寄存器的值：对应了`task_struct -> tss`中的各个项
 
-### 对比通过TSS切换线程与内核栈切换的代码的异同
+**而要让将其和计算机硬件联合起来时，需要将`LDT`与`TSS`放入`GDT`中**。
+
+**要让CPU执行其时，需要将 TSS 的各个值覆盖到相应的寄存器上去(比较核心的是`cs eip cr3 ldtr`)**。
+
+## 对比通过TSS切换线程与内核栈切换的代码的异同
 通过对比通过TSS切换线程与内核栈切换的代码的异同，来加深对于进程结构的理解：
 [点击跳转：对比通过TSS切换线程与内核栈切换的代码的异同](https://github.com/lcdzhao/operating_system/blob/master/linux-0.1.1-labs/labs/lab_4_switch_of_process/README.md#%E5%AF%B9%E6%AF%94%E9%80%9A%E8%BF%87tss%E5%88%87%E6%8D%A2%E7%BA%BF%E7%A8%8B%E4%B8%8E%E5%86%85%E6%A0%B8%E6%A0%88%E5%88%87%E6%8D%A2%E7%9A%84%E4%BB%A3%E7%A0%81%E7%9A%84%E5%BC%82%E5%90%8C)
 
