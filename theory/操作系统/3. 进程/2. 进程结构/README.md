@@ -12,13 +12,13 @@
 
 - `PCB(task_struct)`：对应 `task_struct` 本身
 
-- 页表目录(虚拟内存的映射表)：对应了 `task_struct -> tss -> cr3`
+- 页表目录(虚拟内存的映射表)：页表目录的起始物理地址存放在 `task_struct -> tss -> cr3`
 
-- `LDT`(代码段、数据段的段描述符)： 对应了`task_struct -> ldt[3]`，其位置对应了 `task_struct -> tss -> ldt` 
+- `LDT`(代码段、数据段的段描述符)： 对应 `task_struct -> ldt[3]`，其起始物理地址存放在 `task_struct -> tss -> ldt` 
 
-- 内核栈的起始位置：对应了 `task_struct -> tss -> esp0`  
+- 内核栈的起始位置：存放在 `task_struct -> tss -> esp0`  
 
-- cs、ss、es...等寄存器的值：对应了`task_struct -> tss`中的各个项
+- cs、ss、es...等寄存器的值：存放在 `task_struct -> tss`中的各个项
 
 ##### 2. 进程如何与硬件保护模式寻址联合
 要让进程和硬件保护模式寻址联合起来时，需要将`LDT`与`TSS`放入`GDT`中。
