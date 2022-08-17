@@ -1,8 +1,10 @@
 # 进程结构
 ## Linux进程地址空间与进程内存布局详解
 [Linux进程地址空间与进程内存布局详解](https://zhuanlan.zhihu.com/p/348171413?utm_id=0)
-## 图解操作系统中的进程结构
+## 进程结构
+![simple_struct_of_task](README.assets/simple_struct_of_task.png)
 
+### 进程结构图解
 ![structure_of_task](README.assets/structure_of_task.png)
 
 通过上图我们发现，一个进程主要分为下面几块：
@@ -17,7 +19,7 @@
 
 - 当前代码执行位置，以及栈等位置还有其他寄存器的值：对应了`task_struct -> tss`中的各个项
 
-##### 扩展：对比通过TSS切换线程与内核栈切换的代码的异同
+### 对比通过TSS切换线程与内核栈切换的代码的异同
 通过对比通过TSS切换线程与内核栈切换的代码的异同，来加深对于进程结构的理解：
 [点击跳转：对比通过TSS切换线程与内核栈切换的代码的异同](https://github.com/lcdzhao/operating_system/blob/master/linux-0.1.1-labs/labs/lab_4_switch_of_process/README.md#%E5%AF%B9%E6%AF%94%E9%80%9A%E8%BF%87tss%E5%88%87%E6%8D%A2%E7%BA%BF%E7%A8%8B%E4%B8%8E%E5%86%85%E6%A0%B8%E6%A0%88%E5%88%87%E6%8D%A2%E7%9A%84%E4%BB%A3%E7%A0%81%E7%9A%84%E5%BC%82%E5%90%8C)
 
