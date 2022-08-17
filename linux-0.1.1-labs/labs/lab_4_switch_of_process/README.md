@@ -151,7 +151,7 @@ xchgl %eax,current
 TSS 中的内核栈指针的重写可以用下面三条指令完成：
 ```asm
 movl tss,%ecx
-# 通过ebx = 4096 + ebx 来计算出内核栈真正的位置，初始的ebx为PCB的起始位置，4096为一页内存的大小，内核栈在PCB的末尾
+# 通过ebx = 4096 + ebx 来计算出内核栈真正的起始位置，初始的ebx为PCB的起始位置，4096为一页内存的大小，内核栈在PCB的末尾
 addl $4096,%ebx
 movl %ebx,ESP0(%ecx)
 ```
@@ -258,4 +258,80 @@ iret
 最后别忘了将存放在 PCB 中的内核栈指针修改到初始化完成时内核栈的栈顶，即：
 ```c
 p->kernelstack = stack;
+```
+### 对比通过TSS切换线程与内核栈切换的代码的异同
+#### 通过TSS切换
+```c
+#define switch_to(n) {\
+struct {long a,b;} __tmp; \
+__asm__("cmpl %%ecx,current\n\t" \
+	"je 1f\n\t" \
+	"movw %%dx,%1\n\t" \
+    
+    // 切换 PCB
+	"xchgl %%ecx,current\n\t" \
+	"ljmp *%0\n\t" \
+    
+    // 和后面的 clts 配合来处理协处理器，由于和主题关系不大，此处不做论述
+	"cmpl %%ecx,last_task_used_math\n\t" \
+	"jne 1f\n\t" \
+    
+    // 通过 TSS 切换 LDT,内核栈栈顶与栈底，以及cs、ss 等等各个寄存器
+    // clts的参数由edx指定，即为下面的："d" (_TSS(n))
+	"clts\n" \
+	"1:" \
+	::"m" (*&__tmp.a),"m" (*&__tmp.b), \
+	"d" (_TSS(n)),"c" ((long) task[n])); \
+}
+
+```
+#### 通过内核栈切换
+```asm
+switch_to:
+	pushl %ebp			# 入栈当前函数栈帧地部指针(ebp)
+	movl %esp, %ebp			# esp 放入 ebp
+	pushl %ecx			# 入栈 ecx
+	pushl %ebx			# 入栈 ebx
+	pushl %eax			# 入栈 eax
+	movl 8(%ebp), %ebx		# 从函数调用栈中取参数1,即：pnext
+	cmpl %ebx, current		# 如果next=current，则do nothing
+	je 1f
+	
+	# STEP 1：切换 PCB 
+	movl %ebx, %eax			# ebx 为下个进程 PCB 指针，现在 eax 指向下个进程
+	xchgl %eax, current 		# 切换PCB
+	
+	# STEP 2：切换内核栈
+	# STEP 2.1：内核栈栈底进行切换，通过TSS 中内核栈指针重写来实现
+	movl tss, %ecx
+	addl $4096, %ebx		# 移动到下一个进程PCB页面顶部，即栈底
+	movl %ebx, ESP0(%ecx) 		# TSS 中内核栈指针重写
+
+	# STEP 2.2：切换内核栈栈顶，通过保存与修改esp实现
+	movl %esp, KERNEL_STACK(%eax)	# 将当前 esp(内核栈栈顶) 保存到当前 PCB  
+	movl 8(%ebp), %ebx		# 取出参数1 pnext 放入 ebx
+	movl KERNEL_STACK(%ebx), %esp	# 取出下一个进程的内核栈栈顶	
+	
+	# STEP 3：切换 LDT
+	# STEP 3.1：切换 LDT
+	movl 12(%ebp), %ecx 	# 取出参数2 LDT(next)
+	lldt %cx	# 修改 LDTR 寄存器，下一个进程用户态使用时使用的就是自己的 LDT 表
+	
+	# STEP 3.2：刷新fs段寄存器的隐式部分，通过重新取一下段寄存器 fs 的值来实现
+	movl $0x17, %ecx 
+	mov %cx, %fs
+	# 和后面的 clts 配合来处理协处理器，和主题关系不大
+	cmpl %eax, last_task_used_math
+	jne 1f
+	clts
+
+	#
+1:	popl %eax
+	popl %ebx
+	popl %ecx
+	popl %ebp
+	
+	# STEP 4：执行进程代码切换，函数返回后会弹栈，弹栈过程中cs：ip，以及ss：sp 会被置换为内核栈中的值
+	# 由于内核栈已经切换，故该ret指令将最终完成进程的切换
+	ret
 ```

@@ -11,8 +11,8 @@ CPU遇到的“事件”：
 [北京大学——计算机组成与设计——中断](https://www.bilibili.com/video/BV1tp4y197Av?p=46)
 ## 中断(异常)的分类
 ![中断(异常)的分类](README.assets/exs.png)
-### Interupter
-![Interupter](README.assets/int.png)
+### Interrupt
+![Interrupt](README.assets/int.png)
 ### Trap
 ![Trap](README.assets/trap.png)
 ### Fault
