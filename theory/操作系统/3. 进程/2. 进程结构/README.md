@@ -7,7 +7,7 @@
 ### 进程结构图解
 ![structure_of_task](README.assets/structure_of_task.png)
 
-通过上图我们发现：
+通过上图我们了解到：
 ##### 1. 进程核心数据结构
 
 - `PCB(task_struct)`：对应 `task_struct` 本身
