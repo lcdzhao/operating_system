@@ -15,7 +15,7 @@
 - 内核栈的起始位置：存放在 `task_struct -> tss -> esp0`  
 
 3）进程相关运行信息：
-- `task_struct`：对应 `task_struct` 本身，在Linux中内核空间有一个变量`task_struct *current`一直对应着当前正在运行的进程的`task_struct`
+- `task_struct`：对应 `task_struct` 本身，在Linux中内核空间有一个变量`task_struct *current`一直对应着当前CPU正在运行的进程的`task_struct`
 - cs、ss、es...等寄存器的值：存放在 `task_struct -> tss`中的各个项
 
 ##### 2. CPU如何进行进程用户空间虚拟内存寻址
