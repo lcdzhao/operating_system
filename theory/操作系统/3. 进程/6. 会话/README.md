@@ -9,7 +9,7 @@
 #### 2.1.1 初始化会话
 在`kernel/sys.c`中：
 
-```
+```c
 int sys_setsid(void)
 {
 	if (current->leader && !suser())
