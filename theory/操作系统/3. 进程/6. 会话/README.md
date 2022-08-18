@@ -3,7 +3,7 @@
 
 ## 会话的实现
 ### 设置pgid
-```
+```c
 /*
  * This needs some heave checking ...
  * I just haven't get the stomach for it. I also don't fully
@@ -49,7 +49,7 @@ int sys_setsid(void)
 ### `kill` 进程时
 在`kernel/exit.c`中：
 
-```
+```c
 int sys_kill(int pid,int sig)
 {
 	struct task_struct **p = NR_TASKS + task;
