@@ -3,9 +3,9 @@
 
 - L8 CPU 管理的直观想法
 - L9 多进程图像
-- [fork](https://github.com/lcdzhao/operating_system/tree/master/theory/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/fork)
-- [进程生命周期及调度](https://github.com/lcdzhao/operating_system/tree/master/theory/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E8%BF%9B%E7%A8%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E5%8F%8A%E8%B0%83%E5%BA%A6)
-- [进程信号处理](https://github.com/lcdzhao/operating_system/tree/master/theory/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/%E8%BF%9B%E7%A8%8B%E4%BF%A1%E5%8F%B7%E5%A4%84%E7%90%86)
+
+配合我整理的相关材料：
+- [进程相关知识](https://github.com/lcdzhao/operating_system/tree/master/theory/3.%20%E8%BF%9B%E7%A8%8B)
 
 > Tips：点击上方文字中的超链接或者输入 https://mooc.study.163.com/course/1000002008#/info 进入理论课程的学习。 如果网易云上的课程无法查看，也可以看 Bilibili 上的 操作系统哈尔滨工业大学李治军老师。
 
