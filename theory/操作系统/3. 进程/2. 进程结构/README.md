@@ -4,20 +4,18 @@
 ## 进程结构
 ![simple_struct_of_task](README.assets/simple_struct_of_task.png)
 
-### 进程结构图解
-![structure_of_task](README.assets/structure_of_task.png)
-
 通过上图我们了解到：
 ##### 1. 进程核心数据结构
-
-- `PCB(task_struct)`：对应 `task_struct` 本身
-
+1）用户态虚拟内存：
 - 页表目录(虚拟内存的映射表)：页表目录的起始物理地址存放在 `task_struct -> tss -> cr3`
 
 - `LDT`(代码段、数据段的段描述符)： 对应 `task_struct -> ldt[3]`，其起始物理地址存放在 `task_struct -> tss -> ldt` 
 
+2）内核态内核栈起始位置：
 - 内核栈的起始位置：存放在 `task_struct -> tss -> esp0`  
 
+3）进程相关运行信息：
+- `task_struct`：对应 `task_struct` 本身，在Linux中内核空间有一个变量`task_struct *current`一直对应着当前正在运行的进程的`task_struct`
 - cs、ss、es...等寄存器的值：存放在 `task_struct -> tss`中的各个项
 
 ##### 2. CPU如何进行进程用户空间虚拟内存寻址
@@ -48,6 +46,11 @@ CPU要进行进程用户空间虚拟内存寻址，需要：
 ## 对比通过TSS切换线程与内核栈切换的代码的异同
 通过对比通过TSS切换线程与内核栈切换的代码的异同，来加深对于进程结构的理解：
 [点击跳转：对比通过TSS切换线程与内核栈切换的代码的异同](https://github.com/lcdzhao/operating_system/blob/master/linux-0.1.1-labs/labs/lab_4_switch_of_process/README.md#%E5%AF%B9%E6%AF%94%E9%80%9A%E8%BF%87tss%E5%88%87%E6%8D%A2%E7%BA%BF%E7%A8%8B%E4%B8%8E%E5%86%85%E6%A0%B8%E6%A0%88%E5%88%87%E6%8D%A2%E7%9A%84%E4%BB%A3%E7%A0%81%E7%9A%84%E5%BC%82%E5%90%8C)
+
+
+### 进程运行时结构与内存详细图解
+
+![structure_of_task](README.assets/structure_of_task.png)
 
 ## 关于进程结构的一些问题
 - **为什么要将内核空间投射到用户虚拟地址**？
