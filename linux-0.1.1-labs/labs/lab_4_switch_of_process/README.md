@@ -7,6 +7,9 @@
 - L12 核心级线程实现实例
 - L13 操作系统的那棵树
 
+配合我整理的相关材料：
+- [进程相关知识](https://github.com/lcdzhao/operating_system/tree/master/theory/3.%20%E8%BF%9B%E7%A8%8B)
+
 > Tips：点击上方文字中的超链接或者输入 https://mooc.study.163.com/course/1000002008#/info 进入理论课程的学习。 如果网易云上的课程无法查看，也可以看 Bilibili 上的 操作系统哈尔滨工业大学李治军老师。
 
 ## 实验目的

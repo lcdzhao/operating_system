@@ -39,7 +39,7 @@ void main(void)		/* This really IS void, no error here. */
 ```
 
 ## 1.1 `0` 号进程如何初始化
-通过 [进程结构中：如何让CPU运行进程](https://github.com/lcdzhao/operating_system/tree/master/theory/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/3.%20%E8%BF%9B%E7%A8%8B/2.%20%E8%BF%9B%E7%A8%8B%E7%BB%93%E6%9E%84#%E5%A6%82%E4%BD%95%E8%AE%A9cpu%E8%BF%90%E8%A1%8C%E8%BF%9B%E7%A8%8B) 部分我们了解了一个进程要运行起来的一些必要条件，由此，我们再来看看 `0` 号进程初始化时的源码：
+通过 [进程结构中：如何让CPU运行进程](https://github.com/lcdzhao/operating_system/tree/master/theory/3.%20%E8%BF%9B%E7%A8%8B/2.%20%E8%BF%9B%E7%A8%8B%E7%BB%93%E6%9E%84#%E5%A6%82%E4%BD%95%E8%AE%A9cpu%E8%BF%90%E8%A1%8C%E8%BF%9B%E7%A8%8B) 部分我们了解了一个进程要运行起来的一些必要条件，由此，我们再来看看 `0` 号进程初始化时的源码：
 
 ##### `0` 号进程数据结构
 在`include/linux/sched.h`中定义了 `INIT_TASK`:

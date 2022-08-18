@@ -2,13 +2,10 @@
 本实验是 操作系统之基础 - 网易云课堂 的配套实验，推荐大家进行实验之前先学习相关课程：
 - L4 操作系统接口
 - L5 系统调用的实现
-- [寄存器架构(x86)](https://github.com/lcdzhao/operating_system/tree/master/theory/%E7%A1%AC%E4%BB%B6%E7%9B%B8%E5%85%B3/%E5%AF%84%E5%AD%98%E5%99%A8(x86%E6%9E%B6%E6%9E%84))
-- [实模式与保护模式](https://github.com/lcdzhao/operating_system/tree/master/theory/%E7%A1%AC%E4%BB%B6%E7%9B%B8%E5%85%B3/%E5%AE%9E%E6%A8%A1%E5%BC%8F%E4%B8%8E%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F)
-- [中断与系统调用](https://github.com/lcdzhao/operating_system/tree/master/theory/%E7%A1%AC%E4%BB%B6%E7%9B%B8%E5%85%B3/%E4%B8%AD%E6%96%AD%E4%B8%8E%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8)
-- [函数调用机制](https://github.com/lcdzhao/operating_system/tree/master/theory/C%E8%AF%AD%E8%A8%80%E7%9B%B8%E5%85%B3/%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E6%9C%BA%E5%88%B6)
-- [C语言变量内存位置及m指令寻址方式](https://github.com/lcdzhao/operating_system/tree/master/theory/C%E8%AF%AD%E8%A8%80%E7%9B%B8%E5%85%B3/C%E8%AF%AD%E8%A8%80%E5%8F%98%E9%87%8F%E5%86%85%E5%AD%98%E4%BD%8D%E7%BD%AE%E5%8F%8Am%E6%8C%87%E4%BB%A4%E5%AF%BB%E5%9D%80%E6%96%B9%E5%BC%8F)
 
-内嵌汇编语言可以参考：
+配合我整理的一些相关材料：
+- [附1：硬件相关](https://github.com/lcdzhao/operating_system/tree/master/theory/%E9%99%841%EF%BC%9A%E7%A1%AC%E4%BB%B6%E7%9B%B8%E5%85%B3)
+- [附2：C语言相关](https://github.com/lcdzhao/operating_system/tree/master/theory/%E9%99%842%EF%BC%9AC%E8%AF%AD%E8%A8%80%E7%9B%B8%E5%85%B3)
 - [内联汇编](https://www.cnblogs.com/codeprojects/p/14081910.html)
 
 > Tips：点击上方文字中的超链接或者输入 https://mooc.study.163.com/course/1000002004#/info 进入理论课程的学习。 如果网易云上的课程无法查看，也可以看 Bilibili 上的 操作系统哈尔滨工业大学李治军老师。

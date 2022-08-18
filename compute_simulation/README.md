@@ -1,0 +1,3 @@
+- compute_of_8bit.circ 为 8 bit计算机仿真电路
+- logisim-generic-2.7.1.jar 为logisim的jar包
+- 汇编编译器：[XComputerAssember](https://github.com/lcdzhao/XComputerAssember)
