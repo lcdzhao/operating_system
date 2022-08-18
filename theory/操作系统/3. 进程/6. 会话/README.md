@@ -1,8 +1,11 @@
 ## 1. 会话及进程组概述
 
+![session1](README.assets/session1.png)
+
+![session2](README.assets/session2.png)
 
 ## 2. 相关源码实现
-### 2.1 初始化相关
+### 2.1 初始化 session 与 进程组
 #### 2.1.1 初始化会话
 在`kernel/sys.c`中：
 
