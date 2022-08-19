@@ -179,7 +179,7 @@ int sys_sem_unlink(const char *name)
     return -1;  
 }  
 ```
-该源码中，最巧妙也最难理解的部分便是对于`schedule()`的使用，这里不展开解释，感兴趣的同学可以自己阅读[ `schedule()` 相关的知识 及其在 `sleep_on()` 和 `wake_up()` 的使用](https://github.com/lcdzhao/operating_system/tree/master/theory/3.%20%E8%BF%9B%E7%A8%8B/5.%20%E8%BF%9B%E7%A8%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E5%8F%8A%E8%B0%83%E5%BA%A6)
+该源码中，最巧妙也最难理解的部分便是对于`schedule()`的使用，这里不展开解释，感兴趣的同学可以自己阅读[ `schedule()` 相关的知识 及其在 `sleep_on()` 和 `wake_up()` 的使用](https://github.com/lcdzhao/operating_system/tree/master/theory/3.%20%E8%BF%9B%E7%A8%8B/5.%20%E8%BF%9B%E7%A8%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E5%8F%8A%E8%B0%83%E5%BA%A6)。
 ## 参考文章
 
 - [Linux进程间通信——使用信号量](https://blog.csdn.net/ljianhui/article/details/10243617)
