@@ -11,7 +11,7 @@
 
 ## 信号量相关实验及其源码
 ### 实验
-[lab_5_semaphore](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/labs/lab_5_semaphore)
+[点击跳转到：lab_5_semaphore](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/labs/lab_5_semaphore)
 ### 源码
 ```c
 #define __LIBRARY__  
