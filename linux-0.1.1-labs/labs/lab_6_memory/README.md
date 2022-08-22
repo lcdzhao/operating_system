@@ -353,7 +353,11 @@ int copy_process(…)
 }
 ```
 函数 get_free_page() 用来获得一个空闲物理页面，在 mm/memory.c 文件中：
+
+
 ![get_free_page](./README.assets/get_free_page.png)
+
+
 显然 `get_free_page` 函数就是在 `mem_map` 位图中寻找值为 0 的项（空闲页面），该函数返回的是该页面的起始物理地址。
 
 #### （3）地址映射
@@ -374,41 +378,9 @@ put_page(tmp, address);
 要从数据段中划出一段空间，首**先需要了解进程数据段空间的分布，而这个分布显然是由 `exec` 系统调用决定的**，所以要详细看一看 `exec` 的核心代码，`do_execve`（在文件 `fs/exec.c` 中）。
 
 在函数 `do_execve()` 中，修改数据段（当然是修改 LDT）的地方是 `change_ldt`，函数 `change_ldt` 实现如下：
-```c
-static unsigned long change_ldt(unsigned long text_size,unsigned long * page)
-{
-    /*其中text_size是代码段长度，从可执行文件的头部取出，page为参数和环境页*/
-    unsigned long code_limit,data_limit,code_base,data_base;
-    int i;
 
-    code_limit = text_size+PAGE_SIZE -1;
-    code_limit &= 0xFFFFF000;
-    //code_limit为代码段限长=text_size对应的页数（向上取整）
-    data_limit = 0x4000000; //数据段限长64MB
-    code_base = get_base(current->ldt[1]);
-    data_base = code_base;
+![change_ldt](./README.assets/change_ldt.png)
 
-    // 数据段基址 = 代码段基址
-    set_base(current->ldt[1],code_base);
-    set_limit(current->ldt[1],code_limit);
-    set_base(current->ldt[2],data_base);
-    set_limit(current->ldt[2],data_limit);
-    __asm__("pushl $0x17\n\tpop %%fs":: );
-
-    // 从数据段的末尾开始
-    data_base += data_limit;
-
-    // 向前处理
-    for (i=MAX_ARG_PAGES-1 ; i>=0 ; i--) {
-        // 一次处理一页
-        data_base -= PAGE_SIZE;
-        // 建立线性地址到物理页的映射
-        if (page[i]) put_page(page[i],data_base);
-    }
-    // 返回段界限
-    return data_limit;
-}
-```
 仔细分析过函数 `change_ldt`，想必实验者已经知道该如何从数据段中找到一页空闲的线性地址。《注释》中的图 13-6 也能给你很大帮助。
 
 ### 在同一终端中同时运行两个程序
