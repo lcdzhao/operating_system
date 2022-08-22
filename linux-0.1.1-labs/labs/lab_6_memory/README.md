@@ -372,7 +372,7 @@ put_page(tmp, address);
 
 显然这两条语句就用来获得空闲物理页面，然后填写线性地址 address 对应的页目录和页表。
 
-#### （4）寻找空闲的虚拟地址空间
+#### （4）进程数据段空间的分布
 有了空闲物理页面，也有了建立线性地址和物理页面的映射，但要完成本实验还需要能获得一段空闲的虚拟地址空闲。
 
 要从数据段中划出一段空间，首**先需要了解进程数据段空间的分布，而这个分布显然是由 `exec` 系统调用决定的**，所以要详细看一看 `exec` 的核心代码，`do_execve`（在文件 `fs/exec.c` 中）。
@@ -385,11 +385,11 @@ put_page(tmp, address);
 
 ![user_memory](./README.assets/user_memory.png)
 
-##### (4.1) `malloc` 与 `free`
+#### (5) `malloc` 与 `free`
 
 ![malloc_and_free](./README.assets/malloc_and_free.png)
 
-##### (4.2) 空闲的虚拟地址空间 
+#### (6) 空闲的虚拟地址空间 
 ```c
 free_v_addr = current->brk + current->start_code;
 ```
