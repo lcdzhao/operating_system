@@ -353,30 +353,7 @@ int copy_process(…)
 }
 ```
 函数 get_free_page() 用来获得一个空闲物理页面，在 mm/memory.c 文件中：
-```c
-unsigned long get_free_page(void)
-{
-    register unsigned long __res asm("ax");
-    __asm__("std ; repne ; scasb\n\t"
-            "jne 1f\n\t"
-            "movb $1,1(%%edi)\n\t"
-            // 页面数*4KB=相对页面起始地址
-            "sall $12,%%ecx\n\t"
-            // 在加上低端的内存地址，得到的是物理起始地址
-            "addl %2,%%ecx\n\t"
-            "movl %%ecx,%%edx\n\t"
-            "movl $1024,%%ecx\n\t"
-            "leal 4092(%%edx),%%edi\n\t"
-            "rep ; stosl\n\t"
-            //edx赋给eax，eax返回了物理起始地址
-            "movl %%edx,%%eax\n"
-            "1:" :"=a" (__res) :"0" (0),"i" (LOW_MEM),"c" (PAGING_PAGES),
-            "D" (mem_map+PAGING_PAGES-1):"di","cx","dx");
-    return __res;
-}
-
-static unsigned char mem_map [ PAGING_PAGES ] = {0,};
-```
+![get_free_page](./README.assets/get_free_page.png)
 显然 `get_free_page` 函数就是在 `mem_map` 位图中寻找值为 0 的项（空闲页面），该函数返回的是该页面的起始物理地址。
 
 #### （3）地址映射
