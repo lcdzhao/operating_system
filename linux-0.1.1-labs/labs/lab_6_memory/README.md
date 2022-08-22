@@ -381,7 +381,18 @@ put_page(tmp, address);
 
 ![change_ldt](./README.assets/change_ldt.png)
 
-仔细分析过函数 `change_ldt`，想必实验者已经知道该如何从数据段中找到一页空闲的线性地址。《注释》中的图 13-6 也能给你很大帮助。
+通过分析过函数 `change_ldt`，我们大概了解到进程的代码段和数据段是怎么回事：
+
+![user_memory](./README.assets/user_memory.png)
+
+##### (4.1) `malloc` 与 `free`
+
+![malloc_and_free](./README.assets/malloc_and_free.png)
+
+##### (4.2) 空闲的虚拟地址空间 
+```c
+free_v_addr = current->brk + current->start_code;
+```
 
 ### 在同一终端中同时运行两个程序
 Linux 的 shell 有后台运行程序的功能。只要在命令的最后输入一个 `&`，命令就会进入后台运行，前台马上回到提示符，进而能运行下一个命令，例如：
