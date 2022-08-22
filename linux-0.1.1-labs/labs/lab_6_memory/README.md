@@ -77,3 +77,82 @@ void *shmat(int shmid, const void *shmaddr, int shmflg);
 如果 `shmid` 非法，返回 `-1`，并置 `errno` 为 `EINVAL`。
 
 `shmaddr` 和 `shmflg` 参数可忽略。
+
+## 实验提示
+本次需要完成的内容：
+
+（1）用 Bochs 调试工具跟踪 Linux 0.11 的地址翻译（地址映射）过程，了解 IA-32 和 Linux 0.11 的内存管理机制；
+
+（2）在 Ubuntu 上编写多进程的生产者—消费者程序，用共享内存做缓冲区；
+
+（3）在信号量实验的基础上，为 Linux 0.11 增加共享内存功能，并将生产者—消费者程序移植到 Linux 0.11。
+
+### IA-32 的地址翻译过程
+Linux 0.11 完全遵循 IA-32（Intel Architecture 32-bit）架构进行地址翻译，Windows、后续版本的 Linux 以及一切在 IA-32 保护模式下运行的操作系统都遵循此架构。因为只有这样才能充分发挥 CPU 的 `MMU（内存管理单元）` 的功能。
+
+关于此地址翻译过程的细节，请参考《注释》一书中的 5.3.1-5.3.4 节。
+
+### 用 Bochs 汇编级调试功能进行人工地址翻译
+此过程比较机械，基本不消耗脑细胞，做一下有很多好处。
+
+（1）准备
+编译好 Linux 0.11 后，首先通过运行 `./dbg-asm` 启动调试器，此时 Bochs 的窗口处于黑屏状态
+
+![boch1](./README.assets/boch1.jpg)
+
+而命令行窗口显示：
+
+![boch2](./README.assets/boch2.jpg)
+
+```shell
+========================================================================
+                       Bochs x86 Emulator 2.3.7
+               Build from CVS snapshot, on June 3, 2008
+========================================================================
+00000000000i[     ] reading configuration from ./bochs/bochsrc.bxrc
+00000000000i[     ] installing x module as the Bochs GUI
+00000000000i[     ] using log file ./bochsout.txt
+Next at t=0
+(0) [0xfffffff0] f000:fff0 (unk. ctxt): jmp far f000:e05b         ; ea5be000f0
+<bochs:1>_
+```
+`Next at t=0` 表示下面的指令是 Bochs 启动后要执行的第一条软件指令。
+
+单步跟踪进去就能看到 BIOS 的代码。不过这不是本实验需要的。直接输入命令 `c`，continue 程序的运行，Bochs 一如既往地启动了 Linux 0.11。
+
+在 Linux 0.11 下输入（或拷入）`test.c`（代码在本实验的第 3 小节中），编译为 `test`，运行之，打印如下信息：
+```
+The logical/virtual address of i is 0x00003004
+```
+只要 `test` 不变，`0x00003004` 这个值在任何人的机器上都是一样的。即使在同一个机器上多次运行 `test`，也是一样的。
+
+`test` 是一个死循环，只会不停占用 CPU，不会退出。
+
+（2）暂停
+当 `test` 运行的时候，在命令行窗口按 `Ctrl+c`，Bochs 会暂停运行，进入调试状态。绝大多数情况下都会停在 `test` 内，显示类似如下信息：
+```
+(0) [0x00fc8031] 000f:00000031 (unk. ctxt): cmp dword ptr ds:0x3004, 0x00000000 ; 833d0430000000
+```
+其中的 `000f` 如果是 `0008`，则说明中断在了内核里。那么就要 `c`，然后再 `ctrl+c`，直到变为 `000f` 为止。
+
+如果显示的下一条指令不是 `cmp ...`（这里指语句以 `cmp` 开头），就用 `n` 命令单步运行几步，直到停在 `cmp ...`。
+
+使用命令 `u /8`，显示从当前位置开始 8 条指令的反汇编代码，结构如下：
+
+![boch3](./README.assets/boch3.jpg)
+
+```shell
+<bochs:3> u /8
+10000063: (                    ): cmp dword ptr ds:0x3004, 0x00000000 ; 833d0430000000
+1000006a: (                    ): jz .+0x00000004           ; 7404
+1000006c: (                    ): jmp .+0xfffffff5          ; ebf5
+1000006e: (                    ): add byte ptr ds:[eax], al ; 0000
+10000070: (                    ): xor eax, eax              ; 31c0
+10000072: (                    ): jmp .+0x00000000          ; eb00
+10000074: (                    ): leave                     ; c9
+10000075: (                    ): ret                       ; c3
+```
+这就是 `test.c` 中从 `while` 开始一直到 `return` 的汇编代码。变量 `i` 保存在 `ds:0x3004` 这个地址，并不停地和 `0` 进行比较，直到它为 `0`，才会跳出循环。
+
+现在，开始寻找 `ds:0x3004` 对应的物理地址。
+
