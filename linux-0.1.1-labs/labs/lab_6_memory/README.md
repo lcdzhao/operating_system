@@ -385,6 +385,18 @@ put_page(tmp, address);
 
 ![user_memory](./README.assets/user_memory.png)
 
+`linux/sched.h`中`task_struct `：
+```c
+struct task_struct {
+    //......
+    
+	unsigned long start_code,end_code,end_data,brk,start_stack;
+    
+    //......
+};
+```
+
+
 #### (5) `malloc` 与 `free`
 
 ![malloc_and_free](./README.assets/malloc_and_free.png)
