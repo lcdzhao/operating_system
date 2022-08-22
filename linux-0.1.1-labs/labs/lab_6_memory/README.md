@@ -156,3 +156,289 @@ The logical/virtual address of i is 0x00003004
 
 现在，开始寻找 `ds:0x3004` 对应的物理地址。
 
+### 段表
+
+`ds:0x3004` 是虚拟地址，`ds` 表明这个地址属于 `ds` 段。首先要找到段表，然后通过 `ds` 的值在段表中找到 `ds` 段的具体信息，才能继续进行地址翻译。
+
+每个在 `IA-32` 上运行的应用程序都有一个段表，叫 `LDT`，段的信息叫段描述符。
+
+`LDT` 在哪里呢？`ldtr` 寄存器是线索的起点，通过它可以在 `GDT`（全局描述符表）中找到 `LDT` 的物理地址。
+
+用 `sreg` 命令（是在调试窗口输入）：
+```shell
+<bochs:4> sreg
+cs:s=0x000f, dl=0x00000002, dh=0x10c0fa00, valid=1
+ds:s=0x0017, dl=0x00003fff, dh=0x10c0f300, valid=3
+ss:s=0x0017, dl=0x00003fff, dh=0x10c0f300, valid=1
+es:s=0x0017, dl=0x00003fff, dh=0x10c0f300, valid=1
+fs:s=0x0017, dl=0x00003fff, dh=0x10c0f300, valid=1
+gs:s=0x0017, dl=0x00003fff, dh=0x10c0f300, valid=1
+ldtr:s=0x0068, dl=0xa2d00068, dh=0x000082fa, valid=1
+tr:s=0x0060, dl=0xa2e80068, dh=0x00008bfa, valid=1
+gdtr:base=0x00005cb8, limit=0x7ff
+idtr:base=0x000054b8, limit=0x7ff
+```
+可以看到 ldtr 的值是 `0x0068=0000000001101000`（二进制），表示 `LDT` 表存放在 `GDT` 表的 `1101`（二进制）=`13`（十进制）号位置（每位数据的意义参考后文叙述的段选择子）。
+
+而 `GDT` 的位置已经由 `gdtr` 明确给出，在物理地址的 `0x00005cb8`。
+
+用`xp /32w 0x00005cb8` 查看从该地址开始，32 个字的内容，及 `GDT` 表的前 16 项，如下：
+```shell
+<bochs:5> xp /32w 0x00005cb8
+[bochs]:
+0x00005cb8 <bogus+       0>:    0x00000000    0x00000000    0x00000fff    0x00c09a00
+0x00005cc8 <bogus+      16>:    0x00000fff    0x00c09300    0x00000000    0x00000000
+0x00005cd8 <bogus+      32>:    0xa4280068    0x00008901    0xa4100068    0x00008201
+0x00005ce8 <bogus+      48>:    0xf2e80068    0x000089ff    0xf2d00068    0x000082ff
+0x00005cf8 <bogus+      64>:    0xd2e80068    0x000089ff    0xd2d00068    0x000082ff
+0x00005d08 <bogus+      80>:    0x12e80068    0x000089fc    0x12d00068    0x000082fc
+0x00005d18 <bogus+      96>:    0xa2e80068    0x00008bfa    0xa2d00068    0x000082fa
+0x00005d28 <bogus+     112>:    0xc2e80068    0x000089f8    0xc2d00068    0x000082f8
+```
+GDT 表中的每一项占 64 位（8 个字节），所以我们要查找的项的地址是 `0x00005cb8+13*8`。
+
+输入 `xp /2w 0x00005cb8+13*8`，得到：
+```shell
+<bochs:6> xp /2w 0x00005cb8+13*8
+[bochs]:
+0x00005d20 <bogus+       0>:    0xa2d00068    0x000082fa
+```
+上两步看到的数值可能和这里给出的示例不一致，这是很正常的。如果想确认是否准确，就看 `sreg` 输出中，`ldtr` 所在行里，`dl` 和 `dh` 的值，它们是 Bochs 的调试器自动计算出的，你寻找到的必须和它们一致。
+
+`“0xa2d00068 0x000082fa”` 将其中的加粗数字组合为“0x00faa2d0”，这就是 `LDT` 表的物理地址（为什么这么组合，参考后文介绍的段描述符）。
+
+`xp /8w 0x00faa2d0`，得到：
+```shell
+<bochs:7> xp /8w 0x00faa2d0
+[bochs]:
+0x00faa2d0 <bogus+       0>:    0x00000000    0x00000000    0x00000002    0x10c0fa00
+0x00faa2e0 <bogus+      16>:    0x00003fff    0x10c0f300    0x00000000    0x00fab000
+```
+这就是 LDT 表的前 4 项内容了。
+
+### 段描述符
+在保护模式下，**段寄存器**有另一个名字，叫**段选择子**，因为它保存的信息主要是该段在段表里索引值，用这个索引值可以从段表中“选择”出相应的段描述符。
+
+先看看 `ds` 选择子的内容，还是用 `sreg` 命令：
+
+```shell
+<bochs:8> sreg
+cs:s=0x000f, dl=0x00000002, dh=0x10c0fa00, valid=1
+ds:s=0x0017, dl=0x00003fff, dh=0x10c0f300, valid=3
+ss:s=0x0017, dl=0x00003fff, dh=0x10c0f300, valid=1
+es:s=0x0017, dl=0x00003fff, dh=0x10c0f300, valid=1
+fs:s=0x0017, dl=0x00003fff, dh=0x10c0f300, valid=1
+gs:s=0x0017, dl=0x00003fff, dh=0x10c0f300, valid=1
+ldtr:s=0x0068, dl=0xa2d00068, dh=0x000082fa, valid=1
+tr:s=0x0060, dl=0xa2e80068, dh=0x00008bfa, valid=1
+gdtr:base=0x00005cb8, limit=0x7ff
+idtr:base=0x000054b8, limit=0x7ff
+```
+
+可以看到，`ds` 的值是 `0x0017`。段选择子是一个 16 位寄存器，它各位的含义如下图：
+
+![seg_index](./README.assets/seg_index.jpg)
+
+其中 RPL 是请求特权级，当访问一个段时，处理器要检查 RPL 和 CPL（放在 cs 的位 0 和位 1 中，用来表示当前代码的特权级），即使程序有足够的特权级（CPL）来访问一个段，但如果 RPL（如放在 ds 中，表示请求数据段）的特权级不足，则仍然不能访问，即如果 RPL 的数值大于 CPL（数值越大，权限越小），则用 RPL 的值覆盖 CPL 的值。
+
+而段选择子中的 TI 是表指示标记，如果 TI=0，则表示段描述符（段的详细信息）在 GDT（全局描述符表）中，即去 GDT 中去查；而 TI=1，则去 LDT（局部描述符表）中去查。
+
+看看上面的 `ds`，`0x0017=0000000000010111`（二进制），所以 RPL=11，可见是在最低的特权级（因为在应用程序中执行），TI=1，表示查找 LDT 表，索引值为 10（二进制）= 2（十进制），表示找 LDT 表中的第 3 个段描述符（从 0 开始编号）。
+
+LDT 和 GDT 的结构一样，每项占 8 个字节。所以第 3 项 `0x00003fff 0x10c0f300`（上一步骤的最后一个输出结果中） 就是搜寻好久的 ds 的段描述符了。
+
+用 `sreg` 输出中 `ds` 所在行的 `dl` 和 `dh` 值可以验证找到的描述符是否正确。
+
+接下来看看段描述符里面放置的是什么内容：
+
+![seg_desc](./README.assets/seg_desc.jpg)
+
+可以看到，段描述符是一个 64 位二进制的数，存放了段基址和段限长等重要的数据。其中位 P（Present）是段是否存在的标记；位 S 用来表示是系统段描述符（S=0）还是代码或数据段描述符（S=1）；四位 TYPE 用来表示段的类型，如数据段、代码段、可读、可写等；DPL 是段的权限，和 CPL、RPL 对应使用；位 G 是粒度，G=0 表示段限长以位为单位，G=1 表示段限长以 4KB 为单位；其他内容就不详细解释了。
+
+### 段基址和线性地址
+费了很大的劲，实际上我们需要的只有段基址一项数据，即段描述符 `“0x00003fff 0x10c0f300”` 中加粗部分组合成的` “0x10000000”`。这就是 ds 段在线性地址空间中的起始地址。用同样的方法也可以算算其它段的基址，都是这个数。
+
+段基址+段内偏移，就是线性地址了。所以 `ds:0x3004` 的线性地址就是：
+```
+0x10000000 + 0x3004 = 0x10003004
+```
+用 `calc ds:0x3004` 命令可以验证这个结果。
+
+### 页表
+从线性地址计算物理地址，需要查找页表。线性地址变成物理地址的过程如下：
+
+![page](./README.assets/page.jpg)
+
+线性地址变成物理地址
+
+首先需要算出线性地址中的页目录号、页表号和页内偏移，它们分别对应了 32 位线性地址的 10 位 + 10 位 + 12 位，所以 `0x10003004` 的页目录号是 `64`，页号 `3`，页内偏移是`4`。
+
+IA-32 下，页目录表的位置由`CR3` 寄存器指引。`“creg”`命令可以看到：
+``` shell
+CR0=0x8000001b: PG cd nw ac wp ne ET TS em MP PE
+CR2=page fault laddr=0x10002f68
+CR3=0x00000000
+    PCD=page-level cache disable=0
+    PWT=page-level writes transparent=0
+CR4=0x00000000: osxmmexcpt osfxsr pce pge mce pae pse de tsd pvi vme
+```
+说明页目录表的基址为 0。看看其内容，```xp /68w 0```：
+```shell
+0x00000000 :    0x00001027    0x00002007    0x00003007    0x00004027
+0x00000010 :    0x00000000    0x00024764    0x00000000    0x00000000
+0x00000020 :    0x00000000    0x00000000    0x00000000    0x00000000
+0x00000030 :    0x00000000    0x00000000    0x00000000    0x00000000
+0x00000040 :    0x00ffe027    0x00000000    0x00000000    0x00000000
+0x00000050 :    0x00000000    0x00000000    0x00000000    0x00000000
+0x00000060 :    0x00000000    0x00000000    0x00000000    0x00000000
+0x00000070 :    0x00000000    0x00000000    0x00000000    0x00000000
+0x00000080 :    0x00ff3027    0x00000000    0x00000000    0x00000000
+0x00000090 :    0x00000000    0x00000000    0x00000000    0x00000000
+0x000000a0 :    0x00000000    0x00000000    0x00000000    0x00000000
+0x000000b0 :    0x00000000    0x00000000    0x00000000    0x00ffb027
+0x000000c0 :    0x00ff6027    0x00000000    0x00000000    0x00000000
+0x000000d0 :    0x00000000    0x00000000    0x00000000    0x00000000
+0x000000e0 :    0x00000000    0x00000000    0x00000000    0x00000000
+0x000000f0 :    0x00000000    0x00000000    0x00000000    0x00ffa027
+0x00000100 :    0x00faa027    0x00000000    0x00000000    0x00000000
+```
+页目录表和页表中的内容很简单，是 1024 个 32 位（正好是 4K）数。这 32 位中前 20 位是物理页框号，后面是一些属性信息（其中最重要的是最后一位 P）。其中第 65 个页目录项就是我们要找的内容，用`“xp /w 0+64*4”`查看：
+```shell
+0x00000100 :    0x00faa027
+```
+其中的 `027` 是属性，显然 `P=1`，其他属性实验者自己分析吧。页表所在物理页框号为 `0x00faa`，即页表在物理内存的 `0x00faa000` 位置。从该位置开始查找 3 号页表项，得到```（xp /w 0x00faa000+3*4）```：
+```
+0x00faa00c :    0x00fa7067
+```
+其中 `067` 是属性，显然 `P=1`，应该是这样。
+
+### 物理地址
+最终结果马上就要出现了！
+
+线性地址 `0x10003004` 对应的物理页框号为 `0x00fa7`，和页内偏移 `0x004` 接到一起，得到 `0x00fa7004`，这就是变量 `i` 的物理地址。可以通过两种方法验证。
+
+第一种方法是用命令 `page 0x10003004`，可以得到信息：
+```shell
+linear page 0x10003000 maps to physical page 0x00fa7000
+```
+第二种方法是用命令 `xp /w 0x00fa7004`，可以看到：
+```shell
+0x00fa7004 :    0x12345678
+```
+这个数值确实是 `test.c` 中 `i` 的初值。
+
+现在，通过直接修改内存来改变 `i` 的值为 `0`，命令是： `setpmem 0x00fa7004 4 0`，表示从 `0x00fa7004` 地址开始的 4 个字节都设为 0。然后再用`c`命令继续 Bochs 的运行，可以看到 `test` 退出了，说明 `i` 的修改成功了，此项实验结束。
+
+### 在 Linux 0.11 中实现共享内存
+
+#### （1）Linux 中的共享内存
+Linux 支持两种方式的共享内存。一种方式是 `shm_open()`、`mmap()` 和 `shm_unlink()` 的组合；另一种方式是 `shmget()`、`shmat()` 和 `shmdt()` 的组合。本实验建议使用后一种方式。
+
+这些系统调用的详情，请查阅 `man` 及相关资料。
+
+特别提醒：没有父子关系的进程之间进行共享内存，`shmget()` 的第一个参数`key` 不要用 `IPC_PRIVATE`，否则无法共享。用什么数字可视心情而定。
+
+#### （2）获得空闲物理页面
+实验者需要考虑如何实现页面共享。首先看一下 Linux 0.11 如何操作页面，如何管理进程地址空间。
+
+在 kernel/fork.c 文件中有：
+```c
+int copy_process(…)
+{
+    struct task_struct *p;
+    p = (struct task_struct *) get_free_page();
+    if (!p)
+        return -EAGAIN;
+//    ……
+}
+```
+函数 get_free_page() 用来获得一个空闲物理页面，在 mm/memory.c 文件中：
+```c
+unsigned long get_free_page(void)
+{
+    register unsigned long __res asm("ax");
+    __asm__("std ; repne ; scasb\n\t"
+            "jne 1f\n\t"
+            "movb $1,1(%%edi)\n\t"
+            // 页面数*4KB=相对页面起始地址
+            "sall $12,%%ecx\n\t"
+            // 在加上低端的内存地址，得到的是物理起始地址
+            "addl %2,%%ecx\n\t"
+            "movl %%ecx,%%edx\n\t"
+            "movl $1024,%%ecx\n\t"
+            "leal 4092(%%edx),%%edi\n\t"
+            "rep ; stosl\n\t"
+            //edx赋给eax，eax返回了物理起始地址
+            "movl %%edx,%%eax\n"
+            "1:" :"=a" (__res) :"0" (0),"i" (LOW_MEM),"c" (PAGING_PAGES),
+            "D" (mem_map+PAGING_PAGES-1):"di","cx","dx");
+    return __res;
+}
+
+static unsigned char mem_map [ PAGING_PAGES ] = {0,};
+```
+显然 `get_free_page` 函数就是在 `mem_map` 位图中寻找值为 0 的项（空闲页面），该函数返回的是该页面的起始物理地址。
+
+#### （3）地址映射
+有了空闲的物理页面，接下来需要完成线性地址和物理页面的映射，Linux 0.11 中也有这样的代码，看看 `mm/memory.c` 中的 `do_no_page(unsigned long address)`，该函数用来处理线性地址`address` 对应的物理页面无效的情况（即缺页中断），`do_no_page` 函数中调用一个重要的函数 `get_empty_page(address)`，其中有：
+```c
+// 函数 get_empty_page(address)
+
+unsigned long tmp=get_free_page();
+// 建立线性地址和物理地址的映射
+put_page(tmp, address);
+```
+
+显然这两条语句就用来获得空闲物理页面，然后填写线性地址 address 对应的页目录和页表。
+
+#### （4）寻找空闲的虚拟地址空间
+有了空闲物理页面，也有了建立线性地址和物理页面的映射，但要完成本实验还需要能获得一段空闲的虚拟地址空闲。
+
+要从数据段中划出一段空间，首**先需要了解进程数据段空间的分布，而这个分布显然是由 `exec` 系统调用决定的**，所以要详细看一看 `exec` 的核心代码，`do_execve`（在文件 `fs/exec.c` 中）。
+
+在函数 `do_execve()` 中，修改数据段（当然是修改 LDT）的地方是 `change_ldt`，函数 `change_ldt` 实现如下：
+```c
+static unsigned long change_ldt(unsigned long text_size,unsigned long * page)
+{
+    /*其中text_size是代码段长度，从可执行文件的头部取出，page为参数和环境页*/
+    unsigned long code_limit,data_limit,code_base,data_base;
+    int i;
+
+    code_limit = text_size+PAGE_SIZE -1;
+    code_limit &= 0xFFFFF000;
+    //code_limit为代码段限长=text_size对应的页数（向上取整）
+    data_limit = 0x4000000; //数据段限长64MB
+    code_base = get_base(current->ldt[1]);
+    data_base = code_base;
+
+    // 数据段基址 = 代码段基址
+    set_base(current->ldt[1],code_base);
+    set_limit(current->ldt[1],code_limit);
+    set_base(current->ldt[2],data_base);
+    set_limit(current->ldt[2],data_limit);
+    __asm__("pushl $0x17\n\tpop %%fs":: );
+
+    // 从数据段的末尾开始
+    data_base += data_limit;
+
+    // 向前处理
+    for (i=MAX_ARG_PAGES-1 ; i>=0 ; i--) {
+        // 一次处理一页
+        data_base -= PAGE_SIZE;
+        // 建立线性地址到物理页的映射
+        if (page[i]) put_page(page[i],data_base);
+    }
+    // 返回段界限
+    return data_limit;
+}
+```
+仔细分析过函数 `change_ldt`，想必实验者已经知道该如何从数据段中找到一页空闲的线性地址。《注释》中的图 13-6 也能给你很大帮助。
+
+### 在同一终端中同时运行两个程序
+Linux 的 shell 有后台运行程序的功能。只要在命令的最后输入一个 `&`，命令就会进入后台运行，前台马上回到提示符，进而能运行下一个命令，例如：
+```shell
+$ sudo ./producer &
+$ sudo ./consumer
+```
+当运行 `./consumer` 的时候，`producer` 正在后台运行。
+
