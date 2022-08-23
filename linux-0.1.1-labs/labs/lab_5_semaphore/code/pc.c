@@ -10,7 +10,7 @@ _syscall1(int,sem_wait,sem*,sem);
 _syscall1(int,sem_post,sem*,sem);
 _syscall1(int,sem_unlink,const char *,name);
 
-#define NUMBER 10 /*打出数字总数*/
+#define NUMBER 20 /*打出数字总数*/
 #define CHILD 5 /*消费者进程数*/
 #define BUFSIZE 10 /*缓冲区大小*/
 
@@ -23,6 +23,8 @@ void producer_write_num(int index,int num);
 
 int comsumer_read_num();
 
+void clean();
+
 int main()
 {
     int i = 0;
@@ -30,7 +32,8 @@ int main()
     int k = 0;
     int write_index = 0;
     pid_t p;
-    if(!init()){
+    if(!init())
+    {
         return -1;
     }
 
@@ -68,12 +71,7 @@ int main()
     }
     /*wait for childs*/
     wait(NULL);
-   
-    sem_unlink("carfull");
-    sem_unlink("carempty");
-    sem_unlink("carmutex");
-  
-    close(fno);
+    clean();
     return 0;
 }
 
@@ -105,6 +103,13 @@ int init() {
     lseek(fno,10*sizeof(int),SEEK_SET);
     write(fno,(char *)&inited_read_index,sizeof(int));
     return 1;
+}
+
+void clean(){
+    sem_unlink("carfull");
+    sem_unlink("carempty");
+    sem_unlink("carmutex");
+    close(fno);
 }
 
 void producer_write_num(int index,int num){
