@@ -141,7 +141,7 @@ CPU遇到的“事件”：
 
 ### 初始化`IDT`
 #### head.s 中初始化idt
-```
+```asm
 ...
 ...
 call setup_idt
@@ -190,7 +190,7 @@ idt:
 ![trapinit](README.assets/trapinit.png)
 #### _set_gate
 _set_gate 的定义是：
-```
+```c
 // gate_addr：要设置的中断描述符地址
  
 // type：中断描述符类型，中断门或陷阱门
@@ -278,7 +278,7 @@ idt是一个数组名，也就是数组的首地址，该数组共有256个元�
 ## `系统调用`相关实现
 ### 系统调用初始化
 在内核初始化时，主函数（在 `init/main.c` 中，Linux 实验环境下是 `main()`，Windows 下因编译器兼容性问题被换名为 `start()`）调用了 `sched_init()` 初始化函数：
-```
+```c
 void main(void)
 {
 //    ……
@@ -289,7 +289,7 @@ void main(void)
 }
 ```
 sched_init() 在 kernel/sched.c 中定义为：
-```
+```c
 void sched_init(void)
 {
 //    ……
@@ -297,14 +297,14 @@ void sched_init(void)
 }
 ```
 set_system_gate 是个宏，在 include/asm/system.h 中定义为：
-```
+```c
 #define set_system_gate(n,addr) \
     _set_gate(&idt[n],15,3,addr)
 ```
 
 #### system_call
 接下来看 system_call。该函数纯汇编打造，定义在 kernel/system_call.s 中：
-```
+```asm
 
 !……
 ! # 这是系统调用总数。如果增删了系统调用，必须做相应修改
@@ -358,7 +358,7 @@ call sys_call_table(,%eax,4) 之前是一些压栈保护，修改段选择子为
 根据汇编寻址方法它实际上是：call sys_call_table + 4 * %eax，其中 eax 中放的是系统调用号，即 __NR_xxxxxx。
 
 显然，sys_call_table 一定是一个函数指针数组的起始地址，它定义在 `include/linux/sys.h` 中：
-```
+```c
 fn_ptr sys_call_table[] = { sys_setup, sys_exit, sys_fork, sys_read,...
 ```
 ### 进行系统调用
@@ -376,14 +376,14 @@ linux-0.11 的 lib 目录下有一些已经实现的 API。Linus 编写它们的
 >后面的目录如果没有特殊说明，都是指在 /home/shiyanlou/oslab/linux-0.11 中。比如下面的 lib/close.c，是指 /home/shiyanlou/oslab/linux-0.11/lib/close.c。
 
 我们不妨看看 lib/close.c，研究一下 close() 的 API：
-```
+```c
 #define __LIBRARY__
 #include <unistd.h>
 
 _syscall1(int, close, int, fd)
 ```
 其中 _syscall1 是一个宏，在 include/unistd.h 中定义。
-```
+```c
 #define _syscall1(type,name,atype,a) \
 type name(atype a) \
 { \
@@ -398,7 +398,7 @@ return -1; \
 }
 ```
 将 _syscall1(int,close,int,fd) 进行宏展开，可以得到：
-```
+```c
 int close(int fd)
 {
     long __res;
@@ -414,7 +414,7 @@ int close(int fd)
 这就是 API 的定义。它先将宏 \__NR_close 存入 EAX，将参数 fd 存入 EBX，然后进行 0x80 中断调用。调用返回后，从 EAX 取出返回值，存入 __res，再通过对 __res 的判断决定传给 API 的调用者什么样的返回值。
 
 其中 \__NR_close 就是系统调用的编号，在 include/unistd.h 中定义：
-```
+```c
 #define __NR_close    6
 /*
 所以添加系统调用时需要修改include/unistd.h文件，
