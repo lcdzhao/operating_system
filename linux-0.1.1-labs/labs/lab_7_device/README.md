@@ -19,22 +19,22 @@
 以 ls 命令为例：
 
 正常情况：
-```
+```shell
 # ls
 hello.c hello.o hello
 ```
 第一次按 F12，然后输入 ls：
-```
+```shell
 # **
 *****.* *****.* *****
 ```
 第二次按 F12，然后输入 ls：
-```
+```shell
 # ls
 hello.c hello.o hello
 ```
 第三次按 F12，然后输入 ls：
-```
+```shell
 # **
 *****.* *****.* *****
 ```
@@ -42,7 +42,7 @@ hello.c hello.o hello
 本实验需要修改 Linux 0.11 的终端设备处理代码（`kernel/chr_drv/console.c` 文件），对键盘输入和字符显示进行非常规的控制。
 ### 键盘输入处理过程
 键盘 I/O 是典型的中断驱动，在 `kernel/chr_drv/console.c` 文件中：
-```
+```c
 void con_init(void)  //控制台的初始化
 {
     // 键盘中断响应函数设为 keyboard_interrupt
