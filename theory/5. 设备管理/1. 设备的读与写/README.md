@@ -1,5 +1,5 @@
 # 设备的读与写
-
+![read_and_write_series](README.assets/read_and_write_series.png)
 ## 数据结构
 `include/linux/tty.h` 中定义了 `tty_struct`(一个`tty_struct`对应了一个设备) 与 `tty_queue`(用于当作设备对应的数据队列) ：
 
@@ -443,8 +443,8 @@ int tty_write(unsigned channel, char * buf, int nr)
 }
 ```
 
-### STEP2：将数据从内核空间写到硬件设备
-写数据并不像读数据那样是异步的，写数据是同步的，在`tty_write`后面调用了`tty->write(tty)`，这行代码真正将数据从内核空间写到硬件设备。
+
+在`tty_write`后面调用了`tty->write(tty)`，这行代码开始准备将数据从内核空间写到硬件设备(只是准备，实际写数据还是在中断中进行)。
 `tty`来自`kernel/chr_dev/tty_io.c` 中定义了 `tty_table`(用于保存现有的所有设备):
 
 ```c
@@ -635,10 +635,21 @@ void con_write(struct tty_struct * tty)
 
 `rs_write`(串行写) 位于`kernel/chr_drv/serial.c`中：
 
+![rs_write_1](README.assets/rs_write_1.png)
+
+![rs_write_2](README.assets/rs_write_2.png)
 
 > 更加详细的解释见：[Linux0.11注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)
 
-实际的写数据操作在`kernel/chr_drv/rs_io.s`中:
+### STEP2：将数据从内核空间写到硬件设备
+#### 终端写
+
+
+
+#### 串行写
+该段代码在`kernel/chr_drv/rs_io.s`中：
+
+![rs_io1](README.assets/rs_io1.png)
 
 ``` asm
 rs2_interrupt:
