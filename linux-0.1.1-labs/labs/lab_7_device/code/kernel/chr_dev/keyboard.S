@@ -100,10 +100,10 @@ put_queue:
 	shrl $8,%ebx
 	jmp 1b
 2:	movl %ecx,head(%edx)
-	movl proc_list(%edx),%ecx
-	testl %ecx,%ecx
-	je 3f
-	movl $0,(%ecx)
+	movl proc_list(%edx),%ecx	# edx 为 table_list(其在"linux/kernel/tty_io.c"被定义为读写队列的集合)，proc_list(%edx)即为队首进程的状态。
+	testl %ecx,%ecx			# 测试 ecx 是否为0,即：队首进程是否运行，0为运行。
+	je 3f				# 如果运行则直接跳到3。
+	movl $0,(%ecx)			# 如果没有运行则将0赋值队首进程的状态，即唤醒其。
 3:	popl %edx
 	popl %ecx
 	ret
