@@ -124,12 +124,181 @@ put_queue:
 /* ... 省略其他代码 */
 extern int sys_read();
 extern int sys_write();
-extern int sys_open();
-extern int sys_close();
 /* ... 省略其他代码 */
 
 fn_ptr sys_call_table[] = { sys_setup, sys_exit, sys_fork, sys_read,
 sys_write, sys_open, sys_close, sys_waitpid, sys_creat, sys_link,
 sys_unlink, sys_execve, sys_chdir, /* ... 省略其他代码 */ }
 ```
-sys_open
+
+`sys_read()`在`fs/read_write.c`中“
+```c
+/* ... 省略其他代码 */
+
+int sys_read(unsigned int fd,char * buf,int count)
+{
+	struct file * file;
+	struct m_inode * inode;
+
+	if (fd>=NR_OPEN || count<0 || !(file=current->filp[fd]))
+		return -EINVAL;
+	if (!count)
+		return 0;
+	verify_area(buf,count);
+	inode = file->f_inode;
+	if (inode->i_pipe)
+		return (file->f_mode&1)?read_pipe(inode,buf,count):-EIO;
+	if (S_ISCHR(inode->i_mode))
+		return rw_char(READ,inode->i_zone[0],buf,count,&file->f_pos);
+	if (S_ISBLK(inode->i_mode))
+		return block_read(inode->i_zone[0],&file->f_pos,buf,count);
+	if (S_ISDIR(inode->i_mode) || S_ISREG(inode->i_mode)) {
+		if (count+file->f_pos > inode->i_size)
+			count = inode->i_size - file->f_pos;
+		if (count<=0)
+			return 0;
+		return file_read(inode,file,buf,count);
+	}
+	printk("(Read)inode->i_mode=%06o\n\r",inode->i_mode);
+	return -EINVAL;
+}
+
+/* ... 省略其他代码 */
+```
+
+以字符设备为例，`rw_char`在`/fs/char_dev.c`中，用于找到相应的设备号，并调用对应的函数：
+```c
+
+/* ... 省略其他代码 */
+
+typedef int (*crw_ptr)(int rw,unsigned minor,char * buf,int count,off_t * pos);
+
+/* ... 省略其他代码 */
+
+#define NRDEVS ((sizeof (crw_table))/(sizeof (crw_ptr)))
+
+static crw_ptr crw_table[]={
+	NULL,		/* nodev */
+	rw_memory,	/* /dev/mem etc */
+	NULL,		/* /dev/fd */
+	NULL,		/* /dev/hd */
+	rw_ttyx,	/* /dev/ttyx */
+	rw_tty,		/* /dev/tty */
+	NULL,		/* /dev/lp */
+	NULL};		/* unnamed pipes */
+
+int rw_char(int rw,int dev, char * buf, int count, off_t * pos)
+{
+	crw_ptr call_addr;
+
+	if (MAJOR(dev)>=NRDEVS)
+		return -ENODEV;
+	if (!(call_addr=crw_table[MAJOR(dev)]))
+		return -ENODEV;
+	return call_addr(rw,MINOR(dev),buf,count,pos);
+}
+```
+
+在`include/linux/fs.h`中定义了`MAJOR`与`MINOR`，其含义为主设备号与从设备号:
+```c
+#define MAJOR(a) (((unsigned)(a))>>8)
+#define MINOR(a) ((a)&0xff)
+```
+
+如上`call_addr`为`rw_memory`以及`rw_tty`和`rw_ttyx`几个函数，其也在`/fs/char_dev.c`中:
+```c
+static int rw_ttyx(int rw,unsigned minor,char * buf,int count,off_t * pos)
+{
+	return ((rw==READ)?tty_read(minor,buf,count):
+		tty_write(minor,buf,count));
+}
+
+static int rw_tty(int rw,unsigned minor,char * buf,int count, off_t * pos)
+{
+	if (current->tty<0)
+		return -EPERM;
+	return rw_ttyx(rw,current->tty,buf,count,pos);
+}
+
+```
+
+最终将调用`tty_read`,其在`kernel/chr_dev/tty_io.c`中,其流程大概为从队列中读取数据，如果队列为空则当前进程`sleep_if_empty`,否则则读取数据，最终返回读取的字符个数：
+
+```c
+int tty_read(unsigned channel, char * buf, int nr)
+{
+	struct tty_struct * tty;
+	char c, * b=buf;
+	int minimum,time,flag=0;
+	long oldalarm;
+
+	if (channel>2 || nr<0) return -1;
+	tty = &tty_table[channel];
+	oldalarm = current->alarm;
+	
+	# 这段时间相关的代码一下没搞明白，觉得不重要，所以也没有花功夫去理解这一块，待有缘人来给这块加注释
+	time = 10L*tty->termios.c_cc[VTIME];
+	minimum = tty->termios.c_cc[VMIN];
+	if (time && !minimum) {
+		minimum=1;
+		if ((flag=(!oldalarm || time+jiffies<oldalarm)))
+			current->alarm = time+jiffies;
+	}
+	if (minimum>nr)
+		minimum=nr;
+	while (nr>0) {
+		// 处理信号
+		if (flag && (current->signal & ALRMMASK)) {
+			current->signal &= ~ALRMMASK;
+			break;
+		}
+		if (current->signal)
+			break;
+			
+		// 队列中的数据为空，则sleep等待数据到来
+		if (EMPTY(tty->secondary) || (L_CANON(tty) &&
+		!tty->secondary.data && LEFT(tty->secondary)>20)) {
+			sleep_if_empty(&tty->secondary);
+			continue;
+		}
+		
+		//循环读取字符，读去nr个或者队列中数据为空
+		do {
+			if (c==EOF_CHAR(tty) || c==10)
+				tty->secondary.data--;
+			if (c==EOF_CHAR(tty) && L_CANON(tty))
+				return (b-buf);
+			else {
+				put_fs_byte(c,b++);
+				if (!--nr)
+					break;
+			}
+		} while (nr>0 && !EMPTY(tty->secondary));
+		
+		// 不懂
+		if (time && !L_CANON(tty)) {
+			if ((flag=(!oldalarm || time+jiffies<oldalarm)))
+				current->alarm = time+jiffies;
+			else
+				current->alarm = oldalarm;
+		}
+		
+		if (L_CANON(tty)) {
+			if (b-buf)
+				break;
+		} else if (b-buf >= minimum)
+			break;
+	}
+	current->alarm = oldalarm;
+	if (current->signal && !(b-buf))
+		return -EINTR;
+	
+	// 返回最终读取到字符的个数
+	return (b-buf);
+}
+
+```
+
+
+
+
