@@ -302,7 +302,7 @@ int tty_read(unsigned channel, char * buf, int nr)
 
 > eg: 屏幕写或者网络写的过程基本相同，不同的地方在于网络包多了一些控制(如：滑动窗口，拥塞控制，校验等等)。
 
-### STEP 1：从用户空间通过系统调用写道内核空间
+### STEP 1：从用户空间通过系统调用写到内核空间
 
 所有设备的读都是通过相同的`sys_read`系统调用来进行的，具体如下:
 
@@ -446,7 +446,7 @@ int tty_write(unsigned channel, char * buf, int nr)
 			cr_flag = 0;
 			PUTCH(c,tty->write_q);
 		}
-		tty->write(tty);
+		tty->write(tty);   //真正写数据的地方
 		if (nr>0)
 			schedule();
 	}
@@ -454,4 +454,204 @@ int tty_write(unsigned channel, char * buf, int nr)
 }
 ```
 
+### STEP2：将数据从内核空间写到硬件设备
+写数据并不像读数据那样是异步的，写数据是同步的，在`tty_write`后面调用了`tty->write(tty)`，这行代码真正将数据从内核空间写到硬件设备。
+`tty`来自`kernel/chr_dev/tty_io.c` 中定义了 `tty_table`(用于保存现有的所有设备):
+
+```c
+struct tty_struct tty_table[] = {
+	{
+		{
+		/* ... 省略其他代码 */
+		con_write,
+		/* ... 省略其他代码 */
+	},{
+		/* ... 省略其他代码 */
+		rs_write,
+		/* ... 省略其他代码 */
+	},{
+		/* ... 省略其他代码 */
+		rs_write,
+		/* ... 省略其他代码 */
+	}
+};
+```
+
+于是我们看到了 `con_write`(终端写) 与 `rs_write`(串行写)：
+
+其中`con_write`(终端写)位于`kernel/chr_dev/console.c`中：
+```C
+void con_write(struct tty_struct * tty)
+{
+	int nr;
+	char c;
+
+	nr = CHARS(tty->write_q);
+	while (nr--) {
+		GETCH(tty->write_q,c);
+		switch(state) {
+			case 0:
+				if (c>31 && c<127) {
+					if (x>=video_num_columns) {
+						x -= video_num_columns;
+						pos -= video_size_row;
+						lf();
+					}
+					__asm__("movb attr,%%ah\n\t"
+						"movw %%ax,%1\n\t"
+						::"a" (c),"m" (*(short *)pos)
+						);
+					pos += 2;
+					x++;
+				} else if (c==27)
+					state=1;
+				else if (c==10 || c==11 || c==12)
+					lf();
+				else if (c==13)
+					cr();
+				else if (c==ERASE_CHAR(tty))
+					del();
+				else if (c==8) {
+					if (x) {
+						x--;
+						pos -= 2;
+					}
+				} else if (c==9) {
+					c=8-(x&7);
+					x += c;
+					pos += c<<1;
+					if (x>video_num_columns) {
+						x -= video_num_columns;
+						pos -= video_size_row;
+						lf();
+					}
+					c=9;
+				} else if (c==7)
+					sysbeep();
+				break;
+			case 1:
+				state=0;
+				if (c=='[')
+					state=2;
+				else if (c=='E')
+					gotoxy(0,y+1);
+				else if (c=='M')
+					ri();
+				else if (c=='D')
+					lf();
+				else if (c=='Z')
+					respond(tty);
+				else if (x=='7')
+					save_cur();
+				else if (x=='8')
+					restore_cur();
+				break;
+			case 2:
+				for(npar=0;npar<NPAR;npar++)
+					par[npar]=0;
+				npar=0;
+				state=3;
+				if ((ques=(c=='?')))
+					break;
+			case 3:
+				if (c==';' && npar<NPAR-1) {
+					npar++;
+					break;
+				} else if (c>='0' && c<='9') {
+					par[npar]=10*par[npar]+c-'0';
+					break;
+				} else state=4;
+			case 4:
+				state=0;
+				switch(c) {
+					case 'G': case '`':
+						if (par[0]) par[0]--;
+						gotoxy(par[0],y);
+						break;
+					case 'A':
+						if (!par[0]) par[0]++;
+						gotoxy(x,y-par[0]);
+						break;
+					case 'B': case 'e':
+						if (!par[0]) par[0]++;
+						gotoxy(x,y+par[0]);
+						break;
+					case 'C': case 'a':
+						if (!par[0]) par[0]++;
+						gotoxy(x+par[0],y);
+						break;
+					case 'D':
+						if (!par[0]) par[0]++;
+						gotoxy(x-par[0],y);
+						break;
+					case 'E':
+						if (!par[0]) par[0]++;
+						gotoxy(0,y+par[0]);
+						break;
+					case 'F':
+						if (!par[0]) par[0]++;
+						gotoxy(0,y-par[0]);
+						break;
+					case 'd':
+						if (par[0]) par[0]--;
+						gotoxy(x,par[0]);
+						break;
+					case 'H': case 'f':
+						if (par[0]) par[0]--;
+						if (par[1]) par[1]--;
+						gotoxy(par[1],par[0]);
+						break;
+					case 'J':
+						csi_J(par[0]);
+						break;
+					case 'K':
+						csi_K(par[0]);
+						break;
+					case 'L':
+						csi_L(par[0]);
+						break;
+					case 'M':
+						csi_M(par[0]);
+						break;
+					case 'P':
+						csi_P(par[0]);
+						break;
+					case '@':
+						csi_at(par[0]);
+						break;
+					case 'm':
+						csi_m();
+						break;
+					case 'r':
+						if (par[0]) par[0]--;
+						if (!par[1]) par[1] = video_num_lines;
+						if (par[0] < par[1] &&
+						    par[1] <= video_num_lines) {
+							top=par[0];
+							bottom=par[1];
+						}
+						break;
+					case 's':
+						save_cur();
+						break;
+					case 'u':
+						restore_cur();
+						break;
+				}
+		}
+	}
+	set_cursor();
+}
+```
+
+`rs_write`(串行写) 位于`kernel/chr_drv/serial.c`中：
+```c
+void rs_write(struct tty_struct * tty)
+{
+	cli();
+	if (!EMPTY(tty->write_q))
+		outb(inb_p(tty->write_q.data+1)|0x02,tty->write_q.data+1); //真正写数据的汇编代码
+	sti();
+}
+```
 
