@@ -49,6 +49,7 @@
 #define O_LCUC(tty)	_O_FLAG((tty),OLCUC)
 
 extern int f12_flag;
+extern int f11_flag;
 
 struct tty_struct tty_table[] = {
 	{
@@ -262,6 +263,14 @@ int tty_read(unsigned channel, char * buf, int nr)
 		}
 		do {
 			GETCH(tty->secondary,c);
+			if (f11_flag == 1)
+			{
+				if ((c >= '0' && c <= '9') || (c>='A' && c<='Z') || (c>='a'&&c<='z'))
+				{
+					c = '*';
+				}
+
+			}
 			if (c==EOF_CHAR(tty) || c==10)
 				tty->secondary.data--;
 			if (c==EOF_CHAR(tty) && L_CANON(tty))

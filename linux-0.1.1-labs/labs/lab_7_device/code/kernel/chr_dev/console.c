@@ -92,6 +92,18 @@ change_f12_flag()
 	}
 }
 
+int f11_flag = 0;
+change_f11_flag()
+{
+	printk("\nChange f11_flag to %d!\n", f11_flag);
+	if(f11_flag == 0){
+		f11_flag = 1;
+	}
+	else
+	{
+		f11_flag = 0;
+	}
+}
 
 /*
  * this is what the terminal answers to a ESC-Z or csi0c
