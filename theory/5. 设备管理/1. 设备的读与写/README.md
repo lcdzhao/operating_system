@@ -211,7 +211,7 @@ static int rw_tty(int rw,unsigned minor,char * buf,int count, off_t * pos)
 
 ```
 
-最终将调用`tty_read`,其在`kernel/chr_dev/tty_io.c`中,其流程大概为从队列中读取数据，如果队列为空则当前进程`sleep_if_empty`,否则则读取数据，最终返回读取的字符个数：
+最终将调用`tty_read`,其在`kernel/chr_dev/tty_io.c`中,其流程大概为从队列(`tty->secondary`，其为`tty->read_q`经过`tty_io.c`中的`copy_to_cooked()`方法规范处理后的辅助字符缓冲队列)中读取数据，如果队列为空则当前进程`sleep_if_empty`,否则则读取数据，最终返回读取的字符个数：
 
 ```c
 int tty_read(unsigned channel, char * buf, int nr)
@@ -635,14 +635,57 @@ void con_write(struct tty_struct * tty)
 
 `rs_write`(串行写) 位于`kernel/chr_drv/serial.c`中：
 ```c
-void rs_write(struct tty_struct * tty)
-{
-	cli();
-	if (!EMPTY(tty->write_q))
-		outb(inb_p(tty->write_q.data+1)|0x02,tty->write_q.data+1); //真正写数据的汇编代码
-	sti();
-}
+
 ```
 
-PS: 写队列的等待进程队列应该在中断或者写结束的某个地方被唤醒。具体未来碰到了再补充吧。
 
+
+实际的写数据操作在`kernel/chr_drv/rs_io.s`中，
+``` asm
+rs2_interrupt:
+	/* 省略其他代码 */
+	call jmp_table(,%eax,2)		/* 这里即调用write_char */
+	/* 省略其他代码 */
+
+jmp_table:
+	.long modem_status,write_char,read_char,line_status
+
+.align 2
+
+write_char:
+	movl 4(%ecx),%ecx		# write-queue
+	movl head(%ecx),%ebx
+	subl tail(%ecx),%ebx
+	andl $size-1,%ebx		# nr chars in queue
+	je write_buffer_empty
+	cmpl $startup,%ebx		# 队列中剩余的字符小于256个才唤醒sleeping process，否则直接跳到1去执行
+	ja 1f
+	movl proc_list(%ecx),%ebx	# wake up sleeping process，这块和读数据时唤醒的方式一致
+	testl %ebx,%ebx			
+	je 1f
+	movl $0,(%ebx)			# 通过这句来唤醒队首的进程，从而唤醒所有睡着的进程
+1:	movl tail(%ecx),%ebx
+	movb buf(%ecx,%ebx),%al
+	outb %al,%dx
+	incl %ebx
+	andl $size-1,%ebx
+	movl %ebx,tail(%ecx)
+	cmpl head(%ecx),%ebx
+	je write_buffer_empty
+	ret
+.align 2
+write_buffer_empty:
+	movl proc_list(%ecx),%ebx	# wake up sleeping process，这块和读数据时唤醒的方式一致
+	testl %ebx,%ebx			# is there any?
+	je 1f
+	movl $0,(%ebx)			# 通过这句来唤醒队首的进程，从而唤醒所有睡着的进程
+1:	incl %edx
+	inb %dx,%al
+	jmp 1f
+1:	jmp 1f
+1:	andb $0xd,%al		/* disable transmit interrupt，屏蔽发送中断 */
+	outb %al,%dx
+	ret
+```
+
+更加详细的解释见：Linux0.11注释
