@@ -47,7 +47,6 @@ struct tty_queue * table_list[]={
 	};
 
 ```
-```
 
 ##### 1） 键盘注册中断
 `kernel/chr_dev/console.c`：
