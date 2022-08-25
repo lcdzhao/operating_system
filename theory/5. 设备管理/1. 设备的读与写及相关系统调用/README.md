@@ -48,7 +48,7 @@ struct tty_queue * table_list[]={
 
 ```
 
-##### 1） 键盘注册中断
+##### 键盘注册中断
 `kernel/chr_dev/console.c`：
 
 ```c
@@ -62,7 +62,7 @@ void con_init(void)
 }
 ```
 
-##### 2） 键盘响应中断
+##### 键盘响应中断
 
 由下面的代码可以看出，键盘响应中断的过程为：将数据放入到队列，如有必要，则唤醒相关等待进程。具体如下：
 
@@ -112,5 +112,24 @@ put_queue:
 #### 流程
 
 #### 相关源码
-##### 相关数据结构
 
+所有设备的读都是通过相同的`sys_read`系统调用来进行的，具体如下:
+
+##### 相关数据结构
+[和读取时的数据结构相同](https://github.com/lcdzhao/operating_system/blob/master/theory/5.%20%E8%AE%BE%E5%A4%87%E7%AE%A1%E7%90%86/1.%20%E8%AE%BE%E5%A4%87%E7%9A%84%E8%AF%BB%E4%B8%8E%E5%86%99%E5%8F%8A%E7%9B%B8%E5%85%B3%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/README.md#%E7%9B%B8%E5%85%B3%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84)
+
+##### 相关系统调用
+在`include/linux/sys.h`中指定`sys_read`为4号系统调用：
+```c
+/* ... 省略其他代码 */
+extern int sys_read();
+extern int sys_write();
+extern int sys_open();
+extern int sys_close();
+/* ... 省略其他代码 */
+
+fn_ptr sys_call_table[] = { sys_setup, sys_exit, sys_fork, sys_read,
+sys_write, sys_open, sys_close, sys_waitpid, sys_creat, sys_link,
+sys_unlink, sys_execve, sys_chdir, /* ... 省略其他代码 */ }
+```
+sys_open
