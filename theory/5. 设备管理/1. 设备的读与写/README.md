@@ -634,13 +634,12 @@ void con_write(struct tty_struct * tty)
 ```
 
 `rs_write`(串行写) 位于`kernel/chr_drv/serial.c`中：
-```c
-
-```
 
 
+> 更加详细的解释见：[Linux0.11注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)
 
-实际的写数据操作在`kernel/chr_drv/rs_io.s`中，
+实际的写数据操作在`kernel/chr_drv/rs_io.s`中:
+
 ``` asm
 rs2_interrupt:
 	/* 省略其他代码 */
@@ -688,4 +687,4 @@ write_buffer_empty:
 	ret
 ```
 
-更加详细的解释见：Linux0.11注释
+> 更加详细的解释见：[Linux0.11注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)
