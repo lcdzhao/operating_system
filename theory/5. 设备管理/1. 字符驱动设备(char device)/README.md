@@ -1,3 +1,6 @@
+# 这块根据 Linux 0.11 的第10章 字符驱动重新写一遍。
+
+
 # 设备的读与写
 ![read_and_write_series](README.assets/read_and_write_series.png)
 ## 数据结构
@@ -466,9 +469,17 @@ struct tty_struct tty_table[] = {
 };
 ```
 
-于是我们看到了 `con_write`(终端写) 与 `rs_write`(串行写)：
+于是我们看到了   `con_write`(终端写) 与 `rs_write`(串行写)：
 
-其中`con_write`(终端写)位于`kernel/chr_dev/console.c`中：
+`rs_write`(串行写) 位于`kernel/chr_drv/serial.c`中：
+
+![rs_write_1](README.assets/rs_write_1.png)
+
+![rs_write_2](README.assets/rs_write_2.png)
+
+> 更加详细的解释见：[Linux0.11注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)
+
+其中`con_write`(终端写)位于`kernel/chr_dev/console.c`中，`con_write`没有考虑写队列满的情况，故没有`wake_up`的相关操作：
 ```C
 void con_write(struct tty_struct * tty)
 {
@@ -632,14 +643,6 @@ void con_write(struct tty_struct * tty)
 	set_cursor();
 }
 ```
-
-`rs_write`(串行写) 位于`kernel/chr_drv/serial.c`中：
-
-![rs_write_1](README.assets/rs_write_1.png)
-
-![rs_write_2](README.assets/rs_write_2.png)
-
-> 更加详细的解释见：[Linux0.11注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)
 
 ### STEP2：将数据从内核空间写到硬件设备
 #### 终端写
