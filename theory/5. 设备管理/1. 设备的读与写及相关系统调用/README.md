@@ -307,7 +307,7 @@ int tty_read(unsigned channel, char * buf, int nr)
 所有设备的读都是通过相同的`sys_read`系统调用来进行的，具体如下:
 
 ##### 相关系统调用
-在`include/linux/sys.h`中指定`sys_read`为4号系统调用：
+在`include/linux/sys.h`中指定`sys_write`为5号系统调用：
 ```c
 /* ... 省略其他代码 */
 extern int sys_read();
@@ -319,35 +319,29 @@ sys_write, sys_open, sys_close, sys_waitpid, sys_creat, sys_link,
 sys_unlink, sys_execve, sys_chdir, /* ... 省略其他代码 */ }
 ```
 
-`sys_read()`在`fs/read_write.c`中“
+`sys_write()`在`fs/read_write.c`中“
 ```c
 /* ... 省略其他代码 */
 
-int sys_read(unsigned int fd,char * buf,int count)
+int sys_write(unsigned int fd,char * buf,int count)
 {
 	struct file * file;
 	struct m_inode * inode;
-
-	if (fd>=NR_OPEN || count<0 || !(file=current->filp[fd]))
+	
+	if (fd>=NR_OPEN || count <0 || !(file=current->filp[fd]))
 		return -EINVAL;
 	if (!count)
 		return 0;
-	verify_area(buf,count);
-	inode = file->f_inode;
+	inode=file->f_inode;
 	if (inode->i_pipe)
-		return (file->f_mode&1)?read_pipe(inode,buf,count):-EIO;
+		return (file->f_mode&2)?write_pipe(inode,buf,count):-EIO;
 	if (S_ISCHR(inode->i_mode))
-		return rw_char(READ,inode->i_zone[0],buf,count,&file->f_pos);
+		return rw_char(WRITE,inode->i_zone[0],buf,count,&file->f_pos);
 	if (S_ISBLK(inode->i_mode))
-		return block_read(inode->i_zone[0],&file->f_pos,buf,count);
-	if (S_ISDIR(inode->i_mode) || S_ISREG(inode->i_mode)) {
-		if (count+file->f_pos > inode->i_size)
-			count = inode->i_size - file->f_pos;
-		if (count<=0)
-			return 0;
-		return file_read(inode,file,buf,count);
-	}
-	printk("(Read)inode->i_mode=%06o\n\r",inode->i_mode);
+		return block_write(inode->i_zone[0],&file->f_pos,buf,count);
+	if (S_ISREG(inode->i_mode))
+		return file_write(inode,file,buf,count);
+	printk("(Write)inode->i_mode=%06o\n\r",inode->i_mode);
 	return -EINVAL;
 }
 
@@ -410,79 +404,54 @@ static int rw_tty(int rw,unsigned minor,char * buf,int count, off_t * pos)
 
 ```
 
-最终将调用`tty_read`,其在`kernel/chr_dev/tty_io.c`中,其流程大概为从队列中读取数据，如果队列为空则当前进程`sleep_if_empty`,否则则读取数据，最终返回读取的字符个数：
+最终将调用`tty_write`,其在`kernel/chr_dev/tty_io.c`中,其流程大概为给队列中写字符，如果队列满了则当前进程`sleep_if_full`,否则写数据，最终返回写的字符个数：
 
 ```c
-int tty_read(unsigned channel, char * buf, int nr)
+int tty_write(unsigned channel, char * buf, int nr)
 {
+	static int cr_flag=0;
 	struct tty_struct * tty;
-	char c, * b=buf;
-	int minimum,time,flag=0;
-	long oldalarm;
+	char c, *b=buf;
 
 	if (channel>2 || nr<0) return -1;
-	tty = &tty_table[channel];
-	oldalarm = current->alarm;
-	
-	# 这段时间相关的代码一下没搞明白，觉得不重要，所以也没有花功夫去理解这一块，待有缘人来给这块加注释
-	time = 10L*tty->termios.c_cc[VTIME];
-	minimum = tty->termios.c_cc[VMIN];
-	if (time && !minimum) {
-		minimum=1;
-		if ((flag=(!oldalarm || time+jiffies<oldalarm)))
-			current->alarm = time+jiffies;
-	}
-	if (minimum>nr)
-		minimum=nr;
+	tty = channel + tty_table;
 	while (nr>0) {
-		// 处理信号
-		if (flag && (current->signal & ALRMMASK)) {
-			current->signal &= ~ALRMMASK;
-			break;
-		}
+		sleep_if_full(&tty->write_q);
 		if (current->signal)
 			break;
-			
-		// 队列中的数据为空，则sleep等待数据到来
-		if (EMPTY(tty->secondary) || (L_CANON(tty) &&
-		!tty->secondary.data && LEFT(tty->secondary)>20)) {
-			sleep_if_empty(&tty->secondary);
-			continue;
-		}
-		
-		//循环读取字符，读去nr个或者队列中数据为空
-		do {
-			if (c==EOF_CHAR(tty) || c==10)
-				tty->secondary.data--;
-			if (c==EOF_CHAR(tty) && L_CANON(tty))
-				return (b-buf);
-			else {
-				put_fs_byte(c,b++);
-				if (!--nr)
-					break;
+		while (nr>0 && !FULL(tty->write_q)) {
+			c=get_fs_byte(b);
+			if (f12_flag == 1)
+			{
+				if ((c >= '0' && c <= '9') || (c>='A' && c<='Z') || (c>='a'&&c<='z'))
+				{
+					c = '*';
+				}
+
 			}
-		} while (nr>0 && !EMPTY(tty->secondary));
-		
-		// 不懂
-		if (time && !L_CANON(tty)) {
-			if ((flag=(!oldalarm || time+jiffies<oldalarm)))
-				current->alarm = time+jiffies;
-			else
-				current->alarm = oldalarm;
+			if (O_POST(tty)) {
+				if (c=='\r' && O_CRNL(tty))
+					c='\n';
+				else if (c=='\n' && O_NLRET(tty))
+					c='\r';
+				if (c=='\n' && !cr_flag && O_NLCR(tty)) {
+					cr_flag = 1;
+					PUTCH(13,tty->write_q);
+					continue;
+				}
+				if (O_LCUC(tty))
+					c=toupper(c);
+			}
+			b++; nr--;
+			cr_flag = 0;
+			PUTCH(c,tty->write_q);
 		}
-		
-		if (L_CANON(tty)) {
-			if (b-buf)
-				break;
-		} else if (b-buf >= minimum)
-			break;
+		tty->write(tty);
+		if (nr>0)
+			schedule();
 	}
-	current->alarm = oldalarm;
-	if (current->signal && !(b-buf))
-		return -EINTR;
-	
-	// 返回最终读取到字符的个数
 	return (b-buf);
 }
+```
 
 
