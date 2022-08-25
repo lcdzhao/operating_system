@@ -6,9 +6,50 @@
 ### STEP1：从设备读到内核缓冲区
 #### 流程
 
-#### 键盘读取相关源码
+#### 相关源码
 
-##### 1） 注册中断
+##### 相关数据结构
+```
+`include/linux/tty.h` 中定义了 `tty_struct`(一个`tty_struct`对应了一个设备) 与 `tty_queue`(用于当作设备对应的数据队列) ：
+```c
+struct tty_struct {
+	struct termios termios;
+	int pgrp;
+	int stopped;
+	void (*write)(struct tty_struct * tty);
+	struct tty_queue read_q;
+	struct tty_queue write_q;
+	struct tty_queue secondary;
+	};
+
+struct tty_queue {
+	unsigned long data;
+	unsigned long head;
+	unsigned long tail;
+	struct task_struct * proc_list;
+	char buf[TTY_BUF_SIZE];
+};
+```
+
+
+`kernel/chr_dev/tty_io.c` 中定义了 `tty_table`(用于保存现有的所有设备) 与 `table_list`(用于保存所有设备的读写队列，便于快速定位到读写队列):
+
+```c
+
+struct tty_struct tty_table[] = {
+	/* ... 省略其他代码 */
+};
+
+struct tty_queue * table_list[]={
+	&tty_table[0].read_q, &tty_table[0].write_q,
+	&tty_table[1].read_q, &tty_table[1].write_q,
+	&tty_table[2].read_q, &tty_table[2].write_q
+	};
+
+```
+```
+
+##### 1） 键盘注册中断
 `kernel/chr_dev/console.c`：
 
 ```c
@@ -22,7 +63,9 @@ void con_init(void)
 }
 ```
 
-##### 2） 将数据放入到队列，如有必要，则唤醒相关等待进程
+##### 2） 键盘响应中断
+
+由下面的代码可以看出，键盘响应中断的过程为：将数据放入到队列，如有必要，则唤醒相关等待进程。具体如下：
 
 `kernel/chr_dev/keyboard.S`:
 
@@ -61,6 +104,7 @@ put_queue:
 	ret
   /* ... 省略其他代码 */
 ```
+
 > PS: 唤醒队首进程即唤醒了所有的进程，详见：[sleep_on 与 wake_up](https://github.com/lcdzhao/operating_system/tree/master/theory/3.%20%E8%BF%9B%E7%A8%8B/5.%20%E8%BF%9B%E7%A8%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E5%8F%8A%E8%B0%83%E5%BA%A6#sleep_on)
 
 
