@@ -1,14 +1,7 @@
 # 设备的读与写及相关系统调用
-##  读
 
-> eg: 键盘或者网络读，网络读取与键盘读取的过程基本相同，不同的地方在于网络包多了一些控制(如：滑动窗口，拥塞控制，校验等等)。
 
-### STEP1：从设备读到内核缓冲区
-#### 流程
-
-#### 相关源码
-
-##### 相关数据结构
+## 读写相关数据结构源码
 `include/linux/tty.h` 中定义了 `tty_struct`(一个`tty_struct`对应了一个设备) 与 `tty_queue`(用于当作设备对应的数据队列) ：
 
 ```c
@@ -47,6 +40,15 @@ struct tty_queue * table_list[]={
 	};
 
 ```
+
+##  读
+
+> eg: 键盘或者网络读，网络读取与键盘读取的过程基本相同，不同的地方在于网络包多了一些控制(如：滑动窗口，拥塞控制，校验等等)。
+
+### STEP1：从设备读到内核缓冲区
+#### 流程
+
+#### 相关源码
 
 ##### 键盘注册中断
 `kernel/chr_dev/console.c`：
@@ -108,15 +110,12 @@ put_queue:
 
 
 
-### STEP2：用户程序从内核缓冲区将数据读出
+### STEP2：用户程序通过系统调用从内核缓冲区将数据读出
 #### 流程
 
 #### 相关源码
 
 所有设备的读都是通过相同的`sys_read`系统调用来进行的，具体如下:
-
-##### 相关数据结构
-[和读取时的数据结构相同](https://github.com/lcdzhao/operating_system/blob/master/theory/5.%20%E8%AE%BE%E5%A4%87%E7%AE%A1%E7%90%86/1.%20%E8%AE%BE%E5%A4%87%E7%9A%84%E8%AF%BB%E4%B8%8E%E5%86%99%E5%8F%8A%E7%9B%B8%E5%85%B3%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8/README.md#%E7%9B%B8%E5%85%B3%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84)
 
 ##### 相关系统调用
 在`include/linux/sys.h`中指定`sys_read`为4号系统调用：
@@ -299,6 +298,191 @@ int tty_read(unsigned channel, char * buf, int nr)
 
 ```
 
+##  写
 
+> eg: 屏幕写或者网络写的过程基本相同，不同的地方在于网络包多了一些控制(如：滑动窗口，拥塞控制，校验等等)。
+
+### STEP 1：从用户空间通过系统调用写道内核空间
+
+所有设备的读都是通过相同的`sys_read`系统调用来进行的，具体如下:
+
+##### 相关系统调用
+在`include/linux/sys.h`中指定`sys_read`为4号系统调用：
+```c
+/* ... 省略其他代码 */
+extern int sys_read();
+extern int sys_write();
+/* ... 省略其他代码 */
+
+fn_ptr sys_call_table[] = { sys_setup, sys_exit, sys_fork, sys_read,
+sys_write, sys_open, sys_close, sys_waitpid, sys_creat, sys_link,
+sys_unlink, sys_execve, sys_chdir, /* ... 省略其他代码 */ }
+```
+
+`sys_read()`在`fs/read_write.c`中“
+```c
+/* ... 省略其他代码 */
+
+int sys_read(unsigned int fd,char * buf,int count)
+{
+	struct file * file;
+	struct m_inode * inode;
+
+	if (fd>=NR_OPEN || count<0 || !(file=current->filp[fd]))
+		return -EINVAL;
+	if (!count)
+		return 0;
+	verify_area(buf,count);
+	inode = file->f_inode;
+	if (inode->i_pipe)
+		return (file->f_mode&1)?read_pipe(inode,buf,count):-EIO;
+	if (S_ISCHR(inode->i_mode))
+		return rw_char(READ,inode->i_zone[0],buf,count,&file->f_pos);
+	if (S_ISBLK(inode->i_mode))
+		return block_read(inode->i_zone[0],&file->f_pos,buf,count);
+	if (S_ISDIR(inode->i_mode) || S_ISREG(inode->i_mode)) {
+		if (count+file->f_pos > inode->i_size)
+			count = inode->i_size - file->f_pos;
+		if (count<=0)
+			return 0;
+		return file_read(inode,file,buf,count);
+	}
+	printk("(Read)inode->i_mode=%06o\n\r",inode->i_mode);
+	return -EINVAL;
+}
+
+/* ... 省略其他代码 */
+```
+
+以字符设备为例，`rw_char`在`/fs/char_dev.c`中，用于找到相应的设备号，并调用对应的函数：
+```c
+
+/* ... 省略其他代码 */
+
+typedef int (*crw_ptr)(int rw,unsigned minor,char * buf,int count,off_t * pos);
+
+/* ... 省略其他代码 */
+
+#define NRDEVS ((sizeof (crw_table))/(sizeof (crw_ptr)))
+
+static crw_ptr crw_table[]={
+	NULL,		/* nodev */
+	rw_memory,	/* /dev/mem etc */
+	NULL,		/* /dev/fd */
+	NULL,		/* /dev/hd */
+	rw_ttyx,	/* /dev/ttyx */
+	rw_tty,		/* /dev/tty */
+	NULL,		/* /dev/lp */
+	NULL};		/* unnamed pipes */
+
+int rw_char(int rw,int dev, char * buf, int count, off_t * pos)
+{
+	crw_ptr call_addr;
+
+	if (MAJOR(dev)>=NRDEVS)
+		return -ENODEV;
+	if (!(call_addr=crw_table[MAJOR(dev)]))
+		return -ENODEV;
+	return call_addr(rw,MINOR(dev),buf,count,pos);
+}
+```
+
+在`include/linux/fs.h`中定义了`MAJOR`与`MINOR`，其含义为主设备号与从设备号:
+```c
+#define MAJOR(a) (((unsigned)(a))>>8)
+#define MINOR(a) ((a)&0xff)
+```
+
+如上`call_addr`为`rw_memory`以及`rw_tty`和`rw_ttyx`几个函数，其也在`/fs/char_dev.c`中:
+```c
+static int rw_ttyx(int rw,unsigned minor,char * buf,int count,off_t * pos)
+{
+	return ((rw==READ)?tty_read(minor,buf,count):
+		tty_write(minor,buf,count));
+}
+
+static int rw_tty(int rw,unsigned minor,char * buf,int count, off_t * pos)
+{
+	if (current->tty<0)
+		return -EPERM;
+	return rw_ttyx(rw,current->tty,buf,count,pos);
+}
+
+```
+
+最终将调用`tty_read`,其在`kernel/chr_dev/tty_io.c`中,其流程大概为从队列中读取数据，如果队列为空则当前进程`sleep_if_empty`,否则则读取数据，最终返回读取的字符个数：
+
+```c
+int tty_read(unsigned channel, char * buf, int nr)
+{
+	struct tty_struct * tty;
+	char c, * b=buf;
+	int minimum,time,flag=0;
+	long oldalarm;
+
+	if (channel>2 || nr<0) return -1;
+	tty = &tty_table[channel];
+	oldalarm = current->alarm;
+	
+	# 这段时间相关的代码一下没搞明白，觉得不重要，所以也没有花功夫去理解这一块，待有缘人来给这块加注释
+	time = 10L*tty->termios.c_cc[VTIME];
+	minimum = tty->termios.c_cc[VMIN];
+	if (time && !minimum) {
+		minimum=1;
+		if ((flag=(!oldalarm || time+jiffies<oldalarm)))
+			current->alarm = time+jiffies;
+	}
+	if (minimum>nr)
+		minimum=nr;
+	while (nr>0) {
+		// 处理信号
+		if (flag && (current->signal & ALRMMASK)) {
+			current->signal &= ~ALRMMASK;
+			break;
+		}
+		if (current->signal)
+			break;
+			
+		// 队列中的数据为空，则sleep等待数据到来
+		if (EMPTY(tty->secondary) || (L_CANON(tty) &&
+		!tty->secondary.data && LEFT(tty->secondary)>20)) {
+			sleep_if_empty(&tty->secondary);
+			continue;
+		}
+		
+		//循环读取字符，读去nr个或者队列中数据为空
+		do {
+			if (c==EOF_CHAR(tty) || c==10)
+				tty->secondary.data--;
+			if (c==EOF_CHAR(tty) && L_CANON(tty))
+				return (b-buf);
+			else {
+				put_fs_byte(c,b++);
+				if (!--nr)
+					break;
+			}
+		} while (nr>0 && !EMPTY(tty->secondary));
+		
+		// 不懂
+		if (time && !L_CANON(tty)) {
+			if ((flag=(!oldalarm || time+jiffies<oldalarm)))
+				current->alarm = time+jiffies;
+			else
+				current->alarm = oldalarm;
+		}
+		
+		if (L_CANON(tty)) {
+			if (b-buf)
+				break;
+		} else if (b-buf >= minimum)
+			break;
+	}
+	current->alarm = oldalarm;
+	if (current->signal && !(b-buf))
+		return -EINTR;
+	
+	// 返回最终读取到字符的个数
+	return (b-buf);
+}
 
 
