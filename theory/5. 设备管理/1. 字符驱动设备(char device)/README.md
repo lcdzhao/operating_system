@@ -295,7 +295,7 @@ int tty_read(unsigned channel, char * buf, int nr)
 
 > eg: 屏幕写或者网络写的过程基本相同，不同的地方在于网络包多了一些控制(如：滑动窗口，拥塞控制，校验等等)。
 
-### STEP 1：从用户空间通过系统调用写到内核空间
+### 源码分析
 
 所有设备的读都是通过相同的`sys_write`系统调用来进行的，具体如下:
 
@@ -644,13 +644,8 @@ void con_write(struct tty_struct * tty)
 }
 ```
 
-### STEP2：将数据从内核空间写到硬件设备
-#### 终端写
 
-
-
-#### 串行写
-该段代码在`kernel/chr_drv/rs_io.s`中：
+实际的写代码在`kernel/chr_drv/rs_io.s`中：
 
 ![rs_io1](README.assets/rs_io1.png)
 
