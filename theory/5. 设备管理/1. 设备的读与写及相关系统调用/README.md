@@ -9,8 +9,8 @@
 #### 相关源码
 
 ##### 相关数据结构
-```
 `include/linux/tty.h` 中定义了 `tty_struct`(一个`tty_struct`对应了一个设备) 与 `tty_queue`(用于当作设备对应的数据队列) ：
+
 ```c
 struct tty_struct {
 	struct termios termios;
