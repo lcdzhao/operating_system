@@ -572,10 +572,63 @@ struct tty_struct tty_table[] = {
 
 ![rs_write_2](README.assets/rs_write_2.png)
 
+实际的写代码在`kernel/chr_drv/rs_io.s`中：
+
+![rs_io1](README.assets/rs_io1.png)
+
+``` asm
+rs2_interrupt:
+	/* 省略其他代码 */
+	call jmp_table(,%eax,2)		/* 这里即调用write_char */
+	/* 省略其他代码 */
+
+jmp_table:
+	.long modem_status,write_char,read_char,line_status
+
+.align 2
+
+write_char:
+	movl 4(%ecx),%ecx		# write-queue
+	movl head(%ecx),%ebx
+	subl tail(%ecx),%ebx
+	andl $size-1,%ebx		# nr chars in queue
+	je write_buffer_empty
+	cmpl $startup,%ebx		# 队列中剩余的字符小于256个才唤醒sleeping process，否则直接跳到1去执行
+	ja 1f
+	movl proc_list(%ecx),%ebx	# wake up sleeping process，这块和读数据时唤醒的方式一致
+	testl %ebx,%ebx			
+	je 1f
+	movl $0,(%ebx)			# 通过这句来唤醒队首的进程，从而唤醒所有睡着的进程
+1:	movl tail(%ecx),%ebx
+	movb buf(%ecx,%ebx),%al
+	outb %al,%dx
+	incl %ebx
+	andl $size-1,%ebx
+	movl %ebx,tail(%ecx)
+	cmpl head(%ecx),%ebx
+	je write_buffer_empty
+	ret
+.align 2
+write_buffer_empty:
+	movl proc_list(%ecx),%ebx	# wake up sleeping process，这块和读数据时唤醒的方式一致
+	testl %ebx,%ebx			# is there any?
+	je 1f
+	movl $0,(%ebx)			# 通过这句来唤醒队首的进程，从而唤醒所有睡着的进程
+1:	incl %edx
+	inb %dx,%al
+	jmp 1f
+1:	jmp 1f
+1:	andb $0xd,%al		/* disable transmit interrupt，屏蔽发送中断 */
+	outb %al,%dx
+	ret
+```
+
 > 更加详细的解释见：[Linux0.11注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)
 
 #### `con_write`(控制终端写)
+
 其中`con_write`(控制终端写)位于`kernel/chr_dev/console.c`中，`con_write`没有考虑写队列满的情况，故没有`wake_up`的相关操作：
+
 ```C
 void con_write(struct tty_struct * tty)
 {
@@ -738,58 +791,6 @@ void con_write(struct tty_struct * tty)
 	}
 	set_cursor();
 }
-```
-
-
-实际的写代码在`kernel/chr_drv/rs_io.s`中：
-
-![rs_io1](README.assets/rs_io1.png)
-
-``` asm
-rs2_interrupt:
-	/* 省略其他代码 */
-	call jmp_table(,%eax,2)		/* 这里即调用write_char */
-	/* 省略其他代码 */
-
-jmp_table:
-	.long modem_status,write_char,read_char,line_status
-
-.align 2
-
-write_char:
-	movl 4(%ecx),%ecx		# write-queue
-	movl head(%ecx),%ebx
-	subl tail(%ecx),%ebx
-	andl $size-1,%ebx		# nr chars in queue
-	je write_buffer_empty
-	cmpl $startup,%ebx		# 队列中剩余的字符小于256个才唤醒sleeping process，否则直接跳到1去执行
-	ja 1f
-	movl proc_list(%ecx),%ebx	# wake up sleeping process，这块和读数据时唤醒的方式一致
-	testl %ebx,%ebx			
-	je 1f
-	movl $0,(%ebx)			# 通过这句来唤醒队首的进程，从而唤醒所有睡着的进程
-1:	movl tail(%ecx),%ebx
-	movb buf(%ecx,%ebx),%al
-	outb %al,%dx
-	incl %ebx
-	andl $size-1,%ebx
-	movl %ebx,tail(%ecx)
-	cmpl head(%ecx),%ebx
-	je write_buffer_empty
-	ret
-.align 2
-write_buffer_empty:
-	movl proc_list(%ecx),%ebx	# wake up sleeping process，这块和读数据时唤醒的方式一致
-	testl %ebx,%ebx			# is there any?
-	je 1f
-	movl $0,(%ebx)			# 通过这句来唤醒队首的进程，从而唤醒所有睡着的进程
-1:	incl %edx
-	inb %dx,%al
-	jmp 1f
-1:	jmp 1f
-1:	andb $0xd,%al		/* disable transmit interrupt，屏蔽发送中断 */
-	outb %al,%dx
-	ret
 ```
 
 > 更加详细的解释见：[Linux0.11注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)
