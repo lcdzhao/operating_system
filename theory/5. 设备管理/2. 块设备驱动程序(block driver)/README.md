@@ -78,3 +78,6 @@ extern struct request request[NR_REQUEST];	//请求项数组(NR_REQUEST=32)
 `blk.h` 中定义了 3 个 C 程序中共用的块设备结构和数据块请求结构。`hd.c` 程序主要实现对硬盘数据块 进行读/写的底层驱动函数, 主要是 `do_hd__request()`函数﹔ `floppy.c` 程序中主要实现了对软盘数据块的读 / 写驱动函数,主要是 `do_fd_request()` 函数。 `ll_rw_blk.c`  中程序实现了低层块设备数据读/ 写函数 `ll_rw_block()`, 内核中所有其他程序都是通过该函数对块设备进行数据读写操作。你将看到该函数在许多 访问块设备数据的地方被调用,尤其是在高速缓冲区处理文件 `fs/buffer.c` 中。
 
 其具体源码分析见：[linux_0.1.1_注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)
+
+## 参考文献
+- [linux_0.1.1_注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)
