@@ -1,11 +1,5 @@
 # 这块根据 Linux 0.11 的第10章 字符驱动重新写一遍。
 
-
-# 设备的读与写
-![read_and_write_series](README.assets/read_and_write_series.png)
-
-
-
 ## 字符设备驱动程序子目录`kernel/chr_drv`
 字符设备程序子目录共含有 4  个 C  语言程序和 2  个汇编程序文件。这些文件实现了对串行端口 rs-232、串行终端、键盘和控制台终端设备的驱动。下图是这些文件之间的大致调用层次关系：
 
