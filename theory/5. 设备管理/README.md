@@ -87,3 +87,8 @@ int sys_write(unsigned int fd,char * buf,int count)
 /* ... 省略其他代码 */
 ```
 
+## 字符设备驱动程序(char device)
+[点击跳转](https://github.com/lcdzhao/operating_system/tree/master/theory/5.%20%E8%AE%BE%E5%A4%87%E7%AE%A1%E7%90%86/1.%20%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F(char%20device))
+## 块设备驱动程序(block driver)
+[点击跳转](https://github.com/lcdzhao/operating_system/tree/master/theory/5.%20%E8%AE%BE%E5%A4%87%E7%AE%A1%E7%90%86/2.%20%E5%9D%97%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F(block%20driver))
+
