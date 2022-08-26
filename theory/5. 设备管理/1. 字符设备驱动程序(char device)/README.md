@@ -138,7 +138,7 @@ sys_write, sys_open, sys_close, sys_waitpid, sys_creat, sys_link,
 sys_unlink, sys_execve, sys_chdir, /* ... 省略其他代码 */ }
 ```
 
-`sys_read()`在`fs/read_write.c`中“
+`sys_read()`在`fs/read_write.c`中：
 ```c
 /* ... 省略其他代码 */
 
@@ -326,7 +326,7 @@ sys_write, sys_open, sys_close, sys_waitpid, sys_creat, sys_link,
 sys_unlink, sys_execve, sys_chdir, /* ... 省略其他代码 */ }
 ```
 
-`sys_write()`在`fs/read_write.c`中“
+`sys_write()`在`fs/read_write.c`中：
 ```c
 /* ... 省略其他代码 */
 
