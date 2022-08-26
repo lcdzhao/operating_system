@@ -3,6 +3,21 @@
 
 # 设备的读与写
 ![read_and_write_series](README.assets/read_and_write_series.png)
+
+
+
+## 字符设备驱动程序子目录`kernel/chr_drv`
+字符设备程序子目录共含有 4  个 C  语言程序和 2  个汇编程序文件。这些文件实现了对串行端口 rs-232、串行终端、键盘和控制台终端设备的驱动。下图是这些文件之间的大致调用层次关系：
+
+![kernel_chr_drv](README.assets/kernel_chr_drv.png)
+
+- `tty_io.c` 程序中包含 tty 字符设备读函数 `tty_read()`和写函数 `tty_write()`,为文件系统提供了上层访问 接口。另外还包括在串行中断处理过程中调用的 C  函数 `do_tty_interrupt()`,该函数将会在中断类型为读字符的处理中被调用。
+- `console.c` 文件主要包含控制台初始化程序和控制台写函数 `con_write()`, 用于被 tty 设备调用。还包含 对显示器和键盘中断的初始化设置程序 `con_init()`。
+- `rs_io.s` 汇编程序用于实现两个串行接口的中断处理程序。该中断处理程序会根据从中断标识寄存器 (端口 `0x3fa` 或 `0x2fa`) 中取得的 4 种中断类型分别进行处理, 并在处理中断类型为读字符的代码中调用 `do_tty_interrupt()`。
+- `serial.c` 用于对异步串行通信芯片 UART 进行初始化操作, 并设置两个通信端口的中断向量。另外还 包括 tty 用于往串口输出的 `rs_write()` 函数。
+- `tty_ioctl.c` 程序实现了 tty 的 io 控制接口函数 `tty_ioctl()`以及对 termio(s)终端 io 结构的读写函数,并 会在实现系统调用 `sys_ioctl()`的 `fs/ioctl.c` 程序中被调用。
+- `keyboard.S` 程序主要实现了键盘中断处理过程 `keyboard_interrupt`。
+
 ## 数据结构
 `include/linux/tty.h` 中定义了 `tty_struct`(一个`tty_struct`对应了一个设备) 与 `tty_queue`(用于当作设备对应的数据队列) ：
 
