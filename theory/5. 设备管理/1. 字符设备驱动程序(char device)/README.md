@@ -143,7 +143,7 @@ struct tty_queue * table_list[]={
 
 ```
 
-##  读
+##  读(仅分析控制台终端，串行终端读这里略过)
 > eg: 键盘或者网络读，网络读取与键盘读取的过程基本相同，不同的地方在于网络包多了一些控制(如：滑动窗口，拥塞控制，校验等等)。
 
 ### 源码分析
@@ -569,9 +569,10 @@ struct tty_struct tty_table[] = {
 };
 ```
 
-于是我们看到了   `con_write`(终端写) 与 `rs_write`(串行写)：
+于是我们看到了 `rs_write`(串行终端写) 与 `con_write`(控制终端写) ：
 
-`rs_write`(串行写) 位于`kernel/chr_drv/serial.c`中：
+#### `rs_write`(串行终端写)
+`rs_write`(串行终端写) 位于`kernel/chr_drv/serial.c`中：
 
 ![rs_write_1](README.assets/rs_write_1.png)
 
@@ -579,7 +580,8 @@ struct tty_struct tty_table[] = {
 
 > 更加详细的解释见：[Linux0.11注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)
 
-其中`con_write`(终端写)位于`kernel/chr_dev/console.c`中，`con_write`没有考虑写队列满的情况，故没有`wake_up`的相关操作：
+#### `con_write`(控制终端写)
+其中`con_write`(控制终端写)位于`kernel/chr_dev/console.c`中，`con_write`没有考虑写队列满的情况，故没有`wake_up`的相关操作：
 ```C
 void con_write(struct tty_struct * tty)
 {
