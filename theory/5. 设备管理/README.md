@@ -8,3 +8,82 @@
 
 ![devices](README.assets/devices.png)
 
+## 设备的读与写
+在`Linux`中，**一些皆文件**。故和文件读写一样，设备的读写也是通过系统调用`sys_read`和`sys_write`来实现。其具体源码分析如下：
+### 源码分析
+在`include/linux/sys.h`中指定`sys_read`为4号系统调用,`sys_write`为4号系统调用：
+
+```c
+/* ... 省略其他代码 */
+extern int sys_read();
+extern int sys_write();
+/* ... 省略其他代码 */
+
+fn_ptr sys_call_table[] = { sys_setup, sys_exit, sys_fork, sys_read,
+sys_write, /* ... 省略其他代码 */ }
+```
+
+`sys_read()`在`fs/read_write.c`中，其具体调用设备相对应的驱动函数：
+
+```c
+/* ... 省略其他代码 */
+
+int sys_read(unsigned int fd,char * buf,int count)
+{
+	struct file * file;
+	struct m_inode * inode;
+
+	if (fd>=NR_OPEN || count<0 || !(file=current->filp[fd]))
+		return -EINVAL;
+	if (!count)
+		return 0;
+	verify_area(buf,count);
+	inode = file->f_inode;
+	if (inode->i_pipe)
+		return (file->f_mode&1)?read_pipe(inode,buf,count):-EIO;
+	if (S_ISCHR(inode->i_mode))
+		return rw_char(READ,inode->i_zone[0],buf,count,&file->f_pos);   //调用字符设备读
+	if (S_ISBLK(inode->i_mode))
+		return block_read(inode->i_zone[0],&file->f_pos,buf,count);     //调用块设备读
+	if (S_ISDIR(inode->i_mode) || S_ISREG(inode->i_mode)) {
+		if (count+file->f_pos > inode->i_size)
+			count = inode->i_size - file->f_pos;
+		if (count<=0)
+			return 0;
+		return file_read(inode,file,buf,count);
+	}
+	printk("(Read)inode->i_mode=%06o\n\r",inode->i_mode);
+	return -EINVAL;
+}
+```
+
+`sys_write()`在`fs/read_write.c`中，其具体调用设备相对应的驱动函数：
+
+```c
+/* ... 省略其他代码 */
+
+int sys_write(unsigned int fd,char * buf,int count)
+{
+	struct file * file;
+	struct m_inode * inode;
+	
+	if (fd>=NR_OPEN || count <0 || !(file=current->filp[fd]))
+		return -EINVAL;
+	if (!count)
+		return 0;
+	inode=file->f_inode;
+	if (inode->i_pipe)
+		return (file->f_mode&2)?write_pipe(inode,buf,count):-EIO;
+	if (S_ISCHR(inode->i_mode))
+		return rw_char(WRITE,inode->i_zone[0],buf,count,&file->f_pos);    //调用字符设备写
+	if (S_ISBLK(inode->i_mode))
+		return block_write(inode->i_zone[0],&file->f_pos,buf,count);      //调用块设备写
+	if (S_ISREG(inode->i_mode))
+		return file_write(inode,file,buf,count);
+	printk("(Write)inode->i_mode=%06o\n\r",inode->i_mode);
+	return -EINVAL;
+}
+
+/* ... 省略其他代码 */
+```
+
