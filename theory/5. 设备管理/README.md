@@ -11,7 +11,7 @@
 ## 设备的读与写
 在`Linux`中，**一切皆文件**。故和文件读写一样，设备的读写也被包含在系统调用`sys_read`和`sys_write`中。其具体源码分析如下：
 ### 源码分析
-在`include/linux/sys.h`中指定`sys_read`为4号系统调用,`sys_write`为4号系统调用：
+在`include/linux/sys.h`中指定`sys_read`为4号系统调用,`sys_write`为5号系统调用：
 
 ```c
 /* ... 省略其他代码 */
