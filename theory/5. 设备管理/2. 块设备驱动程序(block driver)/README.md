@@ -30,6 +30,36 @@ extern struct blk_dev_struct blk_dev[NR_BLK_DEV];   //块设备表(数组)(NR_BL
 
 ![blk_devs](README.assets/blk_devs.png)
 
+当内核发出一个块设备读写或其他操作请求时,`ll_rw_block()`函数即会根据其参数中指明的操作命令 和数据缓冲块头中的设备号, 利用对应的请求项操作函数 `do_XX_request()`建立一个块设备请求项(函数名中的'XX'可以是'rd' 、'fd'或'hd', 分别代表内存、软盘和硬盘块设备), 并利用电梯算法插入到请求项队列中。请求项队列由请求项数组中的项构成,共有 32 项, 每个请求项的数据结构如下所示:
+```c
+struct request {
+	int dev;				//使用的设备号(若为-1, 表示该项空闲)
+	int cmd;				//命令(READ 或 WRITE)。
+	int errors;				//操作时产生的错误次数
+	unsigned long sector;			//起始扇区。(1 块=2 扇区)
+	unsigned long nr_sectors;		//读/写扇区数。
+	char * buffer;				//数据缓冲区。
+	struct task_struct * waiting;		//等待操作执行完成的任务
+	struct buffer_head * bh;		//缓冲区头指针(inblucd/linux/fs.h,68)。 
+	struct request * next;			//指向下一请求项。
+};
+
+extern struct request request[NR_REQUEST];	//请求项数组(NR_REQUEST=32)
+```
+每个块设备的当前请求指针与请求项数组中该设备的请求项链表共同构成了该设备的请求队列。项与项之间利用字段 `next` 指针形成链表。因此块设备项和相关的请求队列形成如下图所示结构。请求项采用数组加链表结构的主要原因是为了满足两个目的：
+
+- 一是利用请求项的数组结构在搜索空闲请求块时 可以进行循环操作,搜索访问时间复杂度为常数,因此程序可以编制得很简洁﹔
+- 二是为满足电梯算法(Elevator Algorithm) 插入请求项操作, 因此也需要采用链表结构。
+ 
+下图中示出了硬盘设备当前具有 4 个请求项,软盘设备具有 1 个请求项,而虚拟盘设备目前暂时没有读写请求项。
+
+![do_XX_request](README.assets/do_XX_request.png)
+
+对于一个当前空闲的块设备,当 `ll_rw_block()` 函数为其建立第一个请求项时,会让该设备的当前请求项指针 `current_request` 直接指向刚建立的请求项,并且立刻调用对应设备的请求项操作函数开始执行 块设备读写操作。当一个块设备已经有几个请求项组成的链表存在, `ll_rw_block()`就会利用电梯算法, 根据磁头移动距离最小原则,把新建的请求项插入到链表适当的位置处。
+
+另外,为满足读操作的优先权,在为建立新的请求项而搜索请求项数组时,把建立写操作时的空闲 项搜索范围限制在整个请求项数组的前 2/3 范围内, 而剩下的 1/3 请求项专门给读操作建立请求项使用。
+
+### 块设备访问调度处理
 
 
 ## 与文件系统的关系
@@ -41,6 +71,8 @@ extern struct blk_dev_struct blk_dev[NR_BLK_DEV];   //块设备表(数组)(NR_BL
 ![kernel_blk_drv](README.assets/kernel_blk_drv.png)
 
 `blk.h` 中定义了 3 个 C 程序中共用的块设备结构和数据块请求结构。`hd.c` 程序主要实现对硬盘数据块 进行读/写的底层驱动函数, 主要是 `do_hd__request()`函数﹔ `floppy.c` 程序中主要实现了对软盘数据块的读 / 写驱动函数,主要是 `do_fd_request()` 函数。 `ll_rw_blk.c`  中程序实现了低层块设备数据读/ 写函数 `ll_rw_block()`, 内核中所有其他程序都是通过该函数对块设备进行数据读写操作。你将看到该函数在许多 访问块设备数据的地方被调用,尤其是在高速缓冲区处理文件 `fs/buffer.c` 中。
+
+
 
 
 
