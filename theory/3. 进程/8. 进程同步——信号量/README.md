@@ -1,5 +1,6 @@
 # 信号量
-
+> - [背景知识](https://www.bilibili.com/video/BV1uW411f72n?p=57&vd_source=afbe39567defad401c79f6fbb57691cf)
+> - [临界区及几种方法](https://www.bilibili.com/video/BV1uW411f72n?p=61&vd_source=afbe39567defad401c79f6fbb57691cf)
 ## 什么是信号量
 操作系统通常区分**计数信号量**与**二进制信号量**。
 
