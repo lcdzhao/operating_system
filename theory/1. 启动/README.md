@@ -1,7 +1,7 @@
 # 内核启动过程
->ps:该文章更加注重实践，很多部分会直接和源码结合来进行讲解，如果理论部分不是很熟悉的话，可以先参看：
+> ps:该文章更加注重实践，很多部分会直接和源码结合来进行讲解，如果理论部分不是很熟悉的话，可以先参看：
 >
->? [清华大学——操作系统](https://www.bilibili.com/video/BV1uW411f72n?p=11&vd_source=afbe39567defad401c79f6fbb57691cf) 中的第 2 章节。
+> [清华大学——操作系统](https://www.bilibili.com/video/BV1uW411f72n?p=11&vd_source=afbe39567defad401c79f6fbb57691cf) 中的第 2 章节。
 
 ## Image 文件构成
 Image 文件的构成由`Makefile`所指定。
