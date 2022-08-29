@@ -1,6 +1,7 @@
 **历史**:
 > - [Intel CPU 历史](https://github.com/lcdzhao/operating_system/tree/master/theory/%E7%A1%AC%E4%BB%B6%E7%9B%B8%E5%85%B3/CPU(Intel)%E5%8F%8A%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%8F%91%E5%B1%95%E5%8E%86%E5%8F%B2)
 > - [寻访x86处理器“实模式”和“保护模式”的前世此生](http://www.javashuo.com/article/p-pthhjsnp-ev.html)
+> - [虚拟内存起因](https://www.bilibili.com/video/BV1uW411f72n?p=22&spm_id_from=333.1007.top_right_bar_window_history.content.click&vd_source=afbe39567defad401c79f6fbb57691cf)
 
 # 实模式
 实模式出现于早期8086CPU时期，当时的操作系统很简单，大多数都是用在一个固定用途的机器上，即使是当时所谓的通用计算机，程序也大多都是使用这个机器的人来进行编写，很少有现在的一个机器上跑着到处下载来的应用，因此当时操作系统的需求很简单，能提供基本的功能就行，不太要求多个应用之间的隔离性和安全性等。所以那个时候的所有的应用的寻址方式都是一样的，都可以访问到任意物理地址的空间("实"指的大概就是这个)，它的寻址方式如下：

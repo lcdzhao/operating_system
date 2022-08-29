@@ -1,20 +1,108 @@
-# 这块根据 Linux 0.11 的第10章 字符驱动重新写一遍。
+# 字符设备驱动程序(char device)
+## 总体功能
+### 终端驱动程序基本原理
 
+可以把终端工作模式分成两种：
 
-# 设备的读与写
-![read_and_write_series](README.assets/read_and_write_series.png)
+- 一种是规范模式 (canonical), 此时经过终端程序的数据将被进行变换处理, 然后再送出。例如把 TAB 字符扩展为 8 个空格字符, 用键 入的删除字符(backspace) 控制删除前面键入的字符等。使用的处理函数一般称为行规则(line discipline) 模块。
+
+- 另一种是非规范模式或称原始(raw)模式。在这种模式下, 行规则程序仅在终端与进程之间传送数 据,而不对数据进行规范模式的变换处理。
+
+![process_of_char_dev](README.assets/process_of_char_dev.png)
+
+### 控制台终端和串行终端设备
+在 Linux 0.11 系统中可以使用两类终端。一类是主机上的控制台终端, 另一类是串行硬件终端设备。 
+
+- 控制台终端由内核中的键盘中断处理程序 `keyboard.s` 和显示控制程序 `console.c` 进行管理。它接收上层`tty_io.c` 程序传递下来的显示字符或控制信息, 并控制在主机屏幕上字符的显示, 同时控制台(主机) 把键盘按键产生的代码经由 `keyboard.s` 传送到 `tty_io.c` 程序去处理。
+
+- 串行终端设备则通过线路连接到计算机串行端口上,并通过内核中的串行程序 `rs_io.s` 与 `tty_io.c` 直接进行信息交互。
+
+![devs](README.assets/devs.png)
+
+####  控制台终端驱动程序
+
+![console](README.assets/console.png)
+
+#### 串行终端驱动程序
+
+![serise](README.assets/serise.png)
+
+#### 串行终端与控制台终端对比
+
+当进程需要写数据到一个串行终端上时, 操作过程与写终端类似, 只是此时终端的 `tty_struct` 数据结构中的写函数是串行终端写函数 `rs_write()`。
+
+该函数并不真正执行写的操作，而仅仅取消对发送保持寄存器空允许中断的屏蔽, 从而在发送保持寄存器为空时就会引起串行中断发生，真正的写数据的过程在中断中执行。
+
+**中断的执行代码在`rs_io.s`中，该中断从 `write_q` 写缓冲队列中取出一个字符并放入发送保持寄存器中进行字符发送操作。该操作过程也是一次中断发送一个字符, 到最后 `write_q` 为空时就会再次屏蔽发送保持寄存器空允许中断位, 从而禁止此类中断发生**。
+
+由此可见, 串行终端与控制台处理过程之间的主要区别是串行终端利用程序 `rs_io.s` 取代了控制台操作显示器和键盘的程序 `console.c` 和 `keyboard.S` ,其余部分的处理过程完全一样。
+
+### Linux 支持的终端设备类型
+终端是一种字符型设备,它有多种类型。我们通常使用 `tty` 来简称各种类型的终端设备。`tty` 是Teletype 的缩写。Teletype 是一种由Teletype 公司生产的最早出现的终端设备, 样子很象电传打字机。在 Linux 0.1x 系统设备文件目录`/dev/`中,通常包含以下一些终端设备文件: 
+
+![support_tty](README.assets/support_tty.png)
+
+这些终端设备文件可以分为以下几种类型：
+
+1）**控制台**(`/dev/ttyn`, `/dev/console`)
+
+> 在 Linux 系统中,计算机显示器通常被称为控制台终端或控制台(Console),并且有一些字符设备文件与之关联：tty0 、tty1 、tty2 等。
+>
+> 当我们在控制台上登录时, 使用的就是 tty1。另外, 使用 Alt+[F1—F6] 组合键我们就可以切换到tty2、tty3 等上面去。 tty1 – tty6 被称为虚拟终端, 而 tty0 则是当前所使用虚拟终端的一个别名。 Linux 系统所产生的信息都会发送到 tty0 上。因此不管当前正在使用哪个虚拟终端,系统信息都会发送到我们的屏幕上。
+> 
+> 你可以登录到不同的虚拟终端上去,因而可以让系统同时有几个不同的会话存在。但只有系统或超级用户 root 可以向`/dev/tty0` 执行写操作。而且有时`/dev/console`也会连接至该终端设备上。但在 Linux 0.12 系 统中, `/dev/console`通常连接到第 1 个虚拟终端 tty1 上。
+
+2） **串行端口终端**(`/dev/ttySn`)
+
+> 串行端口终端是使用计算机串行端口连接的终端设备。计算机把每个串行端口都看作是一个字符设备。有段时间这些串行端口设备通常被称为终端设备,因为那时它的最大用途就是用来连接终端。这些串行端口所对应的设备文件名是`/dev/ttyS0` 、`/dev/ttyS1` 等,设备号分别是`(4,64)`、`(4,65`)等,分别对应 于 DOS 系统下的 COM1、COM2。
+> 
+> 若要向一个端口发送数据, 可以在命令行上把标准输出重定向到这些特殊文件名上即可。例如,在命令行提示符下键入 `echo test > /dev/ttyS1`,就会把单词`test`发送到连接 在 `ttyS1` 端口的设备上。
+
+3） **进程控制终端**(`/dev/tty`)
+
+> 字符设备文件`/dev/tty`是**进程控制终端(Controlling Terminal) 的别名**, 其主设备号是 5,次设备号是 0。
+>
+> 如果当前进程有控制终端, 那么`/dev/tty`就是当前进程控制终端的设备文件。我们可以使用命令`ps –ax` 来查看进程与哪个控制终端相连。对于登录 shell 来讲, `/dev/tty` 就是我们使用的终端, 其设备号是(5,0)。我们可以使用命令`tty`来查看它具体对应哪个实际终端设备。实际上`/dev/tty` 有些类似于连接到实际终端 设备的一个链接。
+
+4）**伪终端**(`/dev/ptyp` 、`/dev/ttyp`)
+
+> 伪终端(Pseudo Terminals,或 Pseudo - TTY, 简称为 PTY) 是一种功能类似于一般终端的设备, 但是这种设备并不与任何终端硬件相关。伪终端均配对使用:
+> 
+> - 一个被称为主伪终端(Master PTY)或伪终端主设备。
+> - 另一个称为从伪终端(Slave PTY)或伪终端从设备。
+> 
+> 例如, 如果某人在网上使用telnet程序连接到你的计算机上, 那么 telnet 程序就可能会开始连接到伪 终端主设备 ptyp2 上。此时一个 getty 程序就应该运行在对应的 ttyp2 端口上。当 telnet 从远端获取了一个字符时, 该字符就会通过 ptyp2 、ttyp2 传递给 getty 程序, 而 getty 程序则会通过 ttyp2 、ptyp2 和telnet 程序往网络上送出 `login:` 字符串信息。这样,登录程序与 telnet 程序就通过"伪终端"进行通信。通过使用适当的软件,我们就可以把两个甚至多个伪终端设备连接到同一个物理端口上。
+> 
+> 以前的 Linux 系统最多只有 16 个成对的ttyp  (ttyp0—ttypf) 设备文件名。但现在的 Linux 系统上通常都使用"主伪终端(ptm - pty master)" 命名方式, 例如`/dev/ptm3`。它的对应端则会被自动创建成`/dev/pts/3`。
+
+5）**其它类型**
+
+> 现在的 Linux 系统中还针对很多不同的字符设备建有很多其它种类的终端设备特殊文件。例如针对 ISDN 设备的/dev/ttyIn 终端设备等。这里不再赘述。
+
+## 字符设备驱动程序子目录`kernel/chr_drv`
+字符设备程序子目录共含有 4  个 C  语言程序和 2  个汇编程序文件。这些文件实现了对串行端口 rs-232、串行终端、键盘和控制台终端设备的驱动。下图是这些文件之间的大致调用层次关系：
+
+![kernel_chr_drv](README.assets/kernel_chr_drv.png)
+
+- `tty_io.c` 程序中包含 tty 字符设备读函数 `tty_read()`和写函数 `tty_write()`,为文件系统提供了上层访问 接口。另外还包括在串行中断处理过程中调用的 C  函数 `do_tty_interrupt()`,该函数将会在中断类型为读字符的处理中被调用。
+- `console.c` 文件主要包含控制台初始化程序和控制台写函数 `con_write()`, 用于被 tty 设备调用。还包含 对显示器和键盘中断的初始化设置程序 `con_init()`。
+- `rs_io.s` 汇编程序用于实现两个串行接口的中断处理程序。该中断处理程序会根据从中断标识寄存器 (端口 `0x3fa` 或 `0x2fa`) 中取得的 4 种中断类型分别进行处理, 并在处理中断类型为读字符的代码中调用 `do_tty_interrupt()`。
+- `serial.c` 用于对异步串行通信芯片 UART 进行初始化操作, 并设置两个通信端口的中断向量。另外还 包括 tty 用于往串口输出的 `rs_write()` 函数。
+- `tty_ioctl.c` 程序实现了 tty 的 io 控制接口函数 `tty_ioctl()`以及对 termio(s)终端 io 结构的读写函数,并 会在实现系统调用 `sys_ioctl()`的 `fs/ioctl.c` 程序中被调用。
+- `keyboard.S` 程序主要实现了键盘中断处理过程 `keyboard_interrupt`。
+
 ## 数据结构
 `include/linux/tty.h` 中定义了 `tty_struct`(一个`tty_struct`对应了一个设备) 与 `tty_queue`(用于当作设备对应的数据队列) ：
 
 ```c
 struct tty_struct {
-	struct termios termios;
-	int pgrp;
-	int stopped;
-	void (*write)(struct tty_struct * tty);
-	struct tty_queue read_q;
-	struct tty_queue write_q;
-	struct tty_queue secondary;
+	struct termios termios;				//终端 io 属性和控制字符数据结构。
+	int pgrp;					//所属进程组。
+	int stopped;					//停止标志。
+	void (*write)(struct tty_struct * tty);		//tty 写函数指针
+	struct tty_queue read_q;			//tty 读队列。
+	struct tty_queue write_q;			//tty 写队列。
+	struct tty_queue secondary;			/tty 辅助队列(存放规范模式字符序列),可称为规范(熟)模式队列。 
 	};
 
 struct tty_queue {
@@ -23,6 +111,18 @@ struct tty_queue {
 	unsigned long tail;
 	struct task_struct * proc_list;
 	char buf[TTY_BUF_SIZE];
+};
+```
+
+`termios`定义在 `include/termios.h`中，其结构为：
+```c
+struct termios {
+	unsigned long c_iflag;		/* input mode flags */
+	unsigned long c_oflag;		/* output mode flags */
+	unsigned long c_cflag;		/* control mode flags */
+	unsigned long c_lflag;		/* local mode flags */
+	unsigned char c_line;		/* line discipline */
+	unsigned char c_cc[NCCS];	/* control characters */
 };
 ```
 
@@ -43,10 +143,8 @@ struct tty_queue * table_list[]={
 
 ```
 
-##  读
-> eg: 键盘或者网络读，网络读取与键盘读取的过程基本相同，不同的地方在于网络包多了一些控制(如：滑动窗口，拥塞控制，校验等等)。
-
-### 源码分析
+## 源码分析 
+### 读(仅分析控制台终端，串行终端读这里略过)
 #### 键盘注册中断
 `kernel/chr_dev/console.c`：
 
@@ -123,7 +221,7 @@ sys_write, sys_open, sys_close, sys_waitpid, sys_creat, sys_link,
 sys_unlink, sys_execve, sys_chdir, /* ... 省略其他代码 */ }
 ```
 
-`sys_read()`在`fs/read_write.c`中“
+`sys_read()`在`fs/read_write.c`中：
 ```c
 /* ... 省略其他代码 */
 
@@ -291,11 +389,7 @@ int tty_read(unsigned channel, char * buf, int nr)
 
 ```
 
-##  写
-
-> eg: 屏幕写或者网络写的过程基本相同，不同的地方在于网络包多了一些控制(如：滑动窗口，拥塞控制，校验等等)。
-
-### 源码分析
+###  写
 
 所有设备的读都是通过相同的`sys_write`系统调用来进行的，具体如下:
 
@@ -311,7 +405,7 @@ sys_write, sys_open, sys_close, sys_waitpid, sys_creat, sys_link,
 sys_unlink, sys_execve, sys_chdir, /* ... 省略其他代码 */ }
 ```
 
-`sys_write()`在`fs/read_write.c`中“
+`sys_write()`在`fs/read_write.c`中：
 ```c
 /* ... 省略其他代码 */
 
@@ -469,17 +563,72 @@ struct tty_struct tty_table[] = {
 };
 ```
 
-于是我们看到了   `con_write`(终端写) 与 `rs_write`(串行写)：
+于是我们看到了 `rs_write`(串行终端写) 与 `con_write`(控制终端写) ：
 
-`rs_write`(串行写) 位于`kernel/chr_drv/serial.c`中：
+#### `rs_write`(串行终端写)
+`rs_write`(串行终端写) 位于`kernel/chr_drv/serial.c`中：
 
 ![rs_write_1](README.assets/rs_write_1.png)
 
 ![rs_write_2](README.assets/rs_write_2.png)
 
+实际的写代码在`kernel/chr_drv/rs_io.s`中：
+
+![rs_io1](README.assets/rs_io1.png)
+
+``` asm
+rs2_interrupt:
+	/* 省略其他代码 */
+	call jmp_table(,%eax,2)		/* 这里即调用write_char */
+	/* 省略其他代码 */
+
+jmp_table:
+	.long modem_status,write_char,read_char,line_status
+
+.align 2
+
+write_char:
+	movl 4(%ecx),%ecx		# write-queue
+	movl head(%ecx),%ebx
+	subl tail(%ecx),%ebx
+	andl $size-1,%ebx		# nr chars in queue
+	je write_buffer_empty
+	cmpl $startup,%ebx		# 队列中剩余的字符小于256个才唤醒sleeping process，否则直接跳到1去执行
+	ja 1f
+	movl proc_list(%ecx),%ebx	# wake up sleeping process，这块和读数据时唤醒的方式一致
+	testl %ebx,%ebx			
+	je 1f
+	movl $0,(%ebx)			# 通过这句来唤醒队首的进程，从而唤醒所有睡着的进程
+1:	movl tail(%ecx),%ebx
+	movb buf(%ecx,%ebx),%al
+	outb %al,%dx
+	incl %ebx
+	andl $size-1,%ebx
+	movl %ebx,tail(%ecx)
+	cmpl head(%ecx),%ebx
+	je write_buffer_empty
+	ret
+.align 2
+write_buffer_empty:
+	movl proc_list(%ecx),%ebx	# wake up sleeping process，这块和读数据时唤醒的方式一致
+	testl %ebx,%ebx			# is there any?
+	je 1f
+	movl $0,(%ebx)			# 通过这句来唤醒队首的进程，从而唤醒所有睡着的进程
+1:	incl %edx
+	inb %dx,%al
+	jmp 1f
+1:	jmp 1f
+1:	andb $0xd,%al		/* disable transmit interrupt，屏蔽发送中断 */
+	outb %al,%dx
+	ret
+```
+
 > 更加详细的解释见：[Linux0.11注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)
 
-其中`con_write`(终端写)位于`kernel/chr_dev/console.c`中，`con_write`没有考虑写队列满的情况，故没有`wake_up`的相关操作：
+#### `con_write`(控制终端写)
+
+其中`con_write`(控制终端写)位于`kernel/chr_dev/console.c`中，`con_write`没有考虑写队列满的情况，故没有`wake_up`的相关操作：
+
 ```C
 void con_write(struct tty_struct * tty)
 {
@@ -644,56 +793,14 @@ void con_write(struct tty_struct * tty)
 }
 ```
 
-
-实际的写代码在`kernel/chr_drv/rs_io.s`中：
-
-![rs_io1](README.assets/rs_io1.png)
-
-``` asm
-rs2_interrupt:
-	/* 省略其他代码 */
-	call jmp_table(,%eax,2)		/* 这里即调用write_char */
-	/* 省略其他代码 */
-
-jmp_table:
-	.long modem_status,write_char,read_char,line_status
-
-.align 2
-
-write_char:
-	movl 4(%ecx),%ecx		# write-queue
-	movl head(%ecx),%ebx
-	subl tail(%ecx),%ebx
-	andl $size-1,%ebx		# nr chars in queue
-	je write_buffer_empty
-	cmpl $startup,%ebx		# 队列中剩余的字符小于256个才唤醒sleeping process，否则直接跳到1去执行
-	ja 1f
-	movl proc_list(%ecx),%ebx	# wake up sleeping process，这块和读数据时唤醒的方式一致
-	testl %ebx,%ebx			
-	je 1f
-	movl $0,(%ebx)			# 通过这句来唤醒队首的进程，从而唤醒所有睡着的进程
-1:	movl tail(%ecx),%ebx
-	movb buf(%ecx,%ebx),%al
-	outb %al,%dx
-	incl %ebx
-	andl $size-1,%ebx
-	movl %ebx,tail(%ecx)
-	cmpl head(%ecx),%ebx
-	je write_buffer_empty
-	ret
-.align 2
-write_buffer_empty:
-	movl proc_list(%ecx),%ebx	# wake up sleeping process，这块和读数据时唤醒的方式一致
-	testl %ebx,%ebx			# is there any?
-	je 1f
-	movl $0,(%ebx)			# 通过这句来唤醒队首的进程，从而唤醒所有睡着的进程
-1:	incl %edx
-	inb %dx,%al
-	jmp 1f
-1:	jmp 1f
-1:	andb $0xd,%al		/* disable transmit interrupt，屏蔽发送中断 */
-	outb %al,%dx
-	ret
-```
-
 > 更加详细的解释见：[Linux0.11注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)
+
+### `tty_ioctl.c`
+
+在 tty_ioctl.c 程序中, 实现了修改终端参数的输入输出控制函数(或系统调用) tty_ioctl()。终端的设置参数是放在终端数据结 构中的 termios 结构中, 其中的参数比较多,也比较复杂,请参考 include/termios.h 文件中的说明。
+
+对于不同终端设备,可以有不同的行规则程序与之匹配。但在 Linux 0.11 中仅有一个行规则函数, 因此 termios 结构中的行规则字段'c_line'不起作用,都被设置为 0。
+
+## 参考文章
+
+- [Linux0.11注释](https://github.com/lcdzhao/operating_system/tree/master/linux-0.1.1-labs/linux_0.1.1_%E6%B3%A8%E9%87%8A)
