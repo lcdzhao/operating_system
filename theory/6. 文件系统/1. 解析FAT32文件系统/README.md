@@ -91,3 +91,6 @@ FAT表中的表项位宽与FAT类型有关，例如，FAT12文件系统的表项
 
 ![long_dir_table](README.assets/long_dir_table.png)
 
+### FAT内存结构
+![fat_struct](README.assets/fat_struct.png)
+
