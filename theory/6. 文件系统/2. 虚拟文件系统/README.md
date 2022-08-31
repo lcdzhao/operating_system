@@ -4,7 +4,7 @@
 [点击跳转](https://zhuanlan.zhihu.com/p/402127017)
 
 ## 源码分析
-http://mickyching.github.io/kernel/linux-vfs-source-annotation.html#orgheadline32
+https://www.cnblogs.com/zengyiwen/p/5755186.html
 
 
 ## 内核源码分析-Page Cache
