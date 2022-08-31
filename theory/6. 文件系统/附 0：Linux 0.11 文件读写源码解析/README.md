@@ -1,0 +1,2 @@
+- [Linux文件操作源码分析记录（打开与读文件）](https://www.jianshu.com/p/f79f27817a28)
+- [Linux文件操作源码分析记录（写、修改、关闭、删除文件）](https://www.jianshu.com/p/44c61efafdf4)
