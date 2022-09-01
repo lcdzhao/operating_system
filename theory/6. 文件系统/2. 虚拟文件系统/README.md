@@ -4,7 +4,9 @@
 [点击跳转](https://zhuanlan.zhihu.com/p/402127017)
 
 ## 数据结构
-http://mickyching.github.io/kernel/linux-vfs-source-annotation.html
+![vfs-frame-look](README.assets/vfs-frame-look.png)
+
+![VFS](README.assets/VFS.png)
 
 ## mount 源码分析
 - 思路讲解：http://edsionte.com/techblog/archives/4389         
