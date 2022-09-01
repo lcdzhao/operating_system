@@ -1,6 +1,8 @@
 
 # 虚拟文件系统
-> 相关源码内核版本:[v5.19.5](https://elixir.bootlin.com/linux/v5.19.5/source)
+
+> 相关源码内核版本:  [v5.19.5](https://elixir.bootlin.com/linux/v5.19.5/source)
+
 ## 基本概念
 [点击跳转](https://zhuanlan.zhihu.com/p/402127017)
 
