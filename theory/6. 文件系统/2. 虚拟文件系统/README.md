@@ -55,12 +55,14 @@ https://www.cnblogs.com/zengyiwen/p/5755186.html
 
 （6）最后，块设备驱动（Block Device Driver）通过向磁盘控制器发送相应的命令，执行真正的数据传输。
 
-关于(1) (2) ，见:[Linux虚拟文件系统](https://github.com/lcdzhao/operating_system/blob/master/theory/6.%20%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2.%20%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/README.assets/Linux.Virtual.Filesystem.pdf)
+其中：
 
-关于(3)，见：[Linux内核文件Cache机制](https://github.com/lcdzhao/operating_system/blob/master/theory/6.%20%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2.%20%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/README.assets/Linux.Kernel.Cache.pdf)
+- 关于(1) (2) ，见:[Linux虚拟文件系统](https://github.com/lcdzhao/operating_system/blob/master/theory/6.%20%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2.%20%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/README.assets/Linux.Virtual.Filesystem.pdf)
 
-关于(4)，见: [Linux通用块设备层](https://github.com/lcdzhao/operating_system/blob/master/theory/6.%20%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2.%20%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/README.assets/Linux.Generic.Block.Layer.pdf)
+- 关于(3)，见：[Linux内核文件Cache机制](https://github.com/lcdzhao/operating_system/blob/master/theory/6.%20%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2.%20%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/README.assets/Linux.Kernel.Cache.pdf)
 
-关于(5)，见：[Linux内核I/O调度层](https://github.com/lcdzhao/operating_system/blob/master/theory/6.%20%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2.%20%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/README.assets/Linux.Kernel.IO.Scheduler.pdf)
+- 关于(4)，见: [Linux通用块设备层](https://github.com/lcdzhao/operating_system/blob/master/theory/6.%20%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2.%20%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/README.assets/Linux.Generic.Block.Layer.pdf)
 
-关于(6)，这里就不展开讲解了。
+- 关于(5)，见：[Linux内核I/O调度层](https://github.com/lcdzhao/operating_system/blob/master/theory/6.%20%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2.%20%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/README.assets/Linux.Kernel.IO.Scheduler.pdf)
+
+- 关于(6)，这里就不展开讲解了。
