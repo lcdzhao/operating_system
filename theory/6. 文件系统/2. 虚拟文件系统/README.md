@@ -18,9 +18,9 @@ https://www.cnblogs.com/zengyiwen/p/5755186.html
 ## read write 源码分析
 - [read](https://github.com/lcdzhao/operating_system/blob/master/theory/6.%20%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2.%20%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/README.assets/Linux.Kernel.Read.Procedure.pdf)
 
-- [Linux内核的文件预读机制详细详解](https://blog.csdn.net/kunyus/article/details/104620057)
+  - [Linux内核的文件预读机制详细详解](https://blog.csdn.net/kunyus/article/details/104620057)
 
-- [Linux内核的文件预读readahead查看与设置](https://blog.51cto.com/u_15338523/3592323)
+  - [Linux内核的文件预读readahead查看与设置](https://blog.51cto.com/u_15338523/3592323)
 
 - [write](https://github.com/lcdzhao/operating_system/blob/master/theory/6.%20%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2.%20%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/README.assets/Linux.Kernel.Write.Procedure.pdf)
 
