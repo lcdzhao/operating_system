@@ -23,6 +23,9 @@ https://www.cnblogs.com/zengyiwen/p/5755186.html
 ## Linux内核的文件预读机制详细详解
 - [Linux内核的文件预读机制详细详解](https://blog.csdn.net/kunyus/article/details/104620057)
 
+注意点：
+- mmap 与 普通读 的预读算法不一样，一个是 readahead，另一个是 readaround。
+
 其他可以参考的文章：
 
   - [Linux内核的文件预读readahead查看与设置](https://blog.51cto.com/u_15338523/3592323)
@@ -36,6 +39,7 @@ https://www.cnblogs.com/zengyiwen/p/5755186.html
 #### mmap相比普通读写文件的好处：
 
 - 减少内核空间到用户空间的数据拷贝
+
 - 减少系统调用次数
 
 #### socket与mmap：
@@ -45,6 +49,7 @@ https://www.cnblogs.com/zengyiwen/p/5755186.html
 [socket使用mmap](https://blog.csdn.net/ruixj/article/details/4153118)
 
 ## mmap缺页处理 与 Page Cache 刷脏源码分析
+
 [mmap缺页处理 与 Page Cache 刷脏源码分析](https://www.leviathan.vip/2019/06/01/Linux%E5%86%85%E6%A0%B8%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-Page-Cache%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/) -- 关于这篇文章里面的 缺页添加page，有下面几个注意点；
 
 - 该过程仅仅为文件通过mmap的缺页处理过程，并不是平常文件读取的过程。附：[Linux 缺页处理](https://www.leviathan.vip/2019/03/03/Linux%E5%86%85%E6%A0%B8%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-%E5%86%85%E5%AD%98%E8%AF%B7%E9%A1%B5%E6%9C%BA%E5%88%B6/)
