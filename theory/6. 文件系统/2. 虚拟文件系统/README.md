@@ -31,8 +31,8 @@ https://www.cnblogs.com/zengyiwen/p/5755186.html
 
 
 
-## Page Cache 刷脏源码分析
-[Page Cache 刷脏源码分析](https://www.leviathan.vip/2019/06/01/Linux%E5%86%85%E6%A0%B8%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-Page-Cache%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/) -- 关于这篇文章里面的 缺页添加page，有下面几个注意点；
+## mmap缺页处理 与 Page Cache 刷脏源码分析
+[mmap缺页处理 与 Page Cache 刷脏源码分析](https://www.leviathan.vip/2019/06/01/Linux%E5%86%85%E6%A0%B8%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-Page-Cache%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/) -- 关于这篇文章里面的 缺页添加page，有下面几个注意点；
 
 - 该过程仅仅为文件通过mmap的缺页处理过程，并不是平常文件读取的过程。附：[Linux 缺页处理](https://www.leviathan.vip/2019/03/03/Linux%E5%86%85%E6%A0%B8%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-%E5%86%85%E5%AD%98%E8%AF%B7%E9%A1%B5%E6%9C%BA%E5%88%B6/)
 
