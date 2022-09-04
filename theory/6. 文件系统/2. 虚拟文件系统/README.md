@@ -29,9 +29,16 @@ https://www.cnblogs.com/zengyiwen/p/5755186.html
   
   - [Linux Cache 机制与预读](https://github.com/lcdzhao/operating_system/blob/master/theory/6.%20%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2.%20%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/README.assets/Linux.Kernel.Cache.pdf)
 
-## mmap相比普通读写文件的好处
+## mmap
+
+[认真分析mmap：是什么 为什么 怎么用](https://www.cnblogs.com/huxiao-tee/p/4660352.html)
+
+mmap相比普通读写文件的好处：
+
 - 减少内核空间到用户空间的数据拷贝
 - 减少系统调用次数
+
+socket与mmap：
 
 [socket的mmap模式](https://blog.csdn.net/qq_17045267/article/details/117994823)
 
