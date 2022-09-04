@@ -52,7 +52,7 @@ https://www.cnblogs.com/zengyiwen/p/5755186.html
 
 - [网络、 DMA 与 0拷贝](https://blog.csdn.net/hancoder/article/details/112149121)
 
-- [socket使用mmap](https://blog.csdn.net/ruixj/article/details/4153118)
+- [socket使用mmap](https://blog.csdn.net/qq_17045267/article/details/117994823)
 
 # 其他讲解方式
 > 来源: https://ilinuxkernel.com/
