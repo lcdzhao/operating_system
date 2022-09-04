@@ -33,6 +33,10 @@ https://www.cnblogs.com/zengyiwen/p/5755186.html
 - 减少内核空间到用户空间的数据拷贝
 - 减少系统调用次数
 
+[socket的mmap模式](https://blog.csdn.net/qq_17045267/article/details/117994823)
+
+[socket使用mmap](https://blog.csdn.net/ruixj/article/details/4153118)
+
 ## mmap缺页处理 与 Page Cache 刷脏源码分析
 [mmap缺页处理 与 Page Cache 刷脏源码分析](https://www.leviathan.vip/2019/06/01/Linux%E5%86%85%E6%A0%B8%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-Page-Cache%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/) -- 关于这篇文章里面的 缺页添加page，有下面几个注意点；
 
@@ -54,9 +58,7 @@ https://www.cnblogs.com/zengyiwen/p/5755186.html
 
 - [网络、 DMA 与 0拷贝](https://blog.csdn.net/hancoder/article/details/112149121)
 
-- [socket使用mmap](https://blog.csdn.net/ruixj/article/details/4153118)
 
-- [socket的mmap模式](https://blog.csdn.net/qq_17045267/article/details/117994823)
 
 # 其他讲解方式
 > 来源: https://ilinuxkernel.com/
