@@ -50,7 +50,7 @@ https://www.cnblogs.com/zengyiwen/p/5755186.html
 
 - [0拷贝](https://blog.csdn.net/m0_68064743/article/details/123956987)
 
-- [网络 DMA 与 0拷贝](https://blog.csdn.net/hancoder/article/details/112149121)
+- [网络、 DMA 与 0拷贝](https://blog.csdn.net/hancoder/article/details/112149121)
 
 # 其他讲解方式
 > 来源: https://ilinuxkernel.com/
