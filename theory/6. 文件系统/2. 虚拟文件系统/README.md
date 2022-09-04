@@ -44,6 +44,8 @@ https://www.cnblogs.com/zengyiwen/p/5755186.html
 
 #### socket与mmap：
 
+[socket mmap官方文档](https://docs.kernel.org/networking/packet_mmap.html)
+
 [socket的mmap模式](https://blog.csdn.net/qq_17045267/article/details/117994823)
 
 [socket使用mmap](https://blog.csdn.net/ruixj/article/details/4153118)
