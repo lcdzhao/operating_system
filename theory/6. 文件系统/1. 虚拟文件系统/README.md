@@ -55,6 +55,8 @@ http://edsionte.com/techblog/archives/4389
 ## sync、fsync、fdatasync
 https://www.cnblogs.com/ZhuChangwu/p/14047108.html
 
+> ps: 执行了flush()操作，也就是发生了fsync的系统调用。
+
 ## mmap
 
 [认真分析mmap：是什么 为什么 怎么用](https://www.cnblogs.com/huxiao-tee/p/4660352.html)
