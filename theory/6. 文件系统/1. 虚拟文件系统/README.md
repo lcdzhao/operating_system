@@ -27,10 +27,7 @@ http://edsionte.com/techblog/archives/4389
 
 ### close
 > close系统调用的基本功能是关闭文件描述符并释放其对应的内核资源。
-> 
-> - 关闭不存在的文件描述符，返回错误
-> - 若驱动实现了flush 函数，则调用，删除posix文件锁
-> - 将文件对象的引用计数减1后若为0，则在epoll中删除（若之前加入过epoll），删除文件锁，若设置了FASYNC标志则调用驱动的fasync函数，最后调用驱动的release函数
+
 #### 源码分析
 [CLOSE 系统调用](https://github.com/buckrudy/Blog/issues/17)
 
