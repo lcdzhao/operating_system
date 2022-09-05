@@ -8,12 +8,21 @@
 
 ![VFS](README.assets/VFS.png)
 
+## LINUX RCU机制
+在分析源码前我们来看一下 LINUX RCU机制，因为该机制被内核大量使用：http://kerneltravel.net/blog/2021/rcu_szp/ 。
+
 ## mount 源码分析
 http://edsionte.com/techblog/archives/4389         
 
 
 ## open close 源码分析
-https://www.cnblogs.com/zengyiwen/p/5755186.html
+
+[OPEN系统调用（一）](http://kerneltravel.net/blog/2021/open_syscall_szp1/)
+
+[OPEN系统调用（二）](http://kerneltravel.net/blog/2021/open_syscall_szp2/)
+
+[CLOSE 系统调用](https://github.com/buckrudy/Blog/issues/17)
+
 
 ## read write 源码分析
 - [read](https://zhuanlan.zhihu.com/p/476181560?utm_id=0)，可同时参考内容基本差不多的[read](https://github.com/lcdzhao/operating_system/blob/master/theory/6.%20%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2.%20%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/README.assets/Linux.Kernel.Read.Procedure.pdf)
