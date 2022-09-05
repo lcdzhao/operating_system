@@ -80,6 +80,12 @@ https://www.cnblogs.com/ZhuChangwu/p/14047108.html
 
 - 缺页处理过程这个文章里面讲page将会插入到pagecache，实际上真正能让应用程序读到page并不是因为将其加入到了pagecache（而是将该page映射到虚拟内存，加入到pagecache和映射到虚拟内存是两回事），加入pagecache只是为了让该文件同时被普通读（非mmap读）的时候不再需要去重复地去内存再去读，其与mmap对应到的page缓存相同，一方面不会有赘余空间，另一方面又减少一次读硬盘。也即：mmap和普通读所用的缓存统一起来了，做到了不赘余。这块和2.6版本将 pagecache 与 buffer 合一有点像，都是减少了不必要的多份数据，即避免了数据同步的问题，又可以提升性能。
 
+## io_uring
+粗略介绍：https://blog.csdn.net/lxzhong1/article/details/124614930
+
+细节讲解: https://www.jianshu.com/p/32a3c72da1c1
+### io_uring vs epoll
+https://blog.csdn.net/yunqiinsight/article/details/122123230
 
 ## 块缓存与pagecache
 在内核2.6版本以前，在读文件时，回先将文件读到块缓存中（硬盘驱动读数据时需要将数据读到某一块缓存），然后再从块缓存拷贝到pagecache中。猜测当时这么做是为了代码上的清晰，有种单一职责的感觉，将读硬盘的指责与文件页缓存的职责分开。
