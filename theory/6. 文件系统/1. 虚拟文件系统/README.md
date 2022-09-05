@@ -52,6 +52,9 @@ http://edsionte.com/techblog/archives/4389
   
   - [Linux Cache 机制与预读](https://github.com/lcdzhao/operating_system/blob/master/theory/6.%20%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2.%20%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/README.assets/Linux.Kernel.Cache.pdf)
 
+## sync、fsync、fdatasync
+https://www.cnblogs.com/ZhuChangwu/p/14047108.html
+
 ## mmap
 
 [认真分析mmap：是什么 为什么 怎么用](https://www.cnblogs.com/huxiao-tee/p/4660352.html)
