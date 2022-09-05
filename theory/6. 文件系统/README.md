@@ -28,9 +28,3 @@
 - 数据区（Data Block）：文件与目录的不同最终体现在数据区，虽然两者保存的都是数据，但目录中保存的是维护目录层级关系的子目录项，这些子目录项可代表文件或子目录。目录项如此往复地逐层堆砌便形成了文件系统的树状结构。
 
 以上三个概念是对文件系统结构的高度概括，但由于每款文件系统的结构迥异，在它们的设计过程中其他辅助性概念还会引入。
-
-# 解析FAT32文件系统
-[点击跳转](https://github.com/lcdzhao/operating_system/tree/master/theory/6.%20%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/1.%20%E8%A7%A3%E6%9E%90FAT32%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F)
-
-# 虚拟文件系统
-[点击跳转](https://github.com/lcdzhao/operating_system/tree/master/theory/6.%20%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/2.%20%E8%99%9A%E6%8B%9F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F)
