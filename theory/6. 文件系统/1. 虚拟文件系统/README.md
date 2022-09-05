@@ -12,15 +12,26 @@
 在分析源码前我们来看一下 LINUX RCU机制，因为该机制被内核大量使用：http://kerneltravel.net/blog/2021/rcu_szp/ 。
 
 ## mount 源码分析
+> mount 用于挂载一个文件系统。
+### 源码分析
 http://edsionte.com/techblog/archives/4389         
 
 
-## open close 源码分析
-
+## open close
+### open
+> 用户进程在能够读/写一个文件之前必须要先“打开”这个文件。对文件的读/写从概念上说是一种进程与文件系统之间的一种“有连接”通信，所谓“打开文件”实质上就是在进程与文件之间建立起链接。在文件系统的处理中，每当一个进程重复打开同一个文件时就建立起一个由file数据结构代表的独立的上下文。通常，一个file数据结构，即一个读/写文件的上下文，都由一个打开文件号（fd）加以标识。
+#### 源码分析
 [OPEN系统调用（一）](http://kerneltravel.net/blog/2021/open_syscall_szp1/)
 
 [OPEN系统调用（二）](http://kerneltravel.net/blog/2021/open_syscall_szp2/)
 
+### close
+> close系统调用的基本功能是关闭文件描述符并释放其对应的内核资源。
+> 
+> - 关闭不存在的文件描述符，返回错误
+> - 若驱动实现了flush 函数，则调用，删除posix文件锁
+> - 将文件对象的引用计数减1后若为0，则在epoll中删除（若之前加入过epoll），删除文件锁，若设置了FASYNC标志则调用驱动的fasync函数，最后调用驱动的release函数
+#### 源码分析
 [CLOSE 系统调用](https://github.com/buckrudy/Blog/issues/17)
 
 
