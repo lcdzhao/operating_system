@@ -1,5 +1,5 @@
 - [深入理解Linux线程同步](https://blog.csdn.net/orangeboyye/article/details/125468728)
 - [深入理解Linux自旋锁](https://blog.csdn.net/orangeboyye/article/details/125488951?spm=1001.2014.3001.5502)
-- [CAS原理](https://www.jianshu.com/p/ab2c8fce878b)
 - [原子操作的实现原理](https://www.infoq.cn/article/atomic-operation)
+- [CAS原理](https://www.jianshu.com/p/ab2c8fce878b)
 - [全面理解Java内存模型(JMM)及volatile关键字](https://blog.csdn.net/javazejian/article/details/72772461?spm=1001.2014.3001.5506)
