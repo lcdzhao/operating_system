@@ -1,3 +1,5 @@
+![sync](sync.png)
+
 - [深入理解Linux线程同步](https://blog.csdn.net/orangeboyye/article/details/125468728) —— 建议只看该文章的 线程防同步方法 这一部分
 - [原子操作的实现原理](https://www.infoq.cn/article/atomic-operation)
 - [CAS原理](https://www.jianshu.com/p/ab2c8fce878b)
