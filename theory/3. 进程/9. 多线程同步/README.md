@@ -3,7 +3,9 @@
 - # [深入理解Linux线程同步](https://blog.csdn.net/orangeboyye/article/details/125468728) —— 建议只看该文章的 线程防同步方法 这一部分
 - # [MESI 协议](https://www.cnblogs.com/yanlong300/p/8986041.html)
 > 文章纠错: 
+> 
 > Store Bufferes
+> 
 > 为了避免这种CPU运算能力的浪费，Store Bufferes被引入使用。处理器把它想要**写入到主存的值写到缓存（正确应为：写入到主存的值写到缓存）**，然后继续去处理其他事情。当所有失效确认（Invalidate Acknowledge）都接收到时，数据才会最终被提交。
 - # [聊聊LOCK指令](https://albk.tech/%E8%81%8A%E8%81%8ACPU%E7%9A%84LOCK%E6%8C%87%E4%BB%A4.html)
 > ## 处理器如何实现原子操作
