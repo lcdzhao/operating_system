@@ -7,7 +7,7 @@
 > - LFENCE：在该指令前的读操作必须在该指令后的读操作前完成
 > - MFENCE：在该指令前的读写操作必须在该指令后的读写操作前完成
 > 
-> Java的volatile在实现层面用的不是fence族屏障，而是lock。lock是如何实现屏障效果的呢？JVM为什么不用fence族呢？这两个问题在下面的两篇文章中解答：
+> Java的volatile在实现层面用的不是fence族屏障，而是lock。lock是如何实现屏障效果的呢？JVM为什么不用fence族呢？这两个问题在下面的几篇文章中解答：
 > 
 > - [正确认识volatile（一）](https://mp.weixin.qq.com/s/et8yJm5fcnSy-eQGSrPd7A)
 > - [正确认识volatile（二）](https://mp.weixin.qq.com/s/wK3n42QNUO9Qp2Qql4Hslg)
