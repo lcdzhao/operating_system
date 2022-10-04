@@ -1,8 +1,8 @@
 ![sync](README.assets/sync.png)
 
-- [深入理解Linux线程同步](https://blog.csdn.net/orangeboyye/article/details/125468728) —— 建议只看该文章的 线程防同步方法 这一部分
-- [MESI 协议](https://www.cnblogs.com/yanlong300/p/8986041.html)
-- [聊聊LOCK指令](https://albk.tech/%E8%81%8A%E8%81%8ACPU%E7%9A%84LOCK%E6%8C%87%E4%BB%A4.html)
+- # [深入理解Linux线程同步](https://blog.csdn.net/orangeboyye/article/details/125468728) —— 建议只看该文章的 线程防同步方法 这一部分
+- # [MESI 协议](https://www.cnblogs.com/yanlong300/p/8986041.html)
+- # [聊聊LOCK指令](https://albk.tech/%E8%81%8A%E8%81%8ACPU%E7%9A%84LOCK%E6%8C%87%E4%BB%A4.html)
 > ## 处理器如何实现原子操作
 > 首先处理器会保证基本的内存操作的原子性，比如从内存读取或者写入一个字节是原子的，但对于读-改-写、或者是其它复杂的内存操作是不能保证其原子性的，又比如跨总线宽度、跨多个缓存行和夸页表> 的访问，这时候需要处理器提供总线锁和缓存锁两个机制来保证复杂的内存操作原子性
 > 
@@ -27,21 +27,21 @@
 > 锁总线，其它CPU对内存的读写请求都会被阻塞，直到锁释放，因为锁总线的开销比较大，后来的处理器都采用锁缓存替代锁总线，在无法使用缓存锁的时候会降级使用总线锁
 > lock期间的写操作会回写已修改的数据到主内存，同时通过缓存一致性协议让其它CPU相关缓存行失效
 
-- [一文解决内存屏障（含volatile原理与CAS原理）](https://monkeysayhi.github.io/2017/12/28/%E4%B8%80%E6%96%87%E8%A7%A3%E5%86%B3%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C/)
-> 
+- # [一文解决内存屏障（含volatile原理与CAS原理）](https://monkeysayhi.github.io/2017/12/28/%E4%B8%80%E6%96%87%E8%A7%A3%E5%86%B3%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C/)
+> ## JMM
 > JMM （Java Memory Model ）Java内存模型是一个语言级别的内存模型抽象，它屏蔽了底层硬件实现内存一致性需求的差异，提供了对上层的统一的接口来提供保证内存一致性的编程能力。
 > 
 > Java作为一个跨平台的语言，Java内存模型作为一个中间层模型，它适配不同的底层硬件系统，设计一个中间层模型来屏蔽底层的硬件差异，给上层的开发者提供一个一致的使用接口，它为开发者屏蔽了底层的硬件实现细节，支持大部分的主流硬件平台。
 > 
-> 例：
+> 下面以 volatile 为例。
 > 
-> 在 JMM 的抽象层面上时: 
+> ### 在 JMM 的抽象层面上时 
 > - 在每个volatile写操作的前面插入一个StoreStore屏障。
 > - 在每个volatile写操作的后面插入一个StoreLoad屏障。
 > - 在每个volatile读操作的后面插入一个LoadLoad屏障。
 > - 在每个volatile读操作的后面插入一个LoadStore屏障。
 > 
-> 在实际的实现层面上：
+> ### 在实际的实现层面上：
 > 
 > 如果硬件架构本身已经保证了内存可见性（如单核处理器、一致性足够的内存模型等），那么volatile就是一个空标记，不会插入相关语义的内存屏障。
 > 
@@ -54,6 +54,6 @@
 > 
 > 在另外一些平台上，JVM使用 mfence 或者 LOCK 代替 sfence 与 lfence，实现更强的语义。
 
-- [悲观锁和乐观锁](https://mp.weixin.qq.com/s?__biz=MzkwMDE1MzkwNQ==&mid=2247496062&idx=1&sn=c04e0b83f38c45d06538ebac69529ee1&source=41#wechat_redirect)
-- [自旋锁](https://www.cnblogs.com/cxuanBlog/p/11679883.html)
-- [全面理解Java内存模型(JMM)及volatile关键字](https://blog.csdn.net/javazejian/article/details/72772461?spm=1001.2014.3001.5506)
+- # [悲观锁和乐观锁](https://mp.weixin.qq.com/s?__biz=MzkwMDE1MzkwNQ==&mid=2247496062&idx=1&sn=c04e0b83f38c45d06538ebac69529ee1&source=41#wechat_redirect)
+- # [自旋锁](https://www.cnblogs.com/cxuanBlog/p/11679883.html)
+- # [全面理解Java内存模型(JMM)及volatile关键字](https://blog.csdn.net/javazejian/article/details/72772461?spm=1001.2014.3001.5506)
