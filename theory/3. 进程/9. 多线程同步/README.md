@@ -7,7 +7,7 @@
 > #### 错误一
 > Store Bufferes
 > 
-> 为了避免这种CPU运算能力的浪费，Store Bufferes被引入使用。处理器把它想要**写入到主存的值写到缓存（正确应为：写入到主存的值写到 Store Bufferes ）**，然后继续去处理其他事情。当所有相关的失效确认（Invalidate Acknowledge）都接收到时，数据才会最终被提交。
+> 为了避免这种CPU运算能力的浪费，Store Bufferes被引入使用。处理器把它想要**写入到主存的值写到缓存（正确应为：写入到本地缓存的值写到 Store Bufferes ）**，然后继续去处理其他事情。当所有相关的失效确认（Invalidate Acknowledge）都接收到时，数据才会最终被提交。
 > 
 > #### 错误二
 > Store Bufferes的风险
