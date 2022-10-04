@@ -2,6 +2,9 @@
 
 - # [深入理解Linux线程同步](https://blog.csdn.net/orangeboyye/article/details/125468728) —— 建议只看该文章的 线程防同步方法 这一部分
 - # [MESI 协议](https://www.cnblogs.com/yanlong300/p/8986041.html)
+> 文章纠错: 
+> Store Bufferes
+> 为了避免这种CPU运算能力的浪费，Store Bufferes被引入使用。处理器把它想要**写入到主存的值写到缓存（正确应为：写入到主存的值写到缓存）**，然后继续去处理其他事情。当所有失效确认（Invalidate Acknowledge）都接收到时，数据才会最终被提交。
 - # [聊聊LOCK指令](https://albk.tech/%E8%81%8A%E8%81%8ACPU%E7%9A%84LOCK%E6%8C%87%E4%BB%A4.html)
 > ## 处理器如何实现原子操作
 > 首先处理器会保证基本的内存操作的原子性，比如从内存读取或者写入一个字节是原子的，但对于读-改-写、或者是其它复杂的内存操作是不能保证其原子性的，又比如跨总线宽度、跨多个缓存行和夸页表> 的访问，这时候需要处理器提供总线锁和缓存锁两个机制来保证复杂的内存操作原子性
