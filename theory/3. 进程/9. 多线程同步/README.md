@@ -9,8 +9,7 @@
 > 
 > Java的volatile在实现层面用的不是fence族屏障，而是lock。lock是如何实现屏障效果的呢？JVM为什么不用fence族呢？这两个问题在下面的几篇文章中解答：
 > 
-> - [正确认识volatile（一）](https://mp.weixin.qq.com/s/et8yJm5fcnSy-eQGSrPd7A)
-> - [正确认识volatile（二）](https://mp.weixin.qq.com/s/wK3n42QNUO9Qp2Qql4Hslg)
+> - [正确认识volatile](https://mp.weixin.qq.com/s/wK3n42QNUO9Qp2Qql4Hslg)
 > - [深入讲解线程工作内存](https://mp.weixin.qq.com/s/CQ3eX82Mc2tU2iYccMSPCg)
 
 - [volatile底层原理详解](https://zhuanlan.zhihu.com/p/133851347)
