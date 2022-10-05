@@ -14,7 +14,7 @@
 > 
 > 第一: 就是处理器会尝试从存储缓存（Store buffer）中读取值，但它还没有进行提交。这个的解决方案称为Store Forwarding，它使得加载的时候，**如果存储缓存（正确应该再补上: Store buffer）中**存在，则进行返回。
 > 
-- # StoreBuffer
+- # [StoreBuffer与Invalid Queue](https://blog.csdn.net/wll1228/article/details/107775976)
 - # 缓存行隔开
 - # [聊聊LOCK指令](https://albk.tech/%E8%81%8A%E8%81%8ACPU%E7%9A%84LOCK%E6%8C%87%E4%BB%A4.html)
 > ## 处理器如何实现原子操作
