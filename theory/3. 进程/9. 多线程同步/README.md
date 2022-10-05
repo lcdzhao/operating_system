@@ -15,8 +15,6 @@
 > 第一: 就是处理器会尝试从存储缓存（Store buffer）中读取值，但它还没有进行提交。这个的解决方案称为Store Forwarding，它使得加载的时候，**如果存储缓存（正确应该再补上: Store buffer）中**存在，则进行返回。
 > 
 - # [StoreBuffer与Invalid Queue](https://blog.csdn.net/wll1228/article/details/107775976)
-- # [伪共享与缓存行填充-1](https://blog.csdn.net/qq_27680317/article/details/78486220)
-- # [伪共享与缓存行填充-2](https://blog.51cto.com/u_13561855/4035624)
 - # [聊聊LOCK指令](https://albk.tech/%E8%81%8A%E8%81%8ACPU%E7%9A%84LOCK%E6%8C%87%E4%BB%A4.html)
 > ## 处理器如何实现原子操作
 > 首先处理器会保证基本的内存操作的原子性，比如从内存读取或者写入一个字节是原子的，但对于读-改-写、或者是其它复杂的内存操作是不能保证其原子性的，又比如跨总线宽度、跨多个缓存行和夸页表> 的访问，这时候需要处理器提供总线锁和缓存锁两个机制来保证复杂的内存操作原子性
@@ -79,3 +77,7 @@
 - # [悲观锁和乐观锁](https://mp.weixin.qq.com/s?__biz=MzkwMDE1MzkwNQ==&mid=2247496062&idx=1&sn=c04e0b83f38c45d06538ebac69529ee1&source=41#wechat_redirect)
 - # [自旋锁](https://www.cnblogs.com/cxuanBlog/p/11679883.html)
 - # [全面理解Java内存模型(JMM)及volatile关键字](https://blog.csdn.net/javazejian/article/details/72772461?spm=1001.2014.3001.5506)
+- # 其他
+> - ### [伪共享与缓存行填充-1](https://blog.csdn.net/qq_27680317/article/details/78486220)
+> - ### [伪共享与缓存行填充-2](https://blog.51cto.com/u_13561855/4035624)
+
