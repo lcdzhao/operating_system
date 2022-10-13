@@ -2,4 +2,4 @@
 
 ## [malloc，vmalloc，kmalloc区别 ](https://blog.csdn.net/alzzw/article/details/101901323)
 
-## [malloc 原理](https://blog.csdn.net/so_dota_so/article/details/82351933)
+## [malloc 原理](https://blog.csdn.net/AngelDg/article/details/111825900)
