@@ -131,6 +131,8 @@ static inline int send_sig(long sig,struct task_struct * p,int priv)
 }
 ```
 ## 处理信号
+> 信号SIGKILL和SIGSTOP无法被捕获，且无法被忽略。
+
 信号的处理实际上通过`kernel/signal.c`中的`do_signal`方法，`do_signal`的执行流程：
  ![do_signal](README.assets/do_signal.png)
  ![stack_of_do_signal](README.assets/stack_of_do_signal.png)
