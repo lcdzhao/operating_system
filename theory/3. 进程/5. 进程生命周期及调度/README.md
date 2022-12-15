@@ -34,7 +34,7 @@ Linux的进程有两种睡眠状态：`TASK_INTERRUPTIBLE`和`TASK_UNINTERRUPTIB
 #### TASK_ZOMBIE 
 在`fork()/execve()`过程中，假设子进程结束时父进程仍存在，而父进程`fork()`之前既没安装SIGCHLD信号处理函数调用`waitpid()`等待子进程结束，又没有显式忽略该信号，则子进程成为僵死进程，无法正常结束，此时即使是`root`身份`kill -9`也不能杀死僵死进程。**补救办法是杀死僵尸进程的父进程(僵死进程的父进程必然存在)，僵死进程成为`孤儿进程`，过继给1号进程init，init始终会负责清理僵死进程**。
 #### TASK_STOPPED 
-进程暂停执行，当收到`SIGSTOP`信号时，进程将切换到该状态，当收到`SIGCONT`时，进程将继续执行。
+`SIGSTOP`、`SIGTSTP`、`SIGTTIN`、`SIGTTOUT`等信号会将进程暂时停止，进入`TASK_STOPPED`状态。这4种状态不可被忽略，不可被屏蔽，不能安装新的处理函数。在收到`SIGCONT`后进程可以恢复执行。
 ## Linux 0.11 状态切换点源码
 > Post author: Or1onX
 > 
