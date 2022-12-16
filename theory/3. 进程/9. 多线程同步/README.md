@@ -1,7 +1,7 @@
 ![sync](README.assets/sync.png)
 
 - # [深入理解Linux线程同步](https://blog.csdn.net/orangeboyye/article/details/125468728) —— 建议只看该文章的 线程防同步方法 这一部分
-- # [mutex 与 futex 锁实现](https://pzh2386034.github.io/Black-Jack/category/#/pthread)
+- # [使用 futex 实现 信号量 与 mutex](https://www.cnblogs.com/yysblog/archive/2012/11/03/2752728.html)
 - # [MESI 协议](https://www.cnblogs.com/yanlong300/p/8986041.html)
 > ### 文章纠错: 
 > 
