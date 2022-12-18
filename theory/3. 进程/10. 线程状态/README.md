@@ -25,7 +25,7 @@
 
 - New
 - Running （包含操作系统中的Running及IO产生的Interruptable与Uninterruptable，由于在java层面并不关心操作系统层面的资源问题，仅关心语言层面定义的Blocked（锁阻塞）及Wait、Time_wait，故操作系统IO产生的Interruptable与Uninterruptable被Java视为Running）
-- Wait
-- Timed_wait
-- Blocked （未获取到Java语言层面的锁，和操作系统层管理的硬件资源之间没有直接关系）
+- Wait  （反应到操作系统层面为 Interruptable）
+- Timed_wait   （反应到操作系统层面为 Interruptable）
+- Blocked （未获取到Java语言层面的锁，和操作系统层管理的硬件资源之间没有直接关系，反应到操作系统层面为 Interruptable）
 - Terminate
