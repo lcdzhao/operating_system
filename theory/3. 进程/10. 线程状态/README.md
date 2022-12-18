@@ -24,7 +24,7 @@
 高级语言层面，以Java为例，其为操作系统与程序员之间的桥梁，即要能够与操作系统的状态有一定的对应关系，又要屏蔽掉一些操作系统的复杂度，让程序员更易理解，故其与操作系统源码中定义的线程状态也不一一对应，具体为：
 
 - New
-- Running（包含BIO中的阻塞）
+- Running （包含操作系统中的Running及IO产生的Interruptable与Uninterruptable，由于在java层面并不关心操作系统层面的资源问题，仅关心语言层面定义的Blocked（锁阻塞）及Wait、Time_wait，故操作系统IO产生的Interruptable与Uninterruptable被Java视为Running）
 - Wait
 - Timed_wait
 - Blocked （未获取到Java语言层面的锁，和操作系统层管理的硬件资源之间没有直接关系）
