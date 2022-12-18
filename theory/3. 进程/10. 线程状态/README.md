@@ -13,7 +13,7 @@
 ## 教科书层面
 教科书层面更倾向于给读者将一个线程的运行过程描述清楚，故其更加偏向于容易理解，其定义的状态与操作系统源码中定义的线程状态并不一一对应，具体为：
 
-- Create （在高级语言中刚创建还没参与调度的线程还未创建出操作系统中的线程，start()时才开始创建操作系统的线程并运行。操作系统初始化中的线程状态为Uninterruptable，初始化结束后状态即改为Running，开始参与调度）
+- Create （在高级语言中刚创建还没start()的线程并未创建出操作系统中的线程，start()时才开始创建操作系统的线程并运行。操作系统初始化中的线程状态为Uninterruptable，初始化结束后状态即改为Running，开始参与调度）
 - Ready
 - Running
 - Blocked （对应操作系统中的Interruptable及Uninterruptable）
@@ -23,7 +23,7 @@
 ## 高级语言层面（以JAVA为例）
 高级语言层面，以Java为例，其为操作系统与程序员之间的桥梁，即要能够与操作系统的状态有一定的对应关系，又要屏蔽掉一些操作系统的复杂度，让程序员更易理解，故其与操作系统源码中定义的线程状态也不一一对应，具体为：
 
-- New
+- New (刚New出来还没start()的线程还未创建出操作系统中的线程，start()时才开始创建操作系统的线程并运行。操作系统初始化中的线程状态为Uninterruptable，初始化结束后状态即改为Running，开始参与调度）
 - Running （包含操作系统中的Running及IO产生的Interruptable与Uninterruptable，由于在java层面并不关心操作系统层面的资源问题，仅关心语言层面定义的Blocked（锁阻塞）及Wait、Time_wait，故操作系统IO产生的Interruptable与Uninterruptable被Java视为Running）
 - Wait  （反应到操作系统层面为 Interruptable）
 - Timed_wait   （反应到操作系统层面为 Interruptable）
