@@ -4,9 +4,9 @@
 ## 操作系统源码层面
 操作系统的代码直接对接底层硬件，其运行在业务代码与硬件之间（在《Unix编程艺术》中被称为胶和层），故其在源码层面定义的线程状态侧重于如何在这个胶和层描述清楚一个线程，故其几个核心的状态为：
 
-- Running
-- Interruptable
-- Uninterruptable
+- Running（对应教科书中的 Ready 和 Running）
+- Interruptable （教科书中Blocked的子集）
+- Uninterruptable  （教科书中Blocked的子集）
 - Stop
 - Zombie
 
@@ -16,7 +16,7 @@
 - Created
 - Ready
 - Running
-- Blocked
+- Blocked （对应操作系统中的Interruptable及Uninterruptable）
 - Terminate
 
 
