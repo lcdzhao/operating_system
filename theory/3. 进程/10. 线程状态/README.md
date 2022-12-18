@@ -27,5 +27,5 @@
 - Running（包含BIO中的阻塞）
 - Wait
 - Timed_wait
-- Blocked 
+- Blocked （未获取到Java语言层面的锁，和操作系统层管理的硬件资源之间没有直接关系）
 - Terminate
