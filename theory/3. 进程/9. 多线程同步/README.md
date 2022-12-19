@@ -2,7 +2,7 @@
 
 - # [ futex ](https://www.cnblogs.com/yysblog/archive/2012/11/03/2752728.html)
 - # [从AQS到futex(三): glibc(NPTL)的mutex/cond实现](http://kexianda.info/2017/08/17/%E5%B9%B6%E5%8F%91%E7%B3%BB%E5%88%97-5-%E4%BB%8EAQS%E5%88%B0futex%E4%B8%89-glibc-NPTL-%E7%9A%84mutex-cond%E5%AE%9E%E7%8E%B0/) 
-- # [柯贤达-并发系列，从AQS到futex完整解析，质量非常高](http://kexianda.info/2017/07/09/并发系列-0-引子）
+- # [柯贤达-并发系列，从AQS到futex完整解析，质量非常高](http://kexianda.info）
 - # [MESI 协议](https://www.cnblogs.com/yanlong300/p/8986041.html)
 > ### 文章纠错: 
 > 
