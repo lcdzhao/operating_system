@@ -2,6 +2,7 @@
 
 - # [深入理解Linux线程同步](https://blog.csdn.net/orangeboyye/article/details/125468728) —— 建议只看该文章的 线程防同步方法 这一部分
 - # [使用 futex 实现 信号量 与 mutex](https://www.cnblogs.com/yysblog/archive/2012/11/03/2752728.html)
+- # [glibc 中如何用futex实现mutex](https://zhuanlan.zhihu.com/p/343845048?utm_id=0)
 - # [MESI 协议](https://www.cnblogs.com/yanlong300/p/8986041.html)
 > ### 文章纠错: 
 > 
