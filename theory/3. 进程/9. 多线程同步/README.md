@@ -2,7 +2,6 @@
 
 - # [ futex ](https://developer.aliyun.com/article/app/6043?spm=a21i6v.25403440.0.0&navigationBar=)
 - # [打通JAVA与内核系列之一ReentrantLock锁的实现原理](https://mp.weixin.qq.com/s?__biz=MzIzOTU0NTQ0MA==&mid=2247506325&idx=1&sn=54ba022fdaf9d35a10640d3f80997966&chksm=e92ae49ade5d6d8cd815c9ca2b50e20bd051f3358557f305cb70b9b00f4f7f661ee8d8515b7b&scene=178&cur_album_id=1391790902901014528#rd)
-- # [柯贤达-并发系列-从AQS到futex完整解析-质量非常高](http://kexianda.info/2017/07/09/%E5%B9%B6%E5%8F%91%E7%B3%BB%E5%88%97-0-%E5%BC%95%E5%AD%90/)
 - # [MESI 协议](https://www.cnblogs.com/yanlong300/p/8986041.html)
 > ### 文章纠错: 
 > 
