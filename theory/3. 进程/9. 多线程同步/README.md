@@ -71,10 +71,12 @@ C ++层面实现 Parker对象，主要有 _mutex、_counter、condition阻塞队
 - 拿到mutex之后，再次检查_counter是不是>0，如果是，则把_counter设置为0，unlock mutex并返回
 - 如果_counter还是不大于0，则判断等待的时间是否等于0，然后调用相应的pthread_cond_wait系列函数进行等待，如果等待返回（即有人进行unpark，则pthread_cond_signal来通知），则把_counter设置为0，unlock mutex并返回。
 ### GLIBC 层
-`pthread_cond_wait()` 方法封装了系统调用`futex`,在其之上实现了
-###
+`pthread_cond_wait()` 方法封装了系统调用`futex`,通过`pthread_cond_wait()`的线程可以通过`pthread_cond_signal()`唤醒，`pthread_cond_signal()`时`unlock()`和`signal()`时调用的底层实现，其也是封装了系统调用`futex`。
 
-### 
+无论是pthread_cond_wait还是pthread_cond_signal 都必须得先pthread_mutex_lock。如果没有这个保护，可能会产生race condition，漏掉信号。pthread_cond_wait()函数一进入wait状态就会自动release mutex。当其他线程通过pthread_cond_signal或pthread_cond_broadcast把该线程唤醒，使pthread_cond_wait()返回时，该线程又自动获得该mutex。
+### 操作系统内核实现层面——futex系统调用：
+futex系统调用，将 锁变量 以及 锁队列 都映射到用户空间，在没有竞争发生时，用户可以通过`基于CAS的自旋锁`在用户空间直接获取锁，而无需系统调用切换线程上下文，其仅在发生竞争需要修改线程状态时才进行系统调用。实际上通过系统调用在内核空间能做而用户空间不能做的事情，就是修改线程的运行状态。在`futex`以前，互斥锁的实现是通过操作系统的信号量相关的系统调用来实现的，我之前在Liuix 0.11 中实现过信号量的相关系统调用，不像futex 将 锁变量 以及 锁队列 都映射到用户空间，信号量的值被存储在内核态，并没有映射到用户空间，因此即使在没有竞争发生的情况下，对信号量值的每一次操作都要切入系统调用，这一部分其实是没有必要的。由此可见，相比信号量相关的系统调用实现，`futex`系统调用的实现极大地减少了系统调用的次数，从而减少了用户态到内核态切换的次数。
+
 
 
 # volatile 原理
@@ -84,7 +86,6 @@ C ++层面实现 Parker对象，主要有 _mutex、_counter、condition阻塞队
 - 可见性
 ## 实现：
 > [volatile 原理深度解析](https://juejin.cn/post/7018357942403465246)  【文章中关于解析汇编 读取j 的说明是错误的，mov 指令不能说明 j 的读取是从主存中，而不是从缓存中，相反其就是从缓存中读取，从哪里读取并不能从汇编指令中看出，因为硬件处理这块对于汇编语言来说是透明的】
-
 
 volatile的实现如下：
 
@@ -121,8 +122,6 @@ C++的volatile禁止对这个变量相关的代码进行乱序优化（重排序
 - JMM 中的读写屏障 和 CPU的读写屏障不一定一一对应。
 
 我们这里不展开讨论细节，因为硬件的优化方式虽然思想与软件相同，但是实现却大不相同(且这类底层知识最好直接看论文，大多数人的描写都会多多少少有点问题)，故我们知道大概的思想和产生原因即可。如果对于细节感兴趣，可以阅读上面的文章。
-
-
 
 # [悲观锁和乐观锁](https://mp.weixin.qq.com/s?__biz=MzkwMDE1MzkwNQ==&mid=2247496062&idx=1&sn=c04e0b83f38c45d06538ebac69529ee1&source=41#wechat_redirect)
 # [自旋锁](https://www.cnblogs.com/cxuanBlog/p/11679883.html)
