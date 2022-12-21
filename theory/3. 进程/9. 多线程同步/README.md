@@ -64,15 +64,22 @@ futex系统调用，将 锁变量 以及 锁队列 都映射到用户空间，�
 ### JDK层
 AQS，最终调用到`unsafe.park()`，且传入的对象(即：锁的对象)为 ReentrantLock中的`Sync`对象。用ReentrantLock创建的Condition调用await()方法时，调用的也是`unsafe.park()`，传入的对象(即：锁的对象)为Condition对象本身。
 
-AQS 把本来在jvm层做的很多动作直接拿到了java语言层面，如condition的await和signal管理的核心逻辑在java层面，而不是完全借助的C语言的pthread_cont_wait的实现，仅仅暴露了 park 和 unpark 两个native 方法，为什么说这块很巧妙呢，主要是因为实际上对于java线程来说，唯一在操作系统内核态要做的事情就是暂停与继续线程，而java无法直接调用系统调用，故这里调用了 native 方法，这个抽象十分合理。要实现park的逻辑，单纯使用 pthread_mutex 的意义肯定不行，因为 mutex 的语意是互斥，而不是暂停，故尔在实现 park 和 unpark 方法，最终调用的还是 pthread_cont 的方法而不是 pthread_mutex 方法，但是并没有在 pthread_cont 的逻辑中控制 java 中的 condition，而仅仅是为了实现 park 与 unpark 逻辑相关的 condition。
-
-
 ### JVM层
+
 C ++层面实现 Parker对象，主要有 _mutex、_counter、cond条件。
 - 当调用park时，先尝试能否直接拿到“许可”，即_counter>0时，如果成功，则把_counter设置为0,并返回。
 - 如果不成功，则把线程的状态设置成_thread_in_vm并且_thread_blocked。_thread_in_vm 表示线程当前在JVM中执行，_thread_blocked表示线程当前阻塞了。
 - 拿到mutex之后，再次检查_counter是不是>0，如果是，则把_counter设置为0，unlock mutex并返回
 - 如果_counter还是不大于0，则判断等待的时间是否等于0，然后调用相应的pthread_cond_wait系列函数进行等待，如果等待返回（即有人进行unpark，则pthread_cond_signal来通知），则把_counter设置为0，unlock mutex并返回。
+
+##### 为什么 park 与 unpark 最终还是会调用 pthread_cont 的逻辑？明明 condition 相关的逻辑已经在java语言层面实现了呀？
+
+与synchronized相比，AQS 把本来在jvm层做的很多动作直接拿到了java语言层面，如condition的await和signal管理的核心逻辑在java层面，而不是完全借助的C语言的pthread_cont的实现，仅仅暴露了 park 和 unpark 两个native 方法。
+
+为什么说这块很巧妙呢，主要是因为实际上对于java线程来说，唯一在操作系统内核态要做的事情就是暂停与继续线程，而java无法直接调用系统调用，故这里调用了 native 方法，这个抽象十分合理，暴露的方法很少也很便于java程序员理解。
+
+而要实现park的逻辑，单纯使用 pthread_mutex 的意义肯定不行，因为 mutex 的语意是互斥，而不是暂停，故尔在实现 park 和 unpark 方法，最终调用的还是 pthread_cont 的方法而不是 pthread_mutex 方法，但是并没有在 pthread_cont 的逻辑中控制 java 中的 condition，而仅仅是为了实现 park 与 unpark 逻辑相关的 condition。
+
 
 ### GLIBC 层
 `pthread_cond_wait()` 方法封装了系统调用`futex`,通过`pthread_cond_wait()`的线程可以通过`pthread_cond_signal()`唤醒，`pthread_cond_signal()`时`unlock()`和`signal()`时调用的底层实现，其也是封装了系统调用`futex`。
