@@ -64,7 +64,7 @@ futex系统调用，将 锁变量 以及 锁队列 都映射到用户空间，�
 ### JDK层
 AQS，最终调用到`unsafe.park()`，且传入的对象(即：锁的对象)为 ReentrantLock中的`Sync`对象。用ReentrantLock创建的Condition调用await()方法时，调用的也是`unsafe.park()`，传入的对象(即：锁的对象)为Condition对象本身。
 
-AQS 把本来在jvm层做的很多动作直接拿到了java语言层面，仅仅暴露了 park 和 unpark 两个native 方法，为什么说这块很巧妙呢，主要是因为实际上对于java线程来说，唯一在操作系统内核态要做的事情就是暂停与继续线程，而java无法直接调用系统调用，故这里调用了 native 方法，这个抽象十分合理。
+AQS 把本来在jvm层做的很多动作直接拿到了java语言层面，如condition的await和signal管理的核心逻辑在java层面，而不是完全借助的C语言的pthread_cont_wait的实现，仅仅暴露了 park 和 unpark 两个native 方法，为什么说这块很巧妙呢，主要是因为实际上对于java线程来说，唯一在操作系统内核态要做的事情就是暂停与继续线程，而java无法直接调用系统调用，故这里调用了 native 方法，这个抽象十分合理。（至于为什么 park 和 unpark 方法最终调用的还是 pthread_cont 的方法而不是 pthread_mutex 方法的原因目前我还想不到）
 
 
 ### JVM层
