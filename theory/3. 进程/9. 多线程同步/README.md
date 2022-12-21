@@ -74,7 +74,7 @@ C ++层面实现 Parker对象，主要有 _mutex、_counter、cond条件。
 
 ##### 为什么 park 与 unpark 最终还是会调用 pthread_cont 的逻辑？明明 condition 相关的逻辑已经在java语言层面实现了呀？
 
-与synchronized相比，AQS 把本来在jvm层做的很多动作直接拿到了java语言层面，如condition的await和signal管理的核心逻辑在java层面，而不是完全借助的C语言的pthread_cont的实现，仅仅暴露了 park 和 unpark 两个native 方法。
+与synchronized相比，AQS 把本来在jvm层做的很多动作直接拿到了java语言层面，如condition的await和signal管理的阻塞线程队列的逻辑在java层面，而不是完全借助的C语言的pthread_cont的实现，仅仅暴露了 park 和 unpark 两个native 方法。
 
 为什么说这块很巧妙呢，主要是因为实际上对于java线程来说，唯一在操作系统内核态要做的事情就是暂停与继续线程，而java无法直接调用系统调用，故这里调用了 native 方法，这个抽象十分合理，暴露的方法很少也很便于java程序员理解。
 
