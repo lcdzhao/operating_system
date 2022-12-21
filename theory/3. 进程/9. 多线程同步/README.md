@@ -26,6 +26,8 @@
 > [关于缓存一致性协议、MESI、StoreBuffer、InvalidateQueue、内存屏障、Lock指令和JMM的那点事](https://heapdump.cn/article/3971578)
 
 # volatile 原理
+> [volatile 原理深度解析](https://juejin.cn/post/7018357942403465246)
+#### 文章总结：
 volatile的实现如下：
 
 - 代码层面： volatile关键字
@@ -35,7 +37,8 @@ volatile的实现如下：
    
    - 读volatile基于c++的volatile关键字，每次从主存中读取。
    - 写volatile基于c++的volatile关键字和  lock 指令的内存屏障，每次将新值刷新到主存，同时其他cpu缓存的值失效。
-   C++的volatile禁止对这个变量相关的代码进行乱序优化（重排序），也就具有内存屏障的作用了，另外也可以手动插入内存屏障：_  asm _ _ volatile _  ( " " : : : "memory"  )。
+
+C++的volatile禁止对这个变量相关的代码进行乱序优化（重排序），也就具有内存屏障的作用了，另外也可以手动插入内存屏障：_  asm _ _ volatile _  ( " " : : : "memory"  )。
 
 # [悲观锁和乐观锁](https://mp.weixin.qq.com/s?__biz=MzkwMDE1MzkwNQ==&mid=2247496062&idx=1&sn=c04e0b83f38c45d06538ebac69529ee1&source=41#wechat_redirect)
 # [自旋锁](https://www.cnblogs.com/cxuanBlog/p/11679883.html)
