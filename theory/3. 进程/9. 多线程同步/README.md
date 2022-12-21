@@ -33,7 +33,7 @@ volatile的实现如下：
 - 代码层面： volatile关键字
 - 字节码层面：ACC_VOLATILE字段访问标识符
 - JVM规范层面：JMM要求实现为内存屏障。
-- （Hospot实现）系统底层：
+- （Hospot X86架构 实现）系统底层：
    
    - 读volatile基于c++的volatile关键字，每次从主存中读取。
    - 写volatile基于c++的volatile关键字和  lock 指令的内存屏障，每次将新值刷新到主存，同时其他cpu缓存的值失效。
