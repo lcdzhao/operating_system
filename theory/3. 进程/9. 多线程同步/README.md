@@ -1,16 +1,16 @@
 ![sync](README.assets/sync.png)
 
 # [ futex ](https://developer.aliyun.com/article/app/6043?spm=a21i6v.25403440.0.0&navigationBar=)
-# sycchronized 原理
+# synchronized 原理
 从功能和实现对其进行阐述。
 ### 功能
 通过对对象加锁和解锁来实现多线程对代码块执行的互斥性，从而实现被包围的代码块的原子性。
 
 ### 实现
-`sycchronized` 的实现总的来说分为 java 语言层面、java 字节码层面、JVM 实现(hotspot jdk 8)层面、glibc 层面、操作系统内核实现层面——futex系统调用 这五个层面，接下来我来依次对这五个层面的实现进行详细的阐述。
+`synchronized` 的实现自上而下，总的来说分为 java 语言层面、java 字节码层面、JVM 实现(hotspot jdk 8)层面、glibc 层面、操作系统内核实现层面——futex系统调用 这五个层面，接下来我来依次对这五个层面的实现进行详细的阐述。
 
 #### java 语言层面
-设计`sycchronized`关键字，用户可以直接使用`sycchronized`关键字来在代码块周围进行对象的加锁，解锁操作，要加锁的对象可以自定义，也可以使用默认的，`sycchronized`在成员方法上,默认使用当前对象，在静态方法上，默认使用当前类的Class对象。
+设计`synchronized`关键字，用户可以直接使用`sycchronized`关键字来在代码块周围进行对象的加锁，解锁操作，要加锁的对象可以自定义，也可以使用默认的，`sycchronized`在成员方法上,默认使用当前对象，在静态方法上，默认使用当前类的Class对象。
 
 #### java 字节码层面：
 - 进入临界代码块：将要加锁的对象加入到当前栈帧中的操作数栈中，通过 monitor_enter 字节码指令进行加锁。
@@ -47,20 +47,45 @@ glibc 里面的 `pthread_mutex_lock` 方法封装了系统调用`futex`， 其�
 futex系统调用，将 锁变量 以及 锁队列 都映射到用户空间，在没有竞争发生时，用户可以通过`基于CAS的自旋锁`在用户空间直接获取锁，而无需系统调用切换线程上下文，其仅在发生竞争需要修改线程状态时才进行系统调用。实际上通过系统调用在内核空间能做而用户空间不能做的事情，就是修改线程的运行状态。在`futex`以前，互斥锁的实现是通过操作系统的信号量相关的系统调用来实现的，我之前在Liuix 0.11 中实现过信号量的相关系统调用，不像futex 将 锁变量 以及 锁队列 都映射到用户空间，信号量的值被存储在内核态，并没有映射到用户空间，因此即使在没有竞争发生的情况下，对信号量值的每一次操作都要切入系统调用，这一部分其实是没有必要的。由此可见，相比信号量相关的系统调用实现，`futex`系统调用的实现极大地减少了系统调用的次数，从而减少了用户态到内核态切换的次数。
 
 # ReentrantLock锁
+从功能和实现两个层面进行介绍。
 
+## 功能：
+- 可重入锁
+- 非公平锁
+- 公平锁
+- 可打断加锁
+- 超时锁
+- 尝试获取锁
+- 多个条件变量(synchronized仅有一个条件变量，就是锁对象本身)
 
-#### 功能：
-
-#### 实现：
+## 实现：
 > [打通JAVA与内核系列之一ReentrantLock锁的实现原理](https://mp.weixin.qq.com/s?__biz=MzIzOTU0NTQ0MA==&mid=2247506325&idx=1&sn=54ba022fdaf9d35a10640d3f80997966&chksm=e92ae49ade5d6d8cd815c9ca2b50e20bd051f3358557f305cb70b9b00f4f7f661ee8d8515b7b&scene=178&cur_album_id=1391790902901014528#rd)
 
+### JDK层
+AQS，最终调用到`unsafe.park()`，且传入的对象(即：锁的对象)为 ReentrantLock中的`Sync`对象。用ReentrantLock创建的Condition调用await()方法时，调用的也是`unsafe.park()`，传入的对象(即：锁的对象)为Condition对象本身。
 
+### JVM层
+C ++层面实现 Parker对象，主要有 _mutex、_counter、condition阻塞队列数组。
+- 当调用park时，先尝试能否直接拿到“许可”，即_counter>0时，如果成功，则把_counter设置为0,并返回。
+- 如果不成功，则把线程的状态设置成_thread_in_vm并且_thread_blocked。_thread_in_vm 表示线程当前在JVM中执行，_thread_blocked表示线程当前阻塞了。
+- 拿到mutex之后，再次检查_counter是不是>0，如果是，则把_counter设置为0，unlock mutex并返回
+- 如果_counter还是不大于0，则判断等待的时间是否等于0，然后调用相应的pthread_cond_wait系列函数进行等待，如果等待返回（即有人进行unpark，则pthread_cond_signal来通知），则把_counter设置为0，unlock mutex并返回。
+### GLIBC 层
+`pthread_cond_wait()` 方法封装了系统调用`futex`,在其之上实现了
+###
+
+### 
 
 
 # volatile 原理
+从功能和实现两个层面进行介绍。
+## 功能
+- 顺序性
+- 可见性
+## 实现：
 > [volatile 原理深度解析](https://juejin.cn/post/7018357942403465246)  【文章中关于解析汇编 读取j 的说明是错误的，mov 指令不能说明 j 的读取是从主存中，而不是从缓存中，相反其就是从缓存中读取，从哪里读取并不能从汇编指令中看出，因为硬件处理这块对于汇编语言来说是透明的】
 
-#### 文章总结：
+
 volatile的实现如下：
 
 - 代码层面： volatile关键字
