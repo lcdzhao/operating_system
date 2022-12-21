@@ -78,7 +78,7 @@ C ++层面实现 Parker对象，主要有 _mutex、_counter、cond条件。
 
 为什么说这块很巧妙呢，主要是因为实际上对于java线程来说，唯一在操作系统内核态要做的事情就是暂停与继续线程，而java无法直接调用系统调用，故这里调用了 native 方法，这个抽象十分合理，暴露的方法很少也很便于java程序员理解。
 
-而要实现park的逻辑，单纯使用 pthread_mutex 的意义肯定不行，因为 mutex 的语意是互斥，而不是暂停，故尔在实现 park 和 unpark 方法，最终调用的还是 pthread_cont 的方法而不是 pthread_mutex 方法，但是并没有在 pthread_cont 的逻辑中控制 java 中的 condition，而仅仅是为了实现 park 与 unpark 逻辑相关的 condition。
+而park与unpark的语意本身与锁并无关系，仅仅是暂停该线程，sleep最终调用的也是park与unpark，要实现park的逻辑，单纯使用 pthread_mutex 的意义肯定不行，因为 mutex 的语意是互斥锁，而不是单纯的暂停，故尔在实现 park 和 unpark 方法，最终调用的还是 pthread_cont 的方法而不是 pthread_mutex 方法，但是并没有在 pthread_cont 的逻辑中控制 java 中的 condition，而仅仅是为了实现 park 与 unpark 逻辑相关的 condition。
 
 
 ### GLIBC 层
