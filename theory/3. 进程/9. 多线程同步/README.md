@@ -2,7 +2,7 @@
 
 - # [ futex ](https://developer.aliyun.com/article/app/6043?spm=a21i6v.25403440.0.0&navigationBar=)
 - # [打通JAVA与内核系列之一ReentrantLock锁的实现原理](https://mp.weixin.qq.com/s?__biz=MzIzOTU0NTQ0MA==&mid=2247506325&idx=1&sn=54ba022fdaf9d35a10640d3f80997966&chksm=e92ae49ade5d6d8cd815c9ca2b50e20bd051f3358557f305cb70b9b00f4f7f661ee8d8515b7b&scene=178&cur_album_id=1391790902901014528#rd)
-- # [MESI](https://blog.csdn.net/miaomiao19971215/article/details/118217380)
+- # [MESI](https://blog.csdn.net/qq_41916811/article/details/103912912?spm=1001.2101.3001.6661.1&utm_medium=distribute.pc_relevant_t0.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-1-103912912-blog-118217380.pc_relevant_3mothn_strategy_recovery&depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-1-103912912-blog-118217380.pc_relevant_3mothn_strategy_recovery&utm_relevant_index=1)
 - # [聊聊LOCK指令](https://albk.tech/%E8%81%8A%E8%81%8ACPU%E7%9A%84LOCK%E6%8C%87%E4%BB%A4.html)
 > ## 处理器如何实现原子操作
 > 首先处理器会保证基本的内存操作的原子性，比如从内存读取或者写入一个字节是原子的，但对于读-改-写、或者是其它复杂的内存操作是不能保证其原子性的，又比如跨总线宽度、跨多个缓存行和夸页表> 的访问，这时候需要处理器提供总线锁和缓存锁两个机制来保证复杂的内存操作原子性
