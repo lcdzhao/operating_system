@@ -1,17 +1,17 @@
 ![sync](README.assets/sync.png)
 
-- # [ futex ](https://developer.aliyun.com/article/app/6043?spm=a21i6v.25403440.0.0&navigationBar=)
-- # [打通JAVA与内核系列之一ReentrantLock锁的实现原理](https://mp.weixin.qq.com/s?__biz=MzIzOTU0NTQ0MA==&mid=2247506325&idx=1&sn=54ba022fdaf9d35a10640d3f80997966&chksm=e92ae49ade5d6d8cd815c9ca2b50e20bd051f3358557f305cb70b9b00f4f7f661ee8d8515b7b&scene=178&cur_album_id=1391790902901014528#rd)
-- # [MESI](https://heapdump.cn/article/3971578)
+# [ futex ](https://developer.aliyun.com/article/app/6043?spm=a21i6v.25403440.0.0&navigationBar=)
+# [打通JAVA与内核系列之一ReentrantLock锁的实现原理](https://mp.weixin.qq.com/s?__biz=MzIzOTU0NTQ0MA==&mid=2247506325&idx=1&sn=54ba022fdaf9d35a10640d3f80997966&chksm=e92ae49ade5d6d8cd815c9ca2b50e20bd051f3358557f305cb70b9b00f4f7f661ee8d8515b7b&scene=178&cur_album_id=1391790902901014528#rd)
+# [MESI](https://heapdump.cn/article/3971578)
 由于程序一般都存在 时间局部性，故 CPU 引入了缓存模块，同时由于 程序一般也具有 空间局部性，故缓存行的大小一般比较大，64位CPU一般为 64 byte(64 * 8 bit)。同时随着缓存的速度与内存表速度差距逐渐拉大，故CPU开始实现多级缓存。
 
-同时随着时代的发展，CPU 开始支持多核心，然而多个核心对同一个内存地址进行读写操作时，通常会产生数据同步的问题。故而在多核心中发展出 MESI 协议，简单的来说就是当写一个核心write一个多个CPU核心共享的变量时，会将其他核心的数据状态改为Invalidate，当其他核心读取该数据时，再去主存读取这个数据。由于同步数据状态会让CPU核心暂停等待，故引入了StoreBuffer与InvalidateQueue来作为一个状态同步过度的缓存，以此来避免这里不展开讨论细节，因为硬件的优化方式虽然思想与软件相同，但是实现却大不相同，故我们知道大概的思想和产生原因即可。
+同时随着时代的发展，CPU 开始支持多核心，然而多个核心对同一个内存地址进行读写操作时，通常会产生数据同步的问题。故而在多核心中发展出 MESI 协议，简单的来说就是当写一个核心write一个多个CPU核心共享的变量时，会将其他核心的数据状态改为Invalidate，当其他核心读取该数据时，再去主存读取这个数据。由于同步数据状态会让CPU核心暂停等待，故引入了StoreBuffer与InvalidateQueue来作为一个状态同步过度的缓存，以此来避免这里不展开讨论细节，因为硬件的优化方式虽然思想与软件相同，但是实现却大不相同(且这类底层知识最好直接看论文，大多数人的描写都会多多少少有点问题)，故我们知道大概的思想和产生原因即可。
 
 如果对于细节感兴趣，可以阅读下面的文章：
 
 > [关于缓存一致性协议、MESI、StoreBuffer、InvalidateQueue、内存屏障、Lock指令和JMM的那点事](https://heapdump.cn/article/3971578)
 
-- # [聊聊LOCK指令](https://albk.tech/%E8%81%8A%E8%81%8ACPU%E7%9A%84LOCK%E6%8C%87%E4%BB%A4.html)
+# [聊聊LOCK指令](https://albk.tech/%E8%81%8A%E8%81%8ACPU%E7%9A%84LOCK%E6%8C%87%E4%BB%A4.html)
 > ## 处理器如何实现原子操作
 > 首先处理器会保证基本的内存操作的原子性，比如从内存读取或者写入一个字节是原子的，但对于读-改-写、或者是其它复杂的内存操作是不能保证其原子性的，又比如跨总线宽度、跨多个缓存行和夸页表> 的访问，这时候需要处理器提供总线锁和缓存锁两个机制来保证复杂的内存操作原子性
 > 
@@ -69,10 +69,10 @@
 > 
 > 在另外一些平台上，JVM使用 mfence 或者 LOCK 代替 sfence 与 lfence，实现更强的语义。
 
-- # [悲观锁和乐观锁](https://mp.weixin.qq.com/s?__biz=MzkwMDE1MzkwNQ==&mid=2247496062&idx=1&sn=c04e0b83f38c45d06538ebac69529ee1&source=41#wechat_redirect)
-- # [自旋锁](https://www.cnblogs.com/cxuanBlog/p/11679883.html)
-- # [全面理解Java内存模型(JMM)及volatile关键字](https://blog.csdn.net/javazejian/article/details/72772461?spm=1001.2014.3001.5506)
-- # 其他
+# [悲观锁和乐观锁](https://mp.weixin.qq.com/s?__biz=MzkwMDE1MzkwNQ==&mid=2247496062&idx=1&sn=c04e0b83f38c45d06538ebac69529ee1&source=41#wechat_redirect)
+# [自旋锁](https://www.cnblogs.com/cxuanBlog/p/11679883.html)
+# [全面理解Java内存模型(JMM)及volatile关键字](https://blog.csdn.net/javazejian/article/details/72772461?spm=1001.2014.3001.5506)
+# 其他
 > - ### [伪共享与缓存行填充-1](https://blog.csdn.net/qq_27680317/article/details/78486220)
 > - ### [伪共享与缓存行填充-2](https://blog.51cto.com/u_13561855/4035624)
 
