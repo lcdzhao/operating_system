@@ -110,13 +110,7 @@ volatile的实现如下：
 
 - 代码层面： volatile关键字，保证顺序性和可见性。
 - 字节码层面：ACC_VOLATILE字段访问标识符
-- JVM规范层面：java 抽象出JMM，屏蔽掉了底层硬件的结构与差异，其定义了一套统一的happen-before规则，并通过JVM保证不管运行在何种操作系统或者CPU架构之上，happen-before 原则的表现都是一致的。JMM 在 happen-before 原则里保证 对volatile的写对接下来其他线程的读可见。其由JMM层面定义的内存屏障（此内存屏障与CPU内存的屏障不一定一一对应）来实现。
-    - 写屏障：
-        - 可见性：
-        - 有序性：
-    - 读屏障：
-        - 可见性：
-        - 有序性：
+- JVM规范层面：JMM要求实现为内存屏障。
 - （Hospot X86架构 实现）系统底层：
    
    - 读volatile基于c++的volatile关键字，每次从主存中读取。
