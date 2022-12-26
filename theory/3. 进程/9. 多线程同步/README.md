@@ -117,6 +117,11 @@ volatile的实现如下：
 - 代码层面： volatile关键字，保证顺序性和可见性。
 - 字节码层面：ACC_VOLATILE字段访问标识符
 - JVM规范层面：JMM要求实现为内存屏障。
+
+![jmm_barrier](README.assets/jmm_barrier.png)
+
+![volatile_barrier](README.assets/volatile_barrier.png)
+
 - （Hospot X86架构 实现）系统底层：
    
    - 读volatile基于c++的volatile关键字，每次从主存中读取。
