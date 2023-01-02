@@ -31,3 +31,5 @@ Linux 0.11 是一个汇聚了无数人智慧结晶才诞生的产物，其已经
     - namespace
     - cgroup
     - chroot
+
+- 内核虚拟化
