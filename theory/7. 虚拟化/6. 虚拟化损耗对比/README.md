@@ -1,3 +1,4 @@
+## KVM Docker 裸金属 性能对比
 https://mp.weixin.qq.com/s/__2bJidH3y_RHnz2cjHqSg
 
 ## KVM
@@ -13,10 +14,6 @@ https://mp.weixin.qq.com/s/__2bJidH3y_RHnz2cjHqSg
 
 ##### 网络IO
 
-### 实际测试效果
-#### CPU
-https://blog.51cto.com/yeshaochen/1437063
-
 ## Docker
 
 ### 理论上哪些部分会有损耗
@@ -31,5 +28,3 @@ https://blog.51cto.com/yeshaochen/1437063
 
 ##### 网络IO
 
-
-### 实际测试效果
