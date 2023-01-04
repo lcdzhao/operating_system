@@ -1,4 +1,4 @@
-https://aijishu.com/a/1060000000206531
+https://mp.weixin.qq.com/s/__2bJidH3y_RHnz2cjHqSg
 
 ## KVM
 ### 理论上哪些部分会有损耗
