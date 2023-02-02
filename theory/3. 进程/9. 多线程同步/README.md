@@ -162,7 +162,6 @@ JMM 是一个虚拟的内存模型，它抽象了 JVM 的运行机制，封装�
 
         new Thread(() -> {
             System.out.println("Thread 2 start: i++ !");
-            int j = 0;
             while (true) {
                 i++;
                 // 破坏 JIT
