@@ -105,10 +105,74 @@ JMM 是一个虚拟的内存模型，它抽象了 JVM 的运行机制，封装�
 - JMM和Java运行时数据区没有直接对应关系。
 
 ### JMM 工作内存非栈非CPU缓存证明实验
-#### i++ 单线程死循环，另一个线程当i>10000时打印i
-//TODO
+#### i++ 单线程死循环，另一个线程当i>2时打印信息
+```java
+    private static long i = 0;
+
+    public static void main(String[] args) throws InterruptedException {
+        
+        new Thread(() -> {
+            System.out.println("Thread 1 start!");
+            while (true) {
+                if (i > 2) {
+                    System.out.println("==============Thread 1 find i > 2!==============");
+                    break;
+                }
+            }
+        }).start();
+
+        Thread.sleep(1000);
+
+        new Thread(() -> {
+            System.out.println("Thread 2 start: i++ !");
+            while (true) {
+                i++;
+            }
+        }).start();
+
+    }
+```
+
+**现象**： `Thread 1` 一直无法捕获 i > 2 的信息。
+
 #### 逻辑不变，但一定次数的i++中插入j++破坏i++相关逻辑的JIT，以此证明工作内存非栈非CPU缓存
-//TODO
+```java
+    private static long i = 0;
+
+    public static void main(String[] args) throws InterruptedException {
+
+        new Thread(() -> {
+            long j = 0;
+            System.out.println("Thread 1 start!");
+            while (true) {
+                j ++;
+
+                if (i > 2) {
+                    System.out.println("==============Thread 1 find i > 2!==============");
+                    break;
+                }
+
+                // 破坏JIT
+                if(j == 10000000000L){
+                }
+            }
+        }).start();
+
+        Thread.sleep(1000);
+
+        new Thread(() -> {
+            System.out.println("Thread 2 start: i++ !");
+            int j = 0;
+            while (true) {
+                i++;
+                // 破坏 JIT
+                if(i == 100000000L){
+                }
+            }
+        }).start();
+    }
+```
+**现象**： `Thread 1` 一直可以捕获 i > 2 的信息。
 
 # volatile 原理
 从功能和实现两个层面进行介绍。
