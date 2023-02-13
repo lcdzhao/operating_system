@@ -1,2 +1,3 @@
 - DPDK：https://cloud.tencent.com/developer/article/1198333
 - 网络收包流程：https://cloud.tencent.com/developer/article/1030881
+- ebpf(ebpf vs dpdk)： http://arthurchiao.art/blog/advanced-bpf-kernel-features-for-container-age-zh/#32-%E8%BD%AC%E5%8F%91%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94xdp-vs-dpdk
