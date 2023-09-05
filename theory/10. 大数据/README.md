@@ -1,0 +1,19 @@
+# 大数据发展
+## Google三架马车
+- GFS：分布式文件
+- MapReduce：分布式计算
+- BigTable：Nosql
+## Hadoop（雅虎开源）
+- HDFS
+- MapReduce
+- YARN
+## Hive
+在HDSF上运行SQL
+## Spark
+- RDD
+- 内存计算
+- DAG（划分宽窄依赖划分Stage）
+- SparkSQL（基于RDD和DAG）
+- SparkStream（微批处理）
+- SparkMLlib（丰富的机器学习库）
+- SparkGraphX（图计算库）
