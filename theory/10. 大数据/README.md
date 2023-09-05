@@ -12,7 +12,7 @@
 ## Spark
 - RDD（弹性分布式数据集）
 - 内存计算（速度快，但成本较磁盘高）
-- DAG（MapReduce的Plus版本，划分宽窄依赖划分Stage）
+- DAG（MapReduce的Plus版本，根据RDD宽窄依赖划分Stage，多个Stage构成DAG，每个Stage为多个并行任务）
 - SparkSQL（基于RDD和DAG）
 - SparkStream（微批处理）
 - SparkMLlib（丰富的机器学习库）
