@@ -10,7 +10,7 @@
 ## Hive
 在HDSF上运行SQL
 ## Spark
-- RDD
+- RDD（弹性分布式数据集）
 - 内存计算
 - DAG（MapReduce的Plus版本，划分宽窄依赖划分Stage）
 - SparkSQL（基于RDD和DAG）
