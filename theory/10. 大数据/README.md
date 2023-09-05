@@ -8,7 +8,7 @@
 - MapReduce
 - YARN
 ## Hive
-在HDSF上运行SQL
+将SQL解析成MapReduce任务，运行在HDSF上。
 ## Spark
 - RDD（弹性分布式数据集）
 - 内存计算（速度快，但成本较磁盘高）
